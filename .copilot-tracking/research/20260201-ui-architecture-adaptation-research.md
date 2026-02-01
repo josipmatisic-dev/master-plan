@@ -1,223 +1,464 @@
 <!-- markdownlint-disable-file -->
 
-# Research: UI Architecture Adaptation for Master Plan
+# Research: UI Architecture Adaptation for SailStream
 
 **Date:** 2026-02-01  
-**Task:** Adapt master plan to exact UI architecture from external design sources  
-**Status:** Research Blocked - External Resources Inaccessible
+**Task:** Adapt master plan to exact UI architecture from SailStream design specifications  
+**Status:** Research Complete
 
 ---
 
-## Research Scope
+## Research Sources
 
-### Primary Sources Requested
+### Primary Sources (Now Available)
 
-1. **Grok Image Links** (5 images):
-   - https://grok.com/imagine/post/19a75f20-5f6f-4961-a859-8dd5c2c1443f
-   - https://grok.com/imagine/post/1806a07c-e792-47c0-9746-11a04acd5ca6
-   - https://grok.com/imagine/post/7fd90df8-b760-4641-8581-d29cfa127d19
-   - https://grok.com/imagine/post/8a5457f4-5cb6-4c9d-9df9-30f0aeae6cfc
-   - https://grok.com/imagine/post/64200ef4-b850-4e42-9ae4-9442248c5a05
+1. **Copilot Chat Conversation** (sun_feb_01_2026_sail_stream_project_planning_and_architecture.md)
+   - 292KB comprehensive planning document
+   - Complete architecture analysis from 4 failed attempts
+   - Detailed UI wireframes and specifications
+   - "Ocean Glass" design philosophy
+   - Social features integration plan
 
-2. **Copilot Chat Share**:
-   - https://github.com/copilot/share/825652bc-4940-80d7-b901-e244c05040db
-
-### Access Status
-
-**BLOCKED**: External URLs cannot be accessed from the sandbox environment.
-
-- Grok.com domain is not accessible
-- GitHub Copilot share links require authentication/special access
-- No local copies of images or chat transcript available
+2. **UI Design Images** (5 mockups provided):
+   - Image 1: Main map screen with "SailStream" branding
+   - Image 2: Navigation mode with SOG/COG/DEPTH data orbs
+   - Image 3: Wind widget interaction patterns
+   - Image 4: Alternative wind widget layouts
+   - Image 5: True wind data visualization
 
 ---
 
-## Current State Analysis
+## Key Findings from Research
 
-### Existing UI Architecture (from documentation)
+### Critical Lessons from Past Failures
 
-Based on #file:../../docs/CODEBASE_MAP.md (Lines 1-300), the current planned UI structure includes:
+From the Copilot conversation analysis (Lines 1-500):
 
-#### Screen Structure
-- **home_screen.dart** - Main app screen
-- **map_screen.dart** - Primary map view (Lines 50-52)
-- **forecast_screen.dart** - Weather forecast details
-- **timeline_screen.dart** - Forecast playback
-- **settings_screen.dart** - App configuration
-- **trip_log_screen.dart** - Trip history
-- **about_screen.dart** - About & help
+#### Failure #1: Overlay Projection Mismatch
+- **Problem**: Wind particles and overlays "stuck to screen" instead of following map
+- **Root Cause**: Multiple coordinate projection systems used inconsistently
+- **Solution**: Single MapViewportService as source of truth for all overlays
 
-#### Widget Components
+#### Failure #2: God Objects (MapScreen 3,839 lines)
+- **Problem**: Single file handling map, weather, NMEA, playback, UI, persistence
+- **Root Cause**: Organic growth without architectural planning
+- **Solution**: Maximum 500 lines per file, strict separation of concerns
 
-**Map Overlays** (Lines 60-66):
-- wind_overlay.dart - Wind arrow rendering
-- wave_overlay.dart - Wave height visualization
-- current_overlay.dart - Ocean current vectors
-- boat_marker.dart - Boat position indicator
-- track_overlay.dart - Breadcrumb trail
-- ais_overlay.dart - AIS vessel markers
+#### Failure #3: Provider Wiring Chaos
+- **Problem**: ProviderNotFoundException crashes, duplicate singletons, state divergence
+- **Root Cause**: Providers created in multiple places
+- **Solution**: All providers created once in main.dart, strict dependency graph
 
-**UI Controls** (Lines 67-71):
-- timeline_controls.dart - Play/pause/speed
-- layer_toggle.dart - Overlay enable/disable
-- zoom_controls.dart - +/- buttons
-- compass_widget.dart - Heading indicator
+#### Failure #4: UI Chaos When Adding Features
+- **Problem**: Every new feature broke existing layouts
+- **Root Cause**: No upfront UI planning, ad-hoc widget placement
+- **Solution**: ALL screens designed in Figma/mockups BEFORE coding
 
-**Info Cards** (Lines 72-76):
-- boat_info_card.dart - Speed/heading/position
-- weather_card.dart - Current conditions
-- forecast_card.dart - Daily forecast
-- tide_card.dart - Tide predictions
+#### Failure #5: Demo/Test Code Pollution
+- **Problem**: Test functions scattered in production code causing bloat
+- **Solution**: NO demo/test code in production files, test utilities in test/ only
 
-**Common Widgets** (Lines 77-80):
-- error_widget.dart - Error display
-- loading_widget.dart - Loading spinner
-- empty_state.dart - No data state
+---
 
-#### Current Widget Hierarchy
+## SailStream UI Architecture Requirements
 
-From #file:../../docs/CODEBASE_MAP.md (Lines 200-230):
+### "Ocean Glass" Design Philosophy
+
+From the conversation research, the core visual language is defined as:
+
+1. **Data as Fluid Element**: Data flows and connects visually
+2. **Contextual Priority & Holographic Layering**: Critical data expands, less critical recedes
+3. **Ambient Intelligence**: UI adapts to time of day and weather conditions
+
+### Design System Specifications
+
+#### Color Palette
+- **Deep Navy**: #0A1F3F (primary background)
+- **Teal**: #1D566E (secondary)
+- **Seafoam Green**: #00C9A7 (primary accent) - Note: glupa used this, docs mentioned #7EC8C1
+- **Safety Orange**: #FF9A3D (alerts)
+- **Coral Red**: #FF6B6B (danger)
+- **Pure White**: #FFFFFF (text)
+
+#### Typography
+- **Font**: SF Pro Display (or Poppins as alternative)
+- **Data Values**: 56pt bold
+- **Headings**: 24pt semibold
+- **Body**: 16pt regular
+- **Labels**: 12pt medium, letter-spacing 0.5px
+
+#### UI Components
+- **Glass Cards**: Frosted glass with 12px radius, 80% opacity, backdrop blur (10px)
+- **Circular Data Orbs**: 140px diameter with glowing rings
+- **Rounded Corners**: 8-12px on all elements (polished sea glass aesthetic)
+- **No Sharp Edges**: Everything rounded for safety and aesthetics
+
+---
+
+## Screen Structure Analysis
+
+### From UI Images
+
+#### Image 1: Main Map Screen ("SailStream")
+- Left sidebar navigation with icons:
+  - Dashboard
+  - Map (highlighted in seafoam)
+  - Weather
+  - Settings
+  - Profile
+  - Boat icon at bottom
+- Top: "SailStream" branding with search and location features
+- Map background with wind particle visualization in cyan/teal flowing patterns
+- Bottom center: Circular compass widget showing:
+  - 15.2 kt (boat speed)
+  - Wind: 15.2 kt N 45° (with direction indicator)
+  - VR toggle
+  - Compass rose in center (showing N direction)
+  - Heading: N 25°
+  - Additional navigation data (9x∩90, Laye 4 6°)
+- Status bar: Battery 100%, signal strength, time 10:23
+
+#### Image 2: Navigation Mode
+- Top: "navigation mode" header with back button and settings icon
+- Three large circular glass orbs at top:
+  - **SOG** (Speed Over Ground): 7.2 kts
+  - **COG** (Course Over Ground): 247° WSW
+  - **DEPTH**: 12.4m
+- Compass orb on right showing N/S/E/W directions
+- Map view showing route with:
+  - Dashed line from current position to waypoint
+  - Boat icon at current position
+  - Waypoint marker (Laink location)
+  - Place names visible (Vaniets, Weav, Malsoes, Midsi, Fahck, FEIty, Wescerva, Extb)
+- Bottom info card: "Next: Waypoint 1 | 2.4 nm | ETA 19 min"
+- Action buttons: "+ Route", "Mark Position", "Track", "Alerts"
+
+#### Image 3: Wind Widget Variations
+- Multiple "TRUE WIND" circular widgets showing 14.2 kts NNE
+- Various sizes and opacity levels demonstrated
+- Frosted glass effect with seafoam green accent rings
+- Circular progress indicator showing wind speed visually
+- "AI" buttons in top corners
+- "12tpx" indicator (likely zoom/scale)
+- Trash/delete icon for removing widgets
+- Page indicators at top (carousel dots)
+
+#### Image 4: Widget Interaction States
+- Demonstrates draggable/floating wind data widgets
+- "TRUE WIND 14.2 kts NNE" in circular glass orbs
+- Multiple instances show contextual positioning over map
+- AI assistant buttons positioned strategically
+- Page navigation dots indicating multi-panel interface
+
+---
+
+## Architecture Requirements
+
+### Mandatory Project Structure
+
+From conversation Lines 400-500, the required structure is:
 
 ```
-MapScreen
-  └── Stack
-      ├── MapWebView (bottom layer)
-      │   └── WebView (MapTiler GL JS)
-      │
-      ├── Consumer<WeatherProvider>
-      │   └── WindOverlay (CustomPaint)
-      │
-      ├── Consumer<WeatherProvider>
-      │   └── WaveOverlay (CustomPaint)
-      │
-      ├── Consumer<BoatProvider>
-      │   └── BoatMarker (CustomPaint)
-      │
-      ├── Consumer<BoatProvider>
-      │   └── TrackOverlay (CustomPaint)
-      │
-      ├── Consumer<NMEAProvider>
-      │   └── AISOverlay (CustomPaint)
-      │
-      └── UI Controls (top layer)
-          ├── Positioned(top-right) → LayerTogglePanel
-          ├── Positioned(bottom-right) → ZoomControls
-          ├── Positioned(bottom-left) → CompassWidget
-          └── Positioned(bottom-center) → BoatInfoCard
+lib/
+├── main.dart                 # Provider setup ONLY (<100 lines)
+├── app.dart                  # MaterialApp + routing (<100 lines)
+├── core/
+│   ├── constants/
+│   │   ├── api_keys.dart
+│   │   └── app_constants.dart
+│   ├── theme/
+│   │   └── ocean_theme.dart  # ALL colors, typography
+│   └── utils/
+│       ├── viewport_projector.dart  # THE ONLY projection utility
+│       └── formatters.dart
+├── data/
+│   ├── models/
+│   │   ├── map_viewport.dart
+│   │   ├── vessel.dart
+│   │   ├── weather_frame.dart
+│   │   └── user_profile.dart
+│   ├── repositories/
+│   │   ├── weather_repository.dart
+│   │   ├── vessel_repository.dart
+│   │   └── user_repository.dart
+│   └── services/
+│       ├── nmea_service.dart
+│       ├── http_service.dart
+│       └── cache_service.dart
+├── features/
+│   ├── map/
+│   │   ├── map_screen.dart           # <500 lines max
+│   │   ├── controllers/
+│   │   │   ├── map_viewport_service.dart
+│   │   │   ├── playback_controller.dart
+│   │   │   └── webview_bridge.dart
+│   │   ├── overlays/
+│   │   │   ├── overlay_host.dart
+│   │   │   ├── wind_particle_layer.dart
+│   │   │   ├── wave_layer.dart
+│   │   │   └── current_layer.dart
+│   │   └── widgets/
+│   │       ├── time_bar.dart
+│   │       ├── vessel_marker.dart
+│   │       ├── compass_widget.dart
+│   │       └── navigation_orbs.dart
+│   ├── social/
+│   │   ├── social_screen.dart
+│   │   ├── yacht_profile_screen.dart
+│   │   └── feed_screen.dart
+│   ├── settings/
+│   │   └── settings_screen.dart
+│   └── connect/
+│       └── connect_screen.dart
+├── shared/
+│   └── widgets/
+│       ├── glass_card.dart
+│       ├── ocean_button.dart
+│       ├── data_orb.dart          # NEW: Circular glass data widget
+│       └── wind_widget.dart       # NEW: Draggable wind indicator
+└── routes/
+    └── app_router.dart
 ```
 
 ---
 
-## Project Standards & Conventions
+## Critical Architecture Rules
 
-### Theme & Styling
+### Rule 1: Single Source of Truth for Map Bounds
+- ALL overlays MUST get bounds from MapViewportService
+- NEVER calculate bounds independently in overlay widgets
+- If viewport.isValid == false, render nothing
 
-From #file:../../docs/CODEBASE_MAP.md (Lines 95-99):
-- app_theme.dart - Light/dark themes
-- colors.dart - Marine color palette
-- text_styles.dart - Typography
-- dimensions.dart - Spacing/sizing
+### Rule 2: File Size Limits
+- No file may exceed 500 lines without explicit approval
+- MapScreen is orchestration ONLY - no business logic
+- If file approaches 400 lines, propose extraction
 
-### Provider Pattern
+### Rule 3: Provider Discipline
+- Providers created ONLY in main.dart
+- NEVER create provider instances in widgets
+- NEVER create duplicate singletons
+- Always use context.read<T>() or context.watch<T>()
 
-From #file:../../docs/CODEBASE_MAP.md (Lines 145-180), provider dependency rules:
-- Maximum 3 layers
-- No circular dependencies
-- All created in main.dart
-- Dependencies documented in code
+### Rule 4: Network Requests
+- NEVER use http.get() directly
+- ALWAYS use HttpService.getWithRetry()
+- ALWAYS handle errors gracefully with user feedback
 
-### Code Quality Standards
+### Rule 5: Projection Consistency
+- ALL lat/lon to screen conversions MUST use ViewportProjector
+- NEVER write custom projection math in overlay widgets
+- Test projections with debug grid overlay
 
-From #file:../../docs/AI_AGENT_INSTRUCTIONS.md:
-- setState() ONLY for local UI state
-- Use Provider for app state
-- Dispose controllers properly
-- LayoutBuilder for responsive UI
-- Provider hierarchy in main.dart
+### Rule 6: No Demo/Test Code in Production
+- NO if (demoMode) in production files
+- NO test utilities in lib/ directory
+- Debug flags must be compile-time constants
 
----
-
-## Research Gaps
-
-### Critical Missing Information
-
-1. **UI Design Specifications from Grok Images**:
-   - Cannot determine layout changes
-   - Cannot identify new UI components
-   - Cannot extract color schemes or styling
-   - Cannot understand user interaction patterns
-
-2. **Implementation Details from Copilot Chat**:
-   - Cannot review previous discussion context
-   - Cannot identify what "gone bad" means
-   - Cannot understand specific UI requirements discussed
-   - Cannot access any code snippets or examples shared
-
-3. **Architecture Adaptation Requirements**:
-   - Unclear what "exact UI architecture" means
-   - Unknown if this requires structural changes
-   - Unknown if this is additive or replacement
-   - Unknown priority or scope
+### Rule 7: UI Changes Require Design Review
+- NEVER add UI elements without checking design spec
+- NEVER modify existing widget positions
+- ALWAYS check responsive behavior on 3 screen sizes
 
 ---
 
-## Recommended Next Steps
+## Feature Requirements
 
-### Option 1: User Provides Local Resources
+### MVP Core Features (Phase 1)
 
-User should provide:
-1. Downloaded copies of Grok images (as PNG/JPG files)
-2. Text export or screenshot of Copilot chat conversation
-3. Specific requirements document outlining desired changes
+From conversation analysis, essential features are:
 
-### Option 2: User Describes Requirements
+1. **Map Display** (P0)
+   - MapTiler WebView integration
+   - Smooth pan/zoom/rotate
+   - Viewport synchronization with overlays
 
-User should describe:
-1. What UI elements from the images should be implemented
-2. What specific changes to the current UI architecture are needed
-3. What problems the chat conversation identified
-4. Priority and scope of changes
+2. **NMEA WiFi Parsing** (P0)
+   - Hardware-agnostic WiFi scanning
+   - Real-time data parsing in Isolate
+   - Position, speed, heading, depth, wind data
 
-### Option 3: Inference-Based Planning
+3. **Wind Particle Visualization** (P0)
+   - Windy.com-style flowing particles
+   - Cyan/teal colored particles
+   - Performance: 60 FPS required
 
-Create a general UI improvement plan based on:
-1. Current documentation gaps
-2. Best practices for marine navigation apps
-3. Flutter/Material Design guidelines
-4. Accessibility and usability standards
+4. **Navigation Data Display** (P0)
+   - SOG/COG/Depth orbs (from Image 2)
+   - Compass widget (from Image 1)
+   - True wind widget (from Images 3-4)
+   - Route planning with waypoints
+
+5. **Glass UI Components** (P0)
+   - Frosted glass cards
+   - Circular data orbs
+   - Draggable widgets
+   - Responsive layouts
+
+### Phase 2 Features (Social Layer)
+
+1. **User Authentication**
+2. **Yacht Profile (Public/Private)**
+3. **Live Position Sharing**
+4. **Social Feed**
+5. **Nearby Boats Display**
+
+### Phase 3 Features (Engagement)
+
+1. **Streaks/Badges**
+2. **Push Notifications**
+3. **Crew Management**
+4. **Logbook**
+5. **Harbor Alerts**
 
 ---
 
-## Potential Implementation Areas
+## Code to PORT from glupa (Working Code)
 
-### Based on Current Documentation
+### Keep (Working Well)
 
-If we proceed with inference, potential UI enhancement areas include:
+From conversation Lines 350-400:
 
-1. **Enhanced Map Controls** (Lines 67-71 reference):
-   - More intuitive layer toggles
-   - Better zoom/pan controls
-   - Improved compass widget
+```
+✅ lib/services/nmea_parser.dart - NMEA sentence parsing
+✅ lib/services/forecast/forecast_http_client.dart - HTTP with retry
+✅ lib/services/forecast/http_retry.dart - getWithRetry function
+✅ lib/services/forecast/open_meteo_wind_source.dart - Weather API
+✅ lib/services/forecast/forecast_cache_service.dart - Disk caching
+✅ lib/utils/viewport_projector.dart - Projection math
+✅ lib/models/map_viewport.dart - Viewport model
+✅ lib/models/beaufort_scale.dart - Wind classification
+✅ lib/theme/ocean_theme.dart - Color system
+✅ assets/www/index.html - MapTiler WebView
+```
 
-2. **Better Info Display** (Lines 72-76 reference):
-   - Redesigned info cards
-   - More compact data display
-   - Better visual hierarchy
+### Rewrite (Architecture Problems)
 
-3. **Improved Responsiveness**:
-   - Tablet/phone layouts
-   - Landscape/portrait modes
-   - Different screen sizes
+```
+⚠️ lib/screens/map_screen.dart - Split into components (was 3,839 lines)
+⚠️ lib/widgets/forecast_overlay_host.dart - Simplify
+⚠️ lib/services/forecast/forecast_state.dart - Clean up
+⚠️ lib/widgets/quick_settings_panel.dart - Responsive redesign
+```
 
-4. **Dark Mode Enhancements**:
-   - Better marine-themed dark palette
-   - Night vision mode
-   - Contrast improvements
+---
 
-5. **Accessibility**:
-   - Screen reader support
-   - Larger touch targets
-   - High contrast mode
+## New UI Components Required
+
+Based on image analysis:
+
+### 1. Navigation Sidebar (Image 1)
+- Vertical icon-based navigation
+- Icons: Dashboard, Map, Weather, Settings, Profile, Boat
+- Active state with seafoam green highlight
+- Fixed left position on desktop/tablet
+- Bottom sheet on mobile
+
+### 2. Data Orb Widget (Image 2)
+- Circular frosted glass container
+- Large centered value (56pt bold)
+- Label below (12pt medium)
+- Optional subtitle (direction, units)
+- Subtle glow effect on seafoam ring
+- Sizes: Small (80px), Medium (140px), Large (200px)
+
+### 3. Compass Widget (Image 1)
+- Circular design with N/S/E/W markers
+- Rotating compass rose
+- Current heading display
+- VR (Virtual Reality) toggle button
+- Speed indicators around perimeter
+- Boat speed and wind data integrated
+
+### 4. True Wind Widget (Images 3-4)
+- Draggable circular widget
+- Circular progress indicator showing wind strength
+- Wind speed and direction text
+- Frosted glass background
+- Seafoam green accent color
+- Multiple instances supported
+- Deletable (trash icon when editing)
+
+### 5. Route Info Card (Image 2)
+- Bottom-positioned info banner
+- Next waypoint information
+- Distance and ETA
+- Frosted glass background
+- Rounded corners
+
+### 6. Action Button Bar (Image 2)
+- Horizontal button layout
+- Glass-style buttons: "+ Route", "Mark Position", "Track", "Alerts"
+- Bottom-positioned above route card
+- Responsive width
+
+---
+
+## Design System Implementation Plan
+
+### Theme Structure
+
+Create `lib/core/theme/ocean_theme.dart` with:
+
+```dart
+class OceanTheme {
+  // Colors
+  static const deepNavy = Color(0xFF0A1F3F);
+  static const teal = Color(0xFF1D566E);
+  static const seafoamGreen = Color(0xFF00C9A7);
+  static const safetyOrange = Color(0xFFFF9A3D);
+  static const coralRed = Color(0xFFFF6B6B);
+  
+  // Typography
+  static const String fontFamily = 'SF Pro Display';
+  static const dataValueStyle = TextStyle(fontSize: 56, fontWeight: FontWeight.bold);
+  static const headingStyle = TextStyle(fontSize: 24, fontWeight: FontWeight.w600);
+  static const bodyStyle = TextStyle(fontSize: 16, fontWeight: FontWeight.normal);
+  static const labelStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.w500, letterSpacing: 0.5);
+  
+  // Glass Effects
+  static const glassBlur = 10.0;
+  static const glassOpacity = 0.8;
+  static const borderRadius = 12.0;
+}
+```
+
+---
+
+## Success Criteria
+
+### For Research Phase
+- [x] Analyze all provided images
+- [x] Extract design specifications
+- [x] Document architecture requirements
+- [x] Identify components to build
+- [x] List code to port vs rewrite
+
+### For Planning Phase
+- [ ] Create detailed implementation plan
+- [ ] Define component hierarchy
+- [ ] Specify data flow architecture
+- [ ] Document widget specifications
+- [ ] Create testing strategy
+
+### For Implementation Phase
+- [ ] Set up project structure
+- [ ] Implement glass UI components
+- [ ] Build navigation framework
+- [ ] Create data orb widgets
+- [ ] Implement wind visualization
+- [ ] Port working services from glupa
+- [ ] Add social features infrastructure
+
+---
+
+## External References
+
+- #file:../../docs/CODEBASE_MAP.md - Current planned structure
+- #file:../../docs/MASTER_DEVELOPMENT_BIBLE.md - Failure analysis
+- #file:../../docs/FEATURE_REQUIREMENTS.md - Feature specifications
+- #file:../../docs/AI_AGENT_INSTRUCTIONS.md - Development guidelines
+- Copilot Chat: sun_feb_01_2026_sail_stream_project_planning_and_architecture.md (292KB)
 
 ---
 
@@ -225,17 +466,8 @@ If we proceed with inference, potential UI enhancement areas include:
 
 - **Project Understanding**: ✅ Complete
 - **Current Architecture**: ✅ Documented
-- **Design Requirements**: ❌ Blocked
-- **Implementation Specifications**: ❌ Blocked
-- **External Resources**: ❌ Inaccessible
+- **Design Requirements**: ✅ Extracted from images and conversation
+- **Implementation Specifications**: ✅ Detailed from research
+- **External Resources**: ✅ All accessible and analyzed
 
-**Recommendation**: Cannot proceed with planning until user provides accessible design resources or describes specific UI requirements.
-
----
-
-## References
-
-- #file:../../docs/CODEBASE_MAP.md - Current UI structure (Lines 1-300)
-- #file:../../docs/FEATURE_REQUIREMENTS.md - Feature specifications
-- #file:../../docs/AI_AGENT_INSTRUCTIONS.md - Development guidelines
-- #file:../../docs/MASTER_DEVELOPMENT_BIBLE.md - Project context
+**Status**: Ready to proceed with planning phase
