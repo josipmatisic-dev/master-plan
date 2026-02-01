@@ -513,6 +513,11 @@ jobs:
           files: coverage/lcov.info
 ```
 
+> **Security Note**: For production use, pin GitHub Actions to specific commit SHAs instead of version tags to prevent supply chain attacks. For example:
+> - `actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11` (v4.1.1)
+> - `subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225` (v2.12.0)
+> - `codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673` (v4.5.0)
+
 ---
 
 ## Completion Checklist

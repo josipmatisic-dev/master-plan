@@ -725,6 +725,10 @@ jobs:
           fi
 ```
 
+> **Security Note**: For production workflows, pin GitHub Actions to specific commit SHAs instead of version tags to prevent supply chain attacks. For example:
+> - `actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11` (v4.1.1)
+> - `subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225` (v2.12.0)
+
 ---
 
 ## Architecture Compliance Checklist

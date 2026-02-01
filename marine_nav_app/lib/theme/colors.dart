@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 
 /// Primary color palette for Ocean Glass design system
 class OceanColors {
-  OceanColors._(); // Private constructor to prevent instantiation
+  OceanColors._();
   
   // ============ Primary Colors ============
   
