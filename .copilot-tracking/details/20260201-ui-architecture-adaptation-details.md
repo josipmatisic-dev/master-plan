@@ -58,8 +58,8 @@ Add detailed feature requirements for all new SailStream glass UI components.
   - Wind widget feature with draggable, multi-instance behavior
   - UI component tests specified
 - **Research References**:
-  - #file:../research/20260201-ui-architecture-adaptation-research.md (Lines 428-510) - New UI Components Required
-  - #file:../research/20260201-ui-architecture-adaptation-research.md (Lines 512-550) - Design System Implementation Plan
+  - #file:../research/20260201-ui-architecture-adaptation-research.md (Lines 346-396) - New UI Components Required
+  - #file:../research/20260201-ui-architecture-adaptation-research.md (Lines 397-427) - Design System Implementation Plan
 - **Dependencies**:
   - Task 1.1 and 1.2 completion
 
