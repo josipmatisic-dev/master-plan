@@ -196,22 +196,22 @@ From AI_AGENT_INSTRUCTIONS.md Section FA (Forbidden Actions):
 ❌ **NEVER** have a controller manage multiple unrelated concerns
 ✅ **DO** split by responsibility (SRP)
 
-### FA.2 Direct Coordinate Conversion
+### Forbidden: Direct Coordinate Conversion
 ❌ **NEVER** convert lat/lng to pixels directly
 ❌ **NEVER** use separate projection logic
 ✅ **DO** always use ProjectionService
 
-### FA.3 Rewriting Working Code
+### Forbidden: Rewriting Working Code
 ❌ **NEVER** rewrite Section B code "your way"
 ❌ **NEVER** introduce new patterns for solved problems
 ✅ **DO** extend and reuse proven implementations
 
-### FA.4 Skipping Tests
+### Forbidden: Skipping Tests
 ❌ **NEVER** submit code without tests
 ❌ **NEVER** accept coverage below 80%
 ✅ **DO** write tests first (TDD)
 
-### FA.5 Ignoring Known Issues
+### Forbidden: Ignoring Known Issues
 ❌ **NEVER** implement without checking KNOWN_ISSUES_DATABASE.md
 ❌ **NEVER** repeat documented mistakes
 ✅ **DO** learn from past failures
