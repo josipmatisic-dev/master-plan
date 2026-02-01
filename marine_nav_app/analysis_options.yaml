@@ -1,0 +1,69 @@
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Effective Dart - Style
+    - camel_case_types
+    - library_names
+    - file_names
+    - library_prefixes
+    - non_constant_identifier_names
+    - constant_identifier_names
+    - directives_ordering
+    
+    # Effective Dart - Documentation
+    - slash_for_doc_comments
+    - package_api_docs
+    - public_member_api_docs
+    
+    # Effective Dart - Usage
+    - implementation_imports
+    - avoid_relative_lib_imports
+    - prefer_relative_imports
+    - avoid_slow_async_io
+    - avoid_types_as_parameter_names
+    
+    # Effective Dart - Design
+    - use_to_and_as_if_applicable
+    - one_member_abstracts
+    - avoid_classes_with_only_static_members
+    - prefer_mixin
+    - use_setters_to_change_properties
+    - avoid_setters_without_getters
+    - avoid_returning_null
+    - avoid_returning_this
+    
+    # Best Practices
+    - always_declare_return_types
+    - annotate_overrides
+    - avoid_empty_else
+    - avoid_init_to_null
+    - avoid_null_checks_in_equality_operators
+    - avoid_return_types_on_setters
+    - await_only_futures
+    - empty_catches
+    - empty_constructor_bodies
+    - prefer_collection_literals
+    - prefer_conditional_assignment
+    - prefer_const_constructors
+    - prefer_const_declarations
+    - prefer_final_fields
+    - prefer_final_locals
+    - prefer_is_empty
+    - prefer_is_not_empty
+    - unnecessary_const
+    - unnecessary_new
+    - unnecessary_this
+    - use_rethrow_when_possible
+
+analyzer:
+  exclude:
+    - '**/*.g.dart'
+    - '**/*.freezed.dart'
+  errors:
+    missing_required_param: error
+    missing_return: error
+    todo: ignore
+  strong-mode:
+    implicit-casts: false
+    implicit-dynamic: false
