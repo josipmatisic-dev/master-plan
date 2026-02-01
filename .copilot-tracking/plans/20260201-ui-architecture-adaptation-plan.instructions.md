@@ -47,58 +47,58 @@ Adapt the master plan documentation to match the exact UI architecture and desig
 ### [ ] Phase 1: Update Master Plan Documentation
 
 - [ ] Task 1.1: Update MASTER_DEVELOPMENT_BIBLE.md with SailStream UI architecture
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 10-45)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 11-28)
 
 - [ ] Task 1.2: Update CODEBASE_MAP.md with new widget structure
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 47-85)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 29-46)
 
 - [ ] Task 1.3: Update FEATURE_REQUIREMENTS.md with glass UI components
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 87-125)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 47-65)
 
 - [ ] Task 1.4: Create UI_DESIGN_SYSTEM.md documentation
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 127-170)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 66-85)
 
 ### [ ] Phase 2: Define Component Specifications
 
 - [ ] Task 2.1: Specify Data Orb Widget (SOG/COG/DEPTH displays)
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 172-210)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 88-106)
 
 - [ ] Task 2.2: Specify Compass Widget (with VR toggle, speed indicators)
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 212-250)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 107-127)
 
 - [ ] Task 2.3: Specify True Wind Widget (draggable, circular progress)
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 252-290)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 128-149)
 
 - [ ] Task 2.4: Specify Navigation Sidebar (vertical icon navigation)
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 292-325)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 150-170)
 
 - [ ] Task 2.5: Specify Glass Card Component (frosted glass base widget)
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 327-360)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 171-192)
 
 ### [ ] Phase 3: Architecture Documentation
 
 - [ ] Task 3.1: Document provider dependency graph for SailStream
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 362-400)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 195-214)
 
 - [ ] Task 3.2: Define widget hierarchy for map screen
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 402-440)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 215-236)
 
 - [ ] Task 3.3: Document projection service requirements
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 442-475)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 237-257)
 
 - [ ] Task 3.4: Create screen flow documentation
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 477-515)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 258-278)
 
 ### [ ] Phase 4: Implementation Guidelines
 
 - [ ] Task 4.1: Update AI_AGENT_INSTRUCTIONS.md with architecture rules
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 517-555)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 281-302)
 
 - [ ] Task 4.2: Create component implementation checklist
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 557-590)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 303-322)
 
 - [ ] Task 4.3: Document testing requirements for UI components
-  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 592-625)
+  - Details: .copilot-tracking/details/20260201-ui-architecture-adaptation-details.md (Lines 323-343)
 
 ## Dependencies
 
