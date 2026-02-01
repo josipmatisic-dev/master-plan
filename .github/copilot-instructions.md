@@ -65,8 +65,9 @@ All rules from MASTER_DEVELOPMENT_BIBLE.md Section C are MANDATORY with NO EXCEP
 - Handle offline mode gracefully
 
 ### C.5 File Size Limits
-- **Maximum 300 lines per file**
-- **Maximum 300 lines per controller/provider**
+- **Maximum 300 lines per Dart source file in `lib/` (production code)**
+- **Maximum 300 lines per controller/provider class**
+- This limit does **not** apply to documentation, configuration, or generated code files (including this instructions file)
 - Split large classes by responsibility
 
 ### C.10 Dispose Everything
@@ -189,9 +190,9 @@ class MapViewModel extends ChangeNotifier {
 
 ## Forbidden Actions
 
-From AI_AGENT_INSTRUCTIONS.md Section FA (Forbidden Actions):
+From AI_AGENT_INSTRUCTIONS.md (Forbidden Actions summary):
 
-### FA.1 God Objects
+### Forbidden: God Objects
 ❌ **NEVER** create classes over 300 lines
 ❌ **NEVER** have a controller manage multiple unrelated concerns
 ✅ **DO** split by responsibility (SRP)
@@ -290,17 +291,28 @@ This repository uses structured planning:
 
 All code must handle errors gracefully:
 ```dart
-// Good error handling
+// Example: graceful error handling with network timeout + cache fallback
 try {
-  final data = await fetchData();
-  return Success(data);
-} on NetworkException catch (e) {
-  return Failure('Network error: ${e.message}');
-} on CacheException catch (e) {
-  return Failure('Cache error: ${e.message}');
+  final data = await fetchDataFromNetwork();
+  await cache.save(data);
+  return data;
+} on TimeoutException catch (e) {
+  logger.warn('Network timeout, falling back to cache', error: e);
+  final cached = await cache.read();
+  if (cached != null) {
+    return cached;
+  }
+  throw OfflineException('No network and no cached data available');
+} on SocketException catch (e) {
+  logger.warn('Socket error, falling back to cache', error: e);
+  final cached = await cache.read();
+  if (cached != null) {
+    return cached;
+  }
+  throw OfflineException('No network and no cached data available');
 } catch (e, stack) {
-  logger.error('Unexpected error', error: e, stackTrace: stack);
-  return Failure('An unexpected error occurred');
+  logger.error('Unexpected error while fetching data', error: e, stackTrace: stack);
+  rethrow;
 }
 ```
 
