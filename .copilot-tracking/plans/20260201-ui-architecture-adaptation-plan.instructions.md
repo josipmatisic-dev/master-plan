@@ -30,14 +30,17 @@ Adapt the master plan documentation to match the exact UI architecture and desig
 ### External References
 
 - #file:../research/20260201-ui-architecture-adaptation-research.md - Complete design analysis and architecture requirements
-- Copilot Chat (292KB): Comprehensive planning with failure analysis, UI wireframes, architecture rules
-- 5 UI Mockup Images: Main screen, navigation mode, wind widgets, interaction patterns
+- #file:../research/20260201-ui-architecture-adaptation-research.md (Lines 40-90) - "Ocean Glass" Design Philosophy
+- #file:../research/20260201-ui-architecture-adaptation-research.md (Lines 92-120) - Design System Specifications
+- #file:../research/20260201-ui-architecture-adaptation-research.md (Lines 122-275) - Screen Structure Analysis from mockups
+- #file:../research/20260201-ui-architecture-adaptation-research.md (Lines 277-340) - Mandatory Project Structure
+- #file:../research/20260201-ui-architecture-adaptation-research.md (Lines 342-380) - Critical Architecture Rules
 
 ### Standards References
 
+- #file:../../.github/instructions/dart-n-flutter.instructions.md - Dart and Flutter best practices
+- #file:../../.github/instructions/spec-driven-workflow-v1.instructions.md - Specification-driven development workflow
 - #file:../../docs/AI_AGENT_INSTRUCTIONS.md - Code quality standards and patterns
-- Research file Lines 180-250 - Critical architecture rules
-- Research file Lines 60-130 - "Ocean Glass" design philosophy
 
 ## Implementation Checklist
 
