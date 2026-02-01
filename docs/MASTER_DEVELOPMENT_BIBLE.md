@@ -1,9 +1,9 @@
 # Master Development Bible
 ## Marine Navigation App - Complete Development Reference
 
-**Version:** 5.0  
-**Last Updated:** 2024-02-01  
-**Status:** Post-Mortem Analysis Complete
+**Version:** 6.0  
+**Last Updated:** 2026-02-01  
+**Status:** SailStream UI Architecture Added
 
 ---
 
@@ -15,6 +15,7 @@
 4. [Section D: Feature Specifications](#section-d-feature-specifications)
 5. [Section E: Technical Decisions](#section-e-technical-decisions)
 6. [Section F: Development Phases](#section-f-development-phases)
+7. [Section G: SailStream UI Architecture](#section-g-sailstream-ui-architecture)
 
 ---
 
@@ -461,6 +462,225 @@ Advanced features, UI/UX, performance.
 ### Phase 4: Social & Community (Week 15-18)
 Social features, launch prep.
 **Deliverables:** Trip logging, social sharing, profiles, collaborative routes, app store assets, beta testing, launch plan.
+
+---
+
+## Section G: SailStream UI Architecture
+
+### G.1 Ocean Glass Design Philosophy
+
+**Vision:** Create a fluid, marine-inspired user interface where data flows like water and UI elements feel like frosted sea glass over nautical charts.
+
+**Core Principles:**
+1. **Data as Fluid Element** - Information flows and connects visually
+2. **Contextual Priority & Holographic Layering** - Critical data expands, less critical recedes
+3. **Ambient Intelligence** - UI adapts to time of day and weather conditions
+4. **Glass Aesthetics** - Frosted glass effects with subtle depth and translucency
+
+### G.2 Design System Specifications
+
+**Color Palette:**
+- **Deep Navy:** `#0A1F3F` - Primary background, night navigation
+- **Teal:** `#1D566E` - Secondary accents, depth
+- **Seafoam Green:** `#00C9A7` - Primary accent, active states, data highlights
+- **Safety Orange:** `#FF9A3D` - Alerts, warnings, attention
+- **Coral Red:** `#FF6B6B` - Danger, critical alerts
+- **Pure White:** `#FFFFFF` - Text, icons, contrast
+
+**Typography:**
+- **Font Family:** SF Pro Display (iOS/macOS) or Poppins (fallback)
+- **Data Values:** 56pt bold - Large numeric displays
+- **Headings:** 24pt semibold - Section headers
+- **Body Text:** 16pt regular - Standard content
+- **Labels:** 12pt medium, 0.5px letter-spacing - Small labels, units
+
+**Glass Effect Specifications:**
+- **Backdrop Blur:** 10-12px sigma for frosted glass
+- **Opacity:** 75-85% for glass cards
+- **Border Radius:** 12-16px for polished sea glass aesthetic
+- **Border:** 1px white at 10-20% opacity
+- **Shadow:** Subtle depth with multi-layer shadows
+
+### G.3 UI Component Library
+
+#### G.3.1 Glass Card (Base Component)
+
+**Purpose:** Reusable frosted glass container for all overlay UI elements
+
+**Specifications:**
+- **Backdrop Blur:** 12px
+- **Background:** Dark (#0A1F3F) at 80% opacity or Light (#FFFFFF) at 85% opacity
+- **Border Radius:** 16px
+- **Border:** 1px white at 20% opacity
+- **Padding:** Small (12px), Medium (16px), Large (24px)
+- **Shadow:** 0px 8px 32px rgba(0,0,0,0.3)
+
+**Usage:**
+```dart
+GlassCard(
+  padding: GlassCardPadding.medium,
+  child: YourContent(),
+)
+```
+
+#### G.3.2 Data Orb Widget
+
+**Purpose:** Circular glass display for critical navigation data (SOG, COG, DEPTH)
+
+**Size Variants:**
+- **Small:** 80×80px - Compact display
+- **Medium:** 140×140px - Standard display (default)
+- **Large:** 200×200px - Prominent display
+
+**Anatomy:**
+- **Outer Ring:** Seafoam green (#00C9A7) progress indicator or accent ring
+- **Glass Background:** Frosted glass effect matching theme
+- **Value Text:** 48pt bold (medium size) - Primary data value
+- **Unit Text:** 14pt medium - Data unit (kts, °, m)
+- **Label Text:** 12pt medium - Data type (SOG, COG, DEPTH)
+- **Subtitle** (optional): 10pt regular - Additional context (WSW, ft)
+
+**States:**
+- **Normal:** Standard display
+- **Alert:** Orange ring for warnings
+- **Critical:** Red ring for danger
+- **Inactive:** 50% opacity when no data
+
+#### G.3.3 Compass Widget
+
+**Purpose:** Central navigation widget showing heading, speed, and wind data
+
+**Dimensions:** Minimum 200×200px, scales responsively
+
+**Components:**
+- **Compass Rose:** Rotating SVG or CustomPaint with N/S/E/W markers
+- **Heading Display:** Current magnetic or true heading (e.g., "N 25°")
+- **Speed Indicators:** Inner ring showing boat speed (e.g., "15.2 kt")
+- **Wind Data:** Wind speed and direction (e.g., "Wind: 15.2 kt N 45°")
+- **VR Toggle:** Button to switch between Virtual Reality mode
+- **Direction Indicator:** Arrow or triangle pointing to wind direction
+
+**Interaction:**
+- Tap to toggle between Magnetic/True heading
+- Long press for detailed wind analysis
+- VR button opens immersive compass view
+
+#### G.3.4 True Wind Widget
+
+**Purpose:** Draggable, repositionable widget showing true wind data
+
+**Dimensions:**
+- **Widget Mode:** 120×120px circular
+- **Card Mode:** 200×140px with extended info
+
+**Anatomy:**
+- **Circular Progress Ring:** Seafoam green, shows wind strength visually (0-50kt scale)
+- **Wind Speed:** 32pt bold centered (e.g., "14.2 kts")
+- **Wind Direction:** 16pt medium below speed (e.g., "NNE")
+- **Background:** Frosted glass with 85% opacity
+- **Drag Handle:** Subtle indicator that widget is movable
+
+**Features:**
+- **Draggable:** Long press to enter drag mode
+- **Multi-Instance:** Support multiple wind widgets on screen
+- **Deletable:** Trash icon appears in edit mode
+- **Auto-Hide:** Fades out when not in use (configurable)
+
+#### G.3.5 Navigation Sidebar
+
+**Purpose:** Primary navigation menu for switching between app sections
+
+**Layout:** Vertical icon-based menu on left side (desktop/tablet) or bottom sheet (mobile)
+
+**Menu Items:**
+- Dashboard - Overview/home
+- Map - Main navigation map
+- Weather - Forecast details
+- Settings - App configuration
+- Profile - User profile
+- Boat Icon - Vessel management (bottom position)
+
+**Styling:**
+- **Icon Size:** 24×24px
+- **Active State:** Seafoam green (#00C9A7) background with glow
+- **Inactive State:** White icons at 60% opacity
+- **Background:** Frosted glass matching theme
+- **Width:** 72px fixed on desktop, full-width sheet on mobile
+
+### G.4 Screen Layouts
+
+#### G.4.1 Main Map Screen
+
+**Z-Index Layers (bottom to top):**
+1. MapTiler WebView (base layer)
+2. Wind Particle Overlay (animated cyan/teal flowing particles)
+3. Wave Overlay (optional)
+4. Current Overlay (optional)
+5. Boat Track Trail
+6. Boat Position Marker
+7. Navigation Orbs (SOG/COG/DEPTH) - Top center or corners
+8. Compass Widget - Bottom center
+9. True Wind Widgets - Draggable, user-positioned
+10. Navigation Sidebar - Left edge
+11. Top App Bar - Search, location, branding
+12. Time Scrubber (when in forecast mode) - Bottom
+
+**Responsive Breakpoints:**
+- **Mobile:** < 600px - Bottom navigation, stacked orbs
+- **Tablet:** 600-1200px - Side navigation, flexible layouts
+- **Desktop:** > 1200px - Full sidebar, multi-column layouts
+
+#### G.4.2 Navigation Mode Screen
+
+**Top Section:**
+- Title: "navigation mode"
+- Back button (left)
+- Settings icon (right)
+
+**Data Orbs Section:**
+- Three large data orbs in row: SOG, COG, DEPTH
+- Spacing: 16px between orbs
+
+**Map Section:**
+- Full-width map with route visualization
+- Dashed line from current position to next waypoint
+- Waypoint markers with labels
+- Place names for navigation reference
+
+**Bottom Info Card:**
+- Next waypoint name
+- Distance to waypoint
+- Estimated Time of Arrival (ETA)
+- Glass card background
+
+**Action Buttons:**
+- "+ Route" - Create new route
+- "Mark Position" - Save current location
+- "Track" - Start/stop track recording
+- "Alerts" - View/configure navigation alerts
+
+### G.5 Architecture Rules for UI
+
+**Rule G.1: Single Projection Source**
+ALL overlays MUST get viewport bounds from MapViewportService. NEVER calculate screen positions independently.
+
+**Rule G.2: Glass Effect Performance**
+All backdrop blur effects MUST maintain 60 FPS. Use RepaintBoundary for expensive glass widgets.
+
+**Rule G.3: Responsive Design**
+ALL widgets MUST support 3 breakpoints: mobile (<600px), tablet (600-1200px), desktop (>1200px).
+
+**Rule G.4: Dark Mode First**
+Design for dark mode as primary. Light mode is secondary for daytime use.
+
+**Rule G.5: No Fixed Dimensions**
+Use LayoutBuilder and MediaQuery for all sizing. No hardcoded pixel values except minimum sizes.
+
+**Rule G.6: Draggable Widget State**
+Draggable widgets MUST save positions to user preferences. Restore on app restart.
+
+**Rule G.7: Animation Fluidity**
+ALL animations MUST use curves (easeInOut, decelerate) and complete in 200-400ms.
 
 ---
 

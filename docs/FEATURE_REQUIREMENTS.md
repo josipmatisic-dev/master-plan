@@ -1,9 +1,9 @@
 # Feature Requirements
 ## Marine Navigation App - Detailed Feature Specifications
 
-**Version:** 3.0  
-**Last Updated:** 2024-02-01  
-**Purpose:** Comprehensive requirements for all planned features
+**Version:** 4.0  
+**Last Updated:** 2026-02-01  
+**Purpose:** Comprehensive requirements for all planned features (includes SailStream UI)
 
 ---
 
@@ -719,6 +719,178 @@ Share routes, waypoints, trip reports, screenshots, community feeds.
 
 ---
 
+### FEAT-015: Glass UI Component Library
+
+**Priority:** P0 (Must Have)  
+**Estimated Effort:** 2 weeks  
+**Dependencies:** None  
+**Owner:** UI Library Team
+
+**Description:**
+Complete implementation of the Ocean Glass design system with reusable frosted glass UI components including GlassCard, DataOrb, CompassWidget, WindWidget, and NavigationSidebar.
+
+**Acceptance Criteria:**
+- [ ] GlassCard base component with backdrop blur (12px)
+- [ ] GlassCard supports 3 padding sizes (small, medium, large)
+- [ ] GlassCard supports dark and light themes
+- [ ] GlassCard maintains 60 FPS with blur effects
+- [ ] DataOrb widget with 3 size variants (80px, 140px, 200px)
+- [ ] DataOrb displays value, unit, label, and optional subtitle
+- [ ] DataOrb supports 3 states (normal, alert, critical)
+- [ ] DataOrb has seafoam green accent ring
+- [ ] All components use Ocean Glass color palette
+- [ ] All components support responsive breakpoints
+- [ ] Typography follows SF Pro Display specifications
+- [ ] Glass effects work on iOS and Android
+- [ ] Performance: No frame drops during animations
+- [ ] Widget tests for all components
+- [ ] Golden tests for visual regression
+
+**Technical Notes:**
+- Use BackdropFilter for frosted glass effect
+- Use RepaintBoundary for performance optimization
+- Follow Effective Dart guidelines
+- Maximum 300 lines per widget file
+- Use const constructors where possible
+
+**Color Palette:**
+- Deep Navy: #0A1F3F
+- Teal: #1D566E
+- Seafoam Green: #00C9A7
+- Safety Orange: #FF9A3D
+- Coral Red: #FF6B6B
+- Pure White: #FFFFFF
+
+**Test Scenarios:**
+1. GlassCard renders with blur on both platforms
+2. DataOrb displays all size variants correctly
+3. Color palette matches specifications
+4. Theme switching works without errors
+5. Performance maintains 60 FPS with multiple glass widgets
+
+---
+
+### FEAT-016: Navigation Mode Screen
+
+**Priority:** P1 (Should Have)  
+**Estimated Effort:** 1 week  
+**Dependencies:** FEAT-001, FEAT-015  
+**Owner:** Navigation Team
+
+**Description:**
+Dedicated navigation mode screen with large data orbs for SOG, COG, and DEPTH, route visualization, waypoint management, and action buttons for creating routes and marking positions.
+
+**Acceptance Criteria:**
+- [ ] Navigation mode accessible from main map
+- [ ] Three large data orbs at top (SOG, COG, DEPTH)
+- [ ] Map displays current route with dashed line
+- [ ] Waypoint markers visible with labels
+- [ ] Bottom info card shows next waypoint details
+- [ ] Info card displays distance and ETA
+- [ ] Action buttons: + Route, Mark Position, Track, Alerts
+- [ ] + Route button creates new route
+- [ ] Mark Position saves current location
+- [ ] Track button starts/stops tracking
+- [ ] Alerts button shows navigation warnings
+- [ ] Back button returns to main map
+- [ ] Settings button opens navigation settings
+- [ ] Screen updates in real-time with NMEA data
+- [ ] Smooth transitions between screens
+
+**Technical Notes:**
+- Use Hero animations for data orb transitions
+- Calculate ETA based on SOG and distance
+- Update route visualization when viewport changes
+- Store user-created routes in local database
+- Validate waypoint coordinates
+
+**UI Layout:**
+- Top section: 120px for data orbs
+- Map section: Expanded to fill remaining space
+- Bottom info card: 60px fixed height
+- Action button bar: 56px fixed height
+- Spacing: 16px between all elements
+
+**Edge Cases:**
+- No route defined → Hide route visualization
+- No next waypoint → Show "No Active Route"
+- Invalid GPS → Show "No GPS Signal"
+- SOG/COG/DEPTH unavailable → Show "--" in orbs
+
+**Test Scenarios:**
+1. Enter navigation mode from map → Success
+2. Create new route → Saved to database
+3. Mark current position → Waypoint created
+4. Start tracking → Breadcrumb trail visible
+5. Update NMEA data → Orbs update in real-time
+6. Calculate ETA → Matches manual calculation
+
+---
+
+### FEAT-017: Draggable Wind Widgets
+
+**Priority:** P1 (Should Have)  
+**Estimated Effort:** 1 week  
+**Dependencies:** FEAT-002, FEAT-015  
+**Owner:** Weather Team
+
+**Description:**
+Draggable, multi-instance true wind widgets that can be positioned anywhere on the map. Widgets display wind speed and direction with circular progress indicators and support delete functionality.
+
+**Acceptance Criteria:**
+- [ ] WindWidget displays true wind speed (kts)
+- [ ] WindWidget displays wind direction (compass point)
+- [ ] Circular progress ring visualizes wind strength
+- [ ] Progress ring color: Seafoam green (#00C9A7)
+- [ ] Widget is draggable via long press
+- [ ] Multiple wind widgets can coexist
+- [ ] Widget positions saved to preferences
+- [ ] Positions restored on app restart
+- [ ] Edit mode shows delete button (trash icon)
+- [ ] Tap delete button removes widget
+- [ ] Widget auto-hides after inactivity (optional)
+- [ ] Widget size: 120×120px (widget mode)
+- [ ] Card size: 200×140px (card mode)
+- [ ] Frosted glass background with 85% opacity
+- [ ] Smooth drag animations
+- [ ] Wind data updates in real-time from NMEA
+
+**Technical Notes:**
+- Use Draggable widget for repositioning
+- Use DragTarget for drop validation
+- Save positions as JSON in shared preferences
+- Limit to 5 wind widgets maximum
+- Use AnimatedOpacity for auto-hide
+- Calculate wind strength percentage (0-50kt scale)
+
+**Interaction States:**
+- Normal: Display only
+- Long Press: Enter drag mode
+- Dragging: Show outline and opacity
+- Edit Mode: Show delete button
+- Deleted: Fade out animation
+
+**Data Sources:**
+- True Wind: MWV NMEA sentence
+- Apparent Wind: VWR NMEA sentence
+- Fallback: Weather forecast data
+
+**Edge Cases:**
+- No wind data → Show "--" in widget
+- Widget dragged off screen → Snap to nearest edge
+- Maximum widgets reached → Show toast warning
+- Invalid wind data → Show error indicator
+
+**Test Scenarios:**
+1. Add wind widget → Appears on screen
+2. Drag widget → Position updates smoothly
+3. Restart app → Positions restored
+4. Delete widget → Removed from screen
+5. Update wind data → Widget updates in real-time
+6. Add 6th widget → Show error message
+
+---
+
 ## Feature Priority Matrix
 
 | Feature | Priority | Phase | Effort | Complexity | Risk |
@@ -727,8 +899,11 @@ Share routes, waypoints, trip reports, screenshots, community feeds.
 | NMEA Integration | P0 | 1 | 2w | Medium | Low |
 | Boat Tracking | P0 | 1 | 1w | Low | Low |
 | Weather Overlays | P0 | 1 | 3w | High | High |
+| Glass UI Library | P0 | 1 | 2w | Medium | Low |
 | Forecasting | P1 | 2 | 2w | Medium | Low |
 | Timeline Playback | P1 | 2 | 2w | Medium | Medium |
+| Navigation Mode | P1 | 2 | 1w | Low | Low |
+| Draggable Wind Widgets | P1 | 2 | 1w | Low | Low |
 | Dark Mode | P1 | 2 | 1w | Low | Low |
 | Offline Mode | P1 | 2 | 2w | Medium | Medium |
 | Settings | P2 | 3 | 1w | Low | Low |
