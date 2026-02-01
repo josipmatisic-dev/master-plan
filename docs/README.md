@@ -114,7 +114,9 @@ This directory contains comprehensive documentation based on learnings from 4 fa
 | CODEBASE_MAP.md | 501 | 18KB | Structure map |
 | KNOWN_ISSUES_DATABASE.md | 958 | 26KB | Issue database |
 | FEATURE_REQUIREMENTS.md | 748 | 19KB | Feature specs |
-| **TOTAL** | **3,496** | **97KB** | Complete docs |
+| README.md | 173 | 6KB | Directory overview |
+| DOCUMENTATION_SUMMARY.md | 452 | 16KB | Documentation metrics & index |
+| **TOTAL** | **4,121** | **119KB** | Complete docs set |
 
 ---
 
