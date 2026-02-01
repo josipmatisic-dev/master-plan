@@ -27,8 +27,7 @@ All comprehensive documentation is located in the **`docs/`** directory:
 
 ## 📊 Statistics
 
-- **Total Files:** 7 documentation files
-- **Total Lines:** 4,121 lines
+- **Documentation Stats:** See [DOCUMENTATION_SUMMARY.md](docs/DOCUMENTATION_SUMMARY.md) for the current file and line counts
 - **Total Size:** ~117 KB
 - **Code Examples:** 25+ Dart/Flutter examples
 - **Issues Documented:** 18 with full analysis
