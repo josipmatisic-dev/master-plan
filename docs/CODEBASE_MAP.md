@@ -1,9 +1,9 @@
 # Codebase Map
 ## Marine Navigation App - Flutter Project Structure
 
-**Version:** 2.0  
-**Last Updated:** 2024-02-01  
-**Purpose:** Complete map of codebase structure, dependencies, and data flow
+**Version:** 3.0  
+**Last Updated:** 2026-02-01  
+**Purpose:** Complete map of codebase structure, dependencies, and data flow (includes SailStream UI)
 
 ---
 
@@ -68,6 +68,18 @@ lib/
 │
 ├── widgets/                      # Reusable UI components
 │   ├── map_webview.dart         # MapTiler WebView container
+│   ├── glass/                   # Glass UI components (Ocean Glass design)
+│   │   ├── glass_card.dart     # Base frosted glass container
+│   │   ├── glass_button.dart   # Glass-styled button
+│   │   └── glass_modal.dart    # Glass modal/dialog
+│   ├── navigation/              # Navigation components
+│   │   ├── navigation_sidebar.dart # Primary app navigation menu
+│   │   ├── compass_widget.dart    # Compass with heading/speed/wind
+│   │   └── route_info_card.dart   # Next waypoint info display
+│   ├── data_displays/           # Data visualization widgets
+│   │   ├── data_orb.dart       # Circular data display (SOG/COG/DEPTH)
+│   │   ├── wind_widget.dart    # Draggable true wind indicator
+│   │   └── timeline_scrubber.dart # Forecast time navigation
 │   ├── overlays/                # Map overlay widgets
 │   │   ├── wind_overlay.dart   # Wind arrow rendering
 │   │   ├── wave_overlay.dart   # Wave height visualization
@@ -79,7 +91,7 @@ lib/
 │   │   ├── timeline_controls.dart # Play/pause/speed
 │   │   ├── layer_toggle.dart   # Overlay enable/disable
 │   │   ├── zoom_controls.dart  # +/- buttons
-│   │   └── compass_widget.dart # Heading indicator
+│   │   └── action_button_bar.dart # Route/Mark/Track/Alerts buttons
 │   ├── cards/                   # Info display cards
 │   │   ├── boat_info_card.dart # Speed/heading/position
 │   │   ├── weather_card.dart   # Current conditions
@@ -410,44 +422,99 @@ void main() async {
 
 ## Widget Hierarchy
 
-### MapScreen Widget Tree
+### MapScreen Widget Tree (SailStream UI)
 
 ```
 MapScreen (StatefulWidget)
 ├── Scaffold
-│   ├── AppBar
-│   │   ├── Title
-│   │   ├── ConnectionStatus
+│   ├── Body
+│   │   └── Stack (Z-index layers from bottom to top)
+│   │       ├── [Layer 0] MapWebView (MapTiler base layer)
+│   │       │
+│   │       ├── [Layer 1] Consumer<WeatherProvider>
+│   │       │   ├── WindParticleOverlay (CustomPaint, animated cyan/teal)
+│   │       │   ├── WaveOverlay (CustomPaint, optional)
+│   │       │   └── CurrentOverlay (CustomPaint, optional)
+│   │       │
+│   │       ├── [Layer 2] Consumer<BoatProvider>
+│   │       │   ├── TrackOverlay (CustomPaint, breadcrumb trail)
+│   │       │   └── BoatMarker (Positioned, vessel icon)
+│   │       │
+│   │       ├── [Layer 3] Consumer<NMEAProvider>
+│   │       │   └── AISOverlay (CustomPaint, vessel markers)
+│   │       │
+│   │       ├── [Layer 4] Navigation Data Displays
+│   │       │   ├── Positioned(top-center) - Data Orbs Row
+│   │       │   │   ├── DataOrb(type: SOG, size: medium)
+│   │       │   │   ├── DataOrb(type: COG, size: medium)
+│   │       │   │   └── DataOrb(type: DEPTH, size: medium)
+│   │       │   │
+│   │       │   └── Positioned(bottom-center)
+│   │       │       └── CompassWidget (200×200, rotating rose)
+│   │       │
+│   │       ├── [Layer 5] Draggable Widgets
+│   │       │   └── Stack
+│   │       │       └── ...WindWidget[] (multi-instance, user-positioned)
+│   │       │
+│   │       ├── [Layer 6] Navigation UI
+│   │       │   ├── Positioned(left: 0, top: 0, bottom: 0)
+│   │       │   │   └── NavigationSidebar (glass, vertical icons)
+│   │       │   │
+│   │       │   └── Positioned(top: 0)
+│   │       │       └── GlassCard - Top App Bar
+│   │       │           ├── SailStream Logo
+│   │       │           ├── SearchButton
+│   │       │           └── LocationButton
+│   │       │
+│   │       └── [Layer 7] Timeline (when in forecast mode)
+│   │           └── Positioned(bottom: 0)
+│   │               └── GlassCard - TimelineScrubber
+│   │                   ├── TimelineControls (play/pause/speed)
+│   │                   └── TimeSlider
+│
+└── FloatingActionButton (optional, for quick actions)
+
+```
+
+### NavigationMode Screen Widget Tree
+
+```
+NavigationModeScreen (StatefulWidget)
+├── Scaffold
+│   ├── AppBar (GlassCard)
+│   │   ├── BackButton
+│   │   ├── Title("navigation mode")
 │   │   └── SettingsButton
 │   │
 │   └── Body
-│       └── Stack (layers from bottom to top)
-│           ├── MapWebView (base map layer)
+│       └── Stack
+│           ├── [Layer 0] MapWebView (route visualization)
 │           │
-│           ├── Consumer<WeatherProvider>
-│           │   ├── WindOverlay (CustomPaint)
-│           │   ├── WaveOverlay (CustomPaint)
-│           │   └── CurrentOverlay (CustomPaint)
+│           ├── [Layer 1] RouteOverlay
+│           │   ├── RouteLine (dashed, current → waypoint)
+│           │   ├── WaypointMarkers
+│           │   └── PlaceLabels
 │           │
-│           ├── Consumer<BoatProvider>
-│           │   ├── BoatMarker (Positioned)
-│           │   └── TrackOverlay (CustomPaint)
+│           ├── [Layer 2] Positioned(top: 16)
+│           │   └── Row - Data Orbs
+│           │       ├── DataOrb(SOG, size: large)
+│           │       ├── SizedBox(width: 16)
+│           │       ├── DataOrb(COG, size: large)
+│           │       ├── SizedBox(width: 16)
+│           │       └── DataOrb(DEPTH, size: large)
 │           │
-│           ├── Consumer<NMEAProvider>
-│           │   └── AISOverlay (CustomPaint)
+│           ├── [Layer 3] Positioned(bottom: 80)
+│           │   └── GlassCard - RouteInfoCard
+│           │       ├── Text("Next: Waypoint 1")
+│           │       ├── Text("2.4 nm")
+│           │       └── Text("ETA 19 min")
 │           │
-│           └── UI Controls (top layer)
-│               ├── Positioned(top-right)
-│               │   └── LayerTogglePanel
-│               │
-│               ├── Positioned(bottom-right)
-│               │   └── ZoomControls
-│               │
-│               ├── Positioned(bottom-left)
-│               │   └── CompassWidget
-│               │
-│               └── Positioned(bottom-center)
-│                   └── BoatInfoCard
+│           └── [Layer 4] Positioned(bottom: 16)
+│               └── ActionButtonBar (GlassCard)
+│                   ├── GlassButton("+ Route")
+│                   ├── GlassButton("Mark Position")
+│                   ├── GlassButton("Track")
+│                   └── GlassButton("Alerts")
 ```
 
 ---
@@ -464,6 +531,11 @@ MapScreen (StatefulWidget)
 | `providers/boat_provider.dart` | BoatProvider | 190 | 18 | 81% |
 | `widgets/map_webview.dart` | MapProvider | 200 | 12 | 65% |
 | `widgets/overlays/wind_overlay.dart` | WeatherProvider | 180 | 15 | 73% |
+| `widgets/glass/glass_card.dart` | UI Library | < 100 | TBD | - |
+| `widgets/data_displays/data_orb.dart` | UI Library | < 150 | TBD | - |
+| `widgets/navigation/compass_widget.dart` | BoatProvider | < 200 | TBD | - |
+| `widgets/data_displays/wind_widget.dart` | WeatherProvider | < 150 | TBD | - |
+| `widgets/navigation/navigation_sidebar.dart` | Navigation | < 150 | TBD | - |
 
 ---
 
