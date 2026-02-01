@@ -1,5 +1,7 @@
 # Master Plan - Marine Navigation App Documentation
 
+![Flutter CI](https://github.com/josipmatisic-dev/master-plan/workflows/Flutter%20CI/badge.svg)
+
 Master planning documentation for yacht navigation app development based on learnings from 4 failed attempts.
 
 ## 📋 Planning & Workflow
@@ -34,6 +36,23 @@ All comprehensive documentation is located in the **`docs/`** directory:
 1. Read [docs/README.md](docs/README.md) for an overview
 2. Start with [MASTER_DEVELOPMENT_BIBLE.md](docs/MASTER_DEVELOPMENT_BIBLE.md) for complete context
 3. Follow [AI_AGENT_INSTRUCTIONS.md](docs/AI_AGENT_INSTRUCTIONS.md) when implementing
+
+## 🔧 Development
+
+### Flutter Application
+
+The Flutter application is located in the `marine_nav_app/` directory.
+
+**Continuous Integration:** Automated CI/CD runs on every push and pull request. See [.github/workflows/README.md](.github/workflows/README.md) for details.
+
+**Running locally:**
+```bash
+cd marine_nav_app
+flutter pub get
+flutter test
+flutter analyze
+flutter run
+```
 
 ## 📊 Statistics
 
