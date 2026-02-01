@@ -242,7 +242,7 @@ Follow `.github/instructions/security-and-owasp.instructions.md`:
 ## Performance Guidelines
 
 Follow `.github/instructions/performance-optimization.instructions.md`:
-- Minimize DOM/Widget tree manipulations
+- Minimize unnecessary widget rebuilds, layout passes, and repaints
 - Use `const` constructors where possible
 - Lazy load heavy resources
 - Cache expensive computations
