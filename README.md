@@ -16,7 +16,7 @@ All comprehensive documentation is located in the **`docs/`** directory:
 - **[FEATURE_REQUIREMENTS.md](docs/FEATURE_REQUIREMENTS.md)** (19 KB) - Detailed requirements for 14 features
 
 ### Quick Start
-- **[docs/README.md](docs/README.md)** (5.7 KB) - Quick navigation guide
+- **[docs/README.md](docs/README.md)** (~10–14 KB) - Quick navigation guide
 - **[DOCUMENTATION_SUMMARY.md](docs/DOCUMENTATION_SUMMARY.md)** (15 KB) - Verification checklist
 
 ## 🚀 Quick Start
