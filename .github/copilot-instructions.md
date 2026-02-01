@@ -152,15 +152,22 @@ void main() {
 
 ### Pattern 3: Network Calls with Resilience
 ```dart
-// CORRECT: Retry + timeout + cache fallback
+// CORRECT: Retry + timeout + cache fallback (including network unavailability)
 Future<WeatherData> fetchWeather(LatLng position) async {
   try {
-    return await _api
-      .getWeather(position)
-      .timeout(Duration(seconds: 10))
-      .retry((e) => e is SocketException, maxAttempts: 3);
-  } on TimeoutException {
-    return _cache.getWeather(position); // Fallback to cache
+    return await RetryableHttpClient
+        .getWithRetry(
+          () => _api.getWeather(position),
+          maxAttempts: 3,
+          retryOn: (e) => e is SocketException,
+        )
+        .timeout(const Duration(seconds: 10));
+  } on TimeoutException catch (_) {
+    // Network call timed out after retries - fallback to cache
+    return _cache.getWeather(position);
+  } on SocketException catch (_) {
+    // Network unavailable after retries - fallback to cache
+    return _cache.getWeather(position);
   }
 }
 ```
