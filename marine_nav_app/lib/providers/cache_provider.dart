@@ -26,6 +26,7 @@ class CacheStats {
     return total > 0 ? hits / total : 0.0;
   }
 
+  /// Creates cache statistics with the given metrics
   const CacheStats({
     required this.totalSize,
     required this.entryCount,

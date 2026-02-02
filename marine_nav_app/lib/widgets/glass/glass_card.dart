@@ -54,6 +54,7 @@ class GlassCard extends StatelessWidget {
   /// Enable intense blur for overlays (default: false)
   final bool intenseBlur;
 
+  /// Creates a glass card with optional customization
   const GlassCard({
     super.key,
     required this.child,

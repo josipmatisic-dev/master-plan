@@ -17,6 +17,7 @@ import '../widgets/glass/glass_card.dart';
 
 /// Home Screen - Main navigation interface
 class HomeScreen extends StatelessWidget {
+  /// Creates the home screen
   const HomeScreen({super.key});
 
   /// Builds the home screen with Ocean Glass design system
