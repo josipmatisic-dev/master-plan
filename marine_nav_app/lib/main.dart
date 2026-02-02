@@ -64,7 +64,8 @@ class MarineNavigationApp extends StatelessWidget {
   /// services to the rest of the app.
   final CacheProvider cacheProvider;
 
-  /// Creates a new MarineNavigationApp instance
+  /// Injects pre-initialized providers into the app root and
+  /// establishes the provider hierarchy described in CON-004.
   const MarineNavigationApp({
     super.key,
     required this.settingsProvider,
