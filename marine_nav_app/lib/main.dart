@@ -52,20 +52,16 @@ void main() async {
 /// Layer 1: ThemeProvider, CacheProvider
 /// Layer 0: SettingsProvider
 class MarineNavigationApp extends StatelessWidget {
-  /// Root configuration provider (Layer 0) that exposes
-  /// persisted user and app settings to the widget tree.
+  /// The root configuration provider (Layer 0).
   final SettingsProvider settingsProvider;
 
-  /// Theme provider (Layer 1) that configures and supplies
-  /// the visual theme used by [MaterialApp].
+  /// The theme provider (Layer 1).
   final ThemeProvider themeProvider;
 
-  /// Cache provider (Layer 1) that exposes shared caching
-  /// services to the rest of the app.
+  /// The cache provider (Layer 1).
   final CacheProvider cacheProvider;
 
-  /// Injects pre-initialized providers into the app root and
-  /// establishes the provider hierarchy described in CON-004.
+  /// Creates a MarineNavigationApp with pre-initialized providers.
   const MarineNavigationApp({
     super.key,
     required this.settingsProvider,
