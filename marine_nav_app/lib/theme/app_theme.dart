@@ -1,5 +1,5 @@
 /// Ocean Glass Design System - App Theme
-/// 
+///
 /// Main theme configuration for the Marine Navigation App.
 /// Provides ThemeData for both dark and light modes following
 /// the Ocean Glass design language.
@@ -15,15 +15,15 @@ import 'text_styles.dart';
 /// App theme configuration with Ocean Glass design system
 class AppTheme {
   AppTheme._(); // Private constructor
-  
+
   // ============ Dark Theme (Primary) ============
-  
+
   /// Dark theme following Ocean Glass design language
   /// This is the primary theme optimized for marine navigation
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
-      
+
       // Color Scheme
       colorScheme: const ColorScheme.dark(
         primary: OceanColors.seafoamGreen,
@@ -35,12 +35,12 @@ class AppTheme {
         onSurface: OceanColors.textPrimary,
         onError: OceanColors.pureWhite,
       ),
-      
+
       scaffoldBackgroundColor: OceanColors.background,
-      
+
       // Typography
       textTheme: _buildTextTheme(OceanColors.textPrimary),
-      
+
       // AppBar
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -55,7 +55,7 @@ class AppTheme {
         ),
         iconTheme: IconThemeData(color: OceanColors.textPrimary),
       ),
-      
+
       // Card Theme
       cardTheme: CardTheme(
         color: OceanColors.surface,
@@ -64,31 +64,31 @@ class AppTheme {
           borderRadius: BorderRadius.circular(OceanDimensions.radius),
         ),
       ),
-      
+
       // Icon Theme
       iconTheme: const IconThemeData(
         color: OceanColors.textPrimary,
         size: OceanDimensions.icon,
       ),
-      
+
       // Divider
       dividerTheme: DividerThemeData(
         color: OceanColors.textDisabled.withOpacity(0.2),
         thickness: 1,
         space: OceanDimensions.spacingM,
       ),
-      
+
       useMaterial3: true,
     );
   }
-  
+
   // ============ Light Theme (Secondary) ============
-  
+
   /// Light theme for daytime use
   static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
-      
+
       // Color Scheme
       colorScheme: const ColorScheme.light(
         primary: OceanColors.seafoamGreen,
@@ -100,12 +100,12 @@ class AppTheme {
         onSurface: OceanColors.textPrimaryLight,
         onError: OceanColors.pureWhite,
       ),
-      
+
       scaffoldBackgroundColor: OceanColors.backgroundLight,
-      
+
       // Typography
       textTheme: _buildTextTheme(OceanColors.textPrimaryLight),
-      
+
       // AppBar
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -120,7 +120,7 @@ class AppTheme {
         ),
         iconTheme: IconThemeData(color: OceanColors.textPrimaryLight),
       ),
-      
+
       // Card Theme
       cardTheme: CardTheme(
         color: OceanColors.surfaceLight,
@@ -129,26 +129,26 @@ class AppTheme {
           borderRadius: BorderRadius.circular(OceanDimensions.radius),
         ),
       ),
-      
+
       // Icon Theme
       iconTheme: const IconThemeData(
         color: OceanColors.textPrimaryLight,
         size: OceanDimensions.icon,
       ),
-      
+
       // Divider
       dividerTheme: DividerThemeData(
         color: OceanColors.textSecondaryLight.withOpacity(0.2),
         thickness: 1,
         space: OceanDimensions.spacingM,
       ),
-      
+
       useMaterial3: true,
     );
   }
-  
+
   // ============ Helper Methods ============
-  
+
   /// Build text theme with specified color
   static TextTheme _buildTextTheme(Color textColor) {
     return TextTheme(
@@ -170,12 +170,12 @@ extension ResponsiveContext on BuildContext {
   /// Check if current screen is mobile (<600px)
   bool get isMobile =>
       MediaQuery.of(this).size.width < OceanDimensions.breakpointMobile;
-  
+
   /// Check if current screen is tablet (600-1200px)
   bool get isTablet =>
       MediaQuery.of(this).size.width >= OceanDimensions.breakpointMobile &&
       MediaQuery.of(this).size.width < OceanDimensions.breakpointTablet;
-  
+
   /// Check if current screen is desktop (>1200px)
   bool get isDesktop =>
       MediaQuery.of(this).size.width >= OceanDimensions.breakpointTablet;
