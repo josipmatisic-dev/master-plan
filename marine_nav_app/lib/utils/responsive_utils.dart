@@ -1,5 +1,5 @@
 /// Responsive Utilities
-/// 
+///
 /// Helper functions and extensions for responsive design.
 /// Implements the 3-breakpoint system (mobile, tablet, desktop).
 library;
@@ -10,7 +10,7 @@ import '../theme/dimensions.dart';
 /// Responsive utilities for breakpoint-based layouts
 class ResponsiveUtils {
   ResponsiveUtils._(); // Private constructor
-  
+
   /// Get current breakpoint for screen width
   static Breakpoint getBreakpoint(double width) {
     if (width < OceanDimensions.breakpointMobile) {
@@ -21,7 +21,7 @@ class ResponsiveUtils {
       return Breakpoint.desktop;
     }
   }
-  
+
   /// Get responsive value based on breakpoint
   static T getResponsiveValue<T>({
     required BuildContext context,
@@ -31,7 +31,7 @@ class ResponsiveUtils {
   }) {
     final width = MediaQuery.of(context).size.width;
     final breakpoint = getBreakpoint(width);
-    
+
     switch (breakpoint) {
       case Breakpoint.mobile:
         return mobile;
@@ -41,7 +41,7 @@ class ResponsiveUtils {
         return desktop ?? tablet ?? mobile;
     }
   }
-  
+
   /// Get responsive spacing multiplier
   static double getSpacingMultiplier(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -59,10 +59,10 @@ class ResponsiveUtils {
 enum Breakpoint {
   /// Mobile devices (<600px)
   mobile,
-  
+
   /// Tablet devices (600-1200px)
   tablet,
-  
+
   /// Desktop devices (>1200px)
   desktop,
 }
@@ -74,16 +74,16 @@ extension ResponsiveExtensions on BuildContext {
     final width = MediaQuery.of(this).size.width;
     return ResponsiveUtils.getBreakpoint(width);
   }
-  
+
   /// Check if device is mobile
   bool get isMobile => breakpoint == Breakpoint.mobile;
-  
+
   /// Check if device is tablet
   bool get isTablet => breakpoint == Breakpoint.tablet;
-  
+
   /// Check if device is desktop
   bool get isDesktop => breakpoint == Breakpoint.desktop;
-  
+
   /// Get responsive value
   T responsive<T>({
     required T mobile,
@@ -97,17 +97,16 @@ extension ResponsiveExtensions on BuildContext {
       desktop: desktop,
     );
   }
-  
+
   /// Get screen width
   double get screenWidth => MediaQuery.of(this).size.width;
-  
+
   /// Get screen height
   double get screenHeight => MediaQuery.of(this).size.height;
-  
+
   /// Get responsive spacing
   double get responsiveSpacing {
-    return OceanDimensions.spacing *
-        ResponsiveUtils.getSpacingMultiplier(this);
+    return OceanDimensions.spacing * ResponsiveUtils.getSpacingMultiplier(this);
   }
 }
 
@@ -115,7 +114,7 @@ extension ResponsiveExtensions on BuildContext {
 extension SpacingExtensions on num {
   /// Convert number to SizedBox with height
   SizedBox get verticalSpace => SizedBox(height: toDouble());
-  
+
   /// Convert number to SizedBox with width
   SizedBox get horizontalSpace => SizedBox(width: toDouble());
 }

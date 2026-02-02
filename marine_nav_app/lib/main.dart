@@ -1,5 +1,5 @@
 /// Marine Navigation App - Main Entry Point
-/// 
+///
 /// SailStream UI with Ocean Glass Design System
 library;
 
@@ -15,7 +15,7 @@ import 'screens/home_screen.dart';
 void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -23,19 +23,19 @@ void main() async {
     DeviceOrientation.landscapeLeft,
     DeviceOrientation.landscapeRight,
   ]);
-  
+
   // Initialize providers
   final settingsProvider = SettingsProvider();
   final themeProvider = ThemeProvider();
   final cacheProvider = CacheProvider();
-  
+
   // Initialize all providers
   await Future.wait([
     settingsProvider.init(),
     themeProvider.init(),
     cacheProvider.init(),
   ]);
-  
+
   runApp(
     MarineNavigationApp(
       settingsProvider: settingsProvider,
@@ -46,23 +46,29 @@ void main() async {
 }
 
 /// Marine Navigation App Root Widget
-/// 
+///
 /// Implements provider hierarchy following CON-004:
 /// Layer 2: (Future) MapProvider, WeatherProvider
 /// Layer 1: ThemeProvider, CacheProvider
 /// Layer 0: SettingsProvider
 class MarineNavigationApp extends StatelessWidget {
+  /// Settings provider instance
   final SettingsProvider settingsProvider;
+
+  /// Theme provider instance
   final ThemeProvider themeProvider;
+
+  /// Cache provider instance
   final CacheProvider cacheProvider;
-  
+
+  /// Creates a Marine Navigation App with required providers
   const MarineNavigationApp({
     super.key,
     required this.settingsProvider,
     required this.themeProvider,
     required this.cacheProvider,
   });
-  
+
   @override
   Widget build(BuildContext context) {
     // Provider hierarchy - acyclic, max 3 layers
@@ -72,7 +78,7 @@ class MarineNavigationApp extends StatelessWidget {
         ChangeNotifierProvider<SettingsProvider>.value(
           value: settingsProvider,
         ),
-        
+
         // Layer 1: Can depend on Layer 0
         ChangeNotifierProvider<ThemeProvider>.value(
           value: themeProvider,
@@ -80,22 +86,22 @@ class MarineNavigationApp extends StatelessWidget {
         ChangeNotifierProvider<CacheProvider>.value(
           value: cacheProvider,
         ),
-        
+
         // Layer 2 (Future): MapProvider, WeatherProvider
         // Will depend on Layer 0 and Layer 1
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {
           final systemBrightness = MediaQuery.platformBrightnessOf(context);
-          
+
           return MaterialApp(
             title: 'SailStream',
             debugShowCheckedModeBanner: false,
-            
+
             // Theme configuration
             theme: themeProvider.getTheme(systemBrightness),
             themeMode: _getThemeMode(themeProvider.themeMode),
-            
+
             // Home screen
             home: const HomeScreen(),
           );
@@ -103,7 +109,7 @@ class MarineNavigationApp extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Convert AppThemeMode to ThemeMode
   ThemeMode _getThemeMode(AppThemeMode mode) {
     switch (mode) {
