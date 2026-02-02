@@ -26,7 +26,7 @@ class CacheStats {
     return total > 0 ? hits / total : 0.0;
   }
 
-  /// Creates a new CacheStats instance
+  /// Creates a cache statistics snapshot using the provided counters.
   const CacheStats({
     required this.totalSize,
     required this.entryCount,
