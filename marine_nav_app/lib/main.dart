@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/cache_provider.dart';
+import 'providers/map_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
@@ -28,12 +29,17 @@ void main() async {
   final settingsProvider = SettingsProvider();
   final themeProvider = ThemeProvider();
   final cacheProvider = CacheProvider();
+  final mapProvider = MapProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
 
   // Initialize all providers
   await Future.wait([
     settingsProvider.init(),
     themeProvider.init(),
     cacheProvider.init(),
+    mapProvider.init(),
   ]);
 
   runApp(
@@ -41,6 +47,7 @@ void main() async {
       settingsProvider: settingsProvider,
       themeProvider: themeProvider,
       cacheProvider: cacheProvider,
+      mapProvider: mapProvider,
     ),
   );
 }
@@ -61,12 +68,16 @@ class MarineNavigationApp extends StatelessWidget {
   /// The cache provider (Layer 1).
   final CacheProvider cacheProvider;
 
+  /// The map provider (Layer 2).
+  final MapProvider mapProvider;
+
   /// Creates a MarineNavigationApp with pre-initialized providers.
   const MarineNavigationApp({
     super.key,
     required this.settingsProvider,
     required this.themeProvider,
     required this.cacheProvider,
+    required this.mapProvider,
   });
 
   @override
@@ -87,8 +98,10 @@ class MarineNavigationApp extends StatelessWidget {
           value: cacheProvider,
         ),
 
-        // Layer 2 (Future): MapProvider, WeatherProvider
-        // Will depend on Layer 0 and Layer 1
+        // Layer 2: MapProvider (WeatherProvider future)
+        ChangeNotifierProvider<MapProvider>.value(
+          value: mapProvider,
+        ),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, _) {

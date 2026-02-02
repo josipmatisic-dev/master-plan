@@ -48,6 +48,9 @@ Interactive nautical chart display with multi-layer support, smooth zoom/pan/rot
 - Flutter Canvas for overlay layers
 - Viewport synchronization critical (see ISS-001)
 - Projection: Web Mercator (EPSG:3857)
+- Implementation status: Phase 0 scaffold (`marine_nav_app/lib/providers/map_provider.dart`,
+  `marine_nav_app/lib/services/projection_service.dart`,
+  `marine_nav_app/lib/widgets/map/map_webview.dart`)
 
 **API Endpoints:**
 - MapTiler: `https://api.maptiler.com/maps/{style}/`

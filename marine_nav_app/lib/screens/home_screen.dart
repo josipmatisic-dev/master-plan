@@ -14,6 +14,7 @@ import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive_utils.dart';
 import '../widgets/glass/glass_card.dart';
+import '../widgets/map/map_webview.dart';
 
 /// Home Screen - Main navigation interface
 class HomeScreen extends StatelessWidget {
@@ -43,6 +44,8 @@ class HomeScreen extends StatelessWidget {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     _buildWelcomeCard(context),
+                    OceanDimensions.spacingL.verticalSpace,
+                    _buildMapPreview(context),
                     OceanDimensions.spacingL.verticalSpace,
                     _buildThemeControls(context),
                     OceanDimensions.spacingL.verticalSpace,
@@ -102,6 +105,21 @@ class HomeScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  /// Build map preview card
+  Widget _buildMapPreview(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Map Preview',
+          style: OceanTextStyles.heading2,
+        ),
+        OceanDimensions.spacingS.verticalSpace,
+        const MapWebView(),
+      ],
     );
   }
 

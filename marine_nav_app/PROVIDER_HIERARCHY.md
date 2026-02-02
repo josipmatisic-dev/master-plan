@@ -10,9 +10,9 @@
 
 Following **CON-004** from MASTER_DEVELOPMENT_BIBLE.md, all providers are organized in strict acyclic layers with one-directional dependencies:
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
-│                  Layer 2 (Future)                   │
+│                   Layer 2 (Partial)                 │
 │                                                     │
 │  ┌──────────────┐         ┌──────────────┐        │
 │  │ MapProvider  │         │WeatherProvider│        │
@@ -43,7 +43,8 @@ Following **CON-004** from MASTER_DEVELOPMENT_BIBLE.md, all providers are organi
 
 ### ✅ Layer 0: Foundation (Complete)
 
-**SettingsProvider**
+#### SettingsProvider
+
 - File: `lib/providers/settings_provider.dart`
 - Lines: ~130 (under 300 limit ✅)
 - Dependencies: None
@@ -53,6 +54,7 @@ Following **CON-004** from MASTER_DEVELOPMENT_BIBLE.md, all providers are organi
   - Persist settings to SharedPreferences
 
 **API:**
+
 ```dart
 class SettingsProvider extends ChangeNotifier {
   SpeedUnit get speedUnit;
@@ -70,7 +72,8 @@ class SettingsProvider extends ChangeNotifier {
 
 ### ✅ Layer 1: UI Coordination (Complete)
 
-**ThemeProvider**
+#### ThemeProvider
+
 - File: `lib/providers/theme_provider.dart`
 - Lines: ~115 (under 300 limit ✅)
 - Dependencies: Can access SettingsProvider (Layer 0)
@@ -80,6 +83,7 @@ class SettingsProvider extends ChangeNotifier {
   - Persist theme preference
 
 **API:**
+
 ```dart
 class ThemeProvider extends ChangeNotifier {
   AppThemeMode get themeMode;
@@ -94,7 +98,8 @@ class ThemeProvider extends ChangeNotifier {
 }
 ```
 
-**CacheProvider**
+#### CacheProvider
+
 - File: `lib/providers/cache_provider.dart`
 - Lines: ~120 (under 300 limit ✅)
 - Dependencies: Can access SettingsProvider (Layer 0)
@@ -104,6 +109,7 @@ class ThemeProvider extends ChangeNotifier {
   - Cache invalidation controls
 
 **API:**
+
 ```dart
 class CacheProvider extends ChangeNotifier {
   CacheStats get stats;
@@ -117,14 +123,19 @@ class CacheProvider extends ChangeNotifier {
 }
 ```
 
-### ⏳ Layer 2: Feature Providers (Future Phase)
+### ⏳ Layer 2: Feature Providers (Partial)
 
-**MapProvider** (Not yet implemented)
-- Will manage map viewport state
+#### MapProvider (Implemented)
+
+- File: `lib/providers/map_provider.dart`
 - Dependencies: SettingsProvider, CacheProvider
-- Coordinates with ProjectionService
+- Responsibilities:
+  - Owns viewport state (center/zoom/size/rotation)
+  - Emits map errors to UI
+  - Coordinates with ProjectionService
 
-**WeatherProvider** (Not yet implemented)
+#### WeatherProvider (Not yet implemented)
+
 - Will manage weather data
 - Dependencies: SettingsProvider, CacheProvider
 - Coordinates with WeatherService
@@ -139,12 +150,17 @@ void main() async {
   final settingsProvider = SettingsProvider();
   final themeProvider = ThemeProvider();
   final cacheProvider = CacheProvider();
+  final mapProvider = MapProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
   
   // 2. Initialize all (Layer 0 first, then Layer 1)
   await Future.wait([
     settingsProvider.init(),
     themeProvider.init(),
     cacheProvider.init(),
+    mapProvider.init(),
   ]);
   
   // 3. Provide to app
@@ -152,6 +168,7 @@ void main() async {
     settingsProvider: settingsProvider,
     themeProvider: themeProvider,
     cacheProvider: cacheProvider,
+    mapProvider: mapProvider,
   ));
 }
 ```
@@ -174,7 +191,10 @@ MultiProvider(
       value: cacheProvider,
     ),
     
-    // Layer 2 (Future): MapProvider, WeatherProvider
+    // Layer 2: MapProvider (WeatherProvider future)
+    ChangeNotifierProvider<MapProvider>.value(
+      value: mapProvider,
+    ),
   ],
   child: ...,
 )
@@ -183,22 +203,26 @@ MultiProvider(
 ## Architecture Rules Compliance
 
 ✅ **CON-004**: Provider hierarchy is documented and acyclic
+
 - Maximum 3 layers
 - Dependencies only flow downward
 - No circular references
 - Clear documentation
 
 ✅ **CON-001**: All providers under 300 lines
+
 - SettingsProvider: ~130 lines
 - ThemeProvider: ~115 lines
 - CacheProvider: ~120 lines
 
 ✅ **CON-002**: Single Source of Truth
+
 - Each provider manages distinct state
 - No duplicate state across providers
 - Clear ownership of data
 
 ✅ **CON-006**: Proper disposal
+
 - All providers implement dispose()
 - Resources cleaned up properly
 
