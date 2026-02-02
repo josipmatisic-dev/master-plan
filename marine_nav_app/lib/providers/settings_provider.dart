@@ -140,9 +140,4 @@ class SettingsProvider extends ChangeNotifier {
     await _prefs?.clear();
     notifyListeners();
   }
-  
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

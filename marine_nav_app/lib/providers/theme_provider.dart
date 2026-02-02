@@ -125,9 +125,4 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> disableRedLightMode() async {
     await setThemeMode(AppThemeMode.dark);
   }
-  
-  @override
-  void dispose() {
-    super.dispose();
-  }
 }

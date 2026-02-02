@@ -6,14 +6,14 @@ library;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/theme_provider.dart';
-import '../providers/settings_provider.dart';
 import '../providers/cache_provider.dart';
-import '../widgets/glass/glass_card.dart';
+import '../providers/settings_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/colors.dart';
-import '../theme/text_styles.dart';
 import '../theme/dimensions.dart';
+import '../theme/text_styles.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/glass/glass_card.dart';
 
 /// Home Screen - Main navigation interface
 class HomeScreen extends StatelessWidget {

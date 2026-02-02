@@ -2,8 +2,8 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('SettingsProvider', () {
