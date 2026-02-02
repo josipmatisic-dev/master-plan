@@ -52,10 +52,16 @@ void main() async {
 /// Layer 1: ThemeProvider, CacheProvider
 /// Layer 0: SettingsProvider
 class MarineNavigationApp extends StatelessWidget {
+  /// Settings provider for application-wide settings
   final SettingsProvider settingsProvider;
+  
+  /// Theme provider for managing app theme
   final ThemeProvider themeProvider;
+  
+  /// Cache provider for managing cached data
   final CacheProvider cacheProvider;
   
+  /// Creates a new instance of [MarineNavigationApp]
   const MarineNavigationApp({
     super.key,
     required this.settingsProvider,

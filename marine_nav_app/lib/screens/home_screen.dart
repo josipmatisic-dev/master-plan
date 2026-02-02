@@ -17,6 +17,7 @@ import '../widgets/glass/glass_card.dart';
 
 /// Home Screen - Main navigation interface
 class HomeScreen extends StatelessWidget {
+  /// Creates a new instance of [HomeScreen]
   const HomeScreen({super.key});
   
   @override
