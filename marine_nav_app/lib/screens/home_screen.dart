@@ -1,5 +1,5 @@
 /// Home Screen - Main Navigation Screen
-/// 
+///
 /// Demonstrates Ocean Glass design system and provider usage.
 library;
 
@@ -18,7 +18,7 @@ import '../widgets/glass/glass_card.dart';
 /// Home Screen - Main navigation interface
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,7 +57,7 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Build app bar
   Widget _buildAppBar(BuildContext context) {
     return SliverAppBar(
@@ -77,7 +77,7 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Build welcome card
   Widget _buildWelcomeCard(BuildContext context) {
     return GlassCard(
@@ -103,7 +103,7 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-  
+
   /// Build theme controls
   Widget _buildThemeControls(BuildContext context) {
     return Consumer<ThemeProvider>(
@@ -143,7 +143,7 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
-  
+
   /// Build theme button
   Widget _buildThemeButton(
     BuildContext context,
@@ -152,24 +152,22 @@ class HomeScreen extends StatelessWidget {
     ThemeProvider provider,
   ) {
     final isSelected = provider.themeMode == mode;
-    
+
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () => provider.setThemeMode(mode),
         style: ElevatedButton.styleFrom(
-          backgroundColor: isSelected
-              ? OceanColors.seafoamGreen
-              : OceanColors.surface,
-          foregroundColor: isSelected
-              ? OceanColors.pureWhite
-              : OceanColors.textSecondary,
+          backgroundColor:
+              isSelected ? OceanColors.seafoamGreen : OceanColors.surface,
+          foregroundColor:
+              isSelected ? OceanColors.pureWhite : OceanColors.textSecondary,
         ),
         child: Text(label),
       ),
     );
   }
-  
+
   /// Build settings card
   Widget _buildSettingsCard(BuildContext context) {
     return Consumer<SettingsProvider>(
@@ -201,7 +199,7 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
-  
+
   /// Build cache info card
   Widget _buildCacheCard(BuildContext context) {
     return Consumer<CacheProvider>(
@@ -233,7 +231,7 @@ class HomeScreen extends StatelessWidget {
       },
     );
   }
-  
+
   /// Build setting row
   Widget _buildSettingRow(String label, String value) {
     return Padding(
