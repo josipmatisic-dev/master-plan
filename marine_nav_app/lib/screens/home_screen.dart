@@ -20,7 +20,6 @@ class HomeScreen extends StatelessWidget {
   /// Creates the home screen
   const HomeScreen({super.key});
 
-  /// Builds the home screen with Ocean Glass design system
   @override
   Widget build(BuildContext context) {
     return Scaffold(

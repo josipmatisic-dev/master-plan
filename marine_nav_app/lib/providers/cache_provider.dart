@@ -26,7 +26,7 @@ class CacheStats {
     return total > 0 ? hits / total : 0.0;
   }
 
-  /// Creates cache statistics with the given metrics
+  /// Creates a cache statistics snapshot using the provided counters.
   const CacheStats({
     required this.totalSize,
     required this.entryCount,
@@ -142,7 +142,6 @@ class CacheProvider extends ChangeNotifier {
     }
   }
 
-  /// Disposes the cache provider and cleans up resources
   @override
   void dispose() {
     // TODO: Dispose CacheService if needed

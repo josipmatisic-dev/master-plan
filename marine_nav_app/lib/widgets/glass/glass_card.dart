@@ -54,7 +54,6 @@ class GlassCard extends StatelessWidget {
   /// Enable intense blur for overlays (default: false)
   final bool intenseBlur;
 
-  /// Creates a glass card with optional customization
   const GlassCard({
     super.key,
     required this.child,
@@ -85,7 +84,6 @@ class GlassCard extends StatelessWidget {
         : OceanDimensions.glassBlur;
   }
 
-  /// Builds the glass card with frosted glass effect and backdrop filter
   @override
   Widget build(BuildContext context) {
     final radius = borderRadius ?? OceanDimensions.radius;
