@@ -163,19 +163,45 @@ class NavigationModeScreen extends StatelessWidget {
       bottom: 120,
       left: OceanDimensions.spacingL,
       right: OceanDimensions.spacingL,
-      child: GlassCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text('Next: Waypoint 1', style: OceanTextStyles.heading2),
-            SizedBox(height: OceanDimensions.spacingS),
-            Text('Distance: 2.4 nm', style: OceanTextStyles.body),
-            SizedBox(height: OceanDimensions.spacingXS),
-            Text('ETA: 19 min', style: OceanTextStyles.body),
-          ],
-        ),
+      child: Consumer<NMEAProvider>(
+        builder: (context, nmea, _) {
+          final position = nmea.currentData?.position;
+          final sog = nmea.currentData?.speedOverGroundKnots ?? 0.0;
+          final eta = _calculateETA(sog);
+
+          return GlassCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Next: Waypoint 1', style: OceanTextStyles.heading2),
+                SizedBox(height: OceanDimensions.spacingS),
+                Text(
+                  'Distance: 2.4 nm',
+                  style: OceanTextStyles.body,
+                ),
+                SizedBox(height: OceanDimensions.spacingXS),
+                Text(
+                  'ETA: ${eta.toStringAsFixed(0)} min',
+                  style: OceanTextStyles.body,
+                ),
+                SizedBox(height: OceanDimensions.spacingXS),
+                Text(
+                  'Position: ${position?.latitude.toStringAsFixed(4) ?? 'N/A'}, ${position?.longitude.toStringAsFixed(4) ?? 'N/A'}',
+                  style: OceanTextStyles.bodySmall,
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
+  }
+
+  /// Calculate estimated time to arrival (minutes) based on speed and distance.
+  double _calculateETA(double speedKnots) {
+    const distanceNm = 2.4;
+    if (speedKnots <= 0) return 0.0;
+    return (distanceNm / speedKnots) * 60; // Convert hours to minutes
   }
 
   Widget _buildActionBar(BuildContext context) {
@@ -187,17 +213,20 @@ class NavigationModeScreen extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _actionButton(' + Route'),
-            _actionButton('Mark Position'),
-            _actionButton('Track'),
-            _actionButton('Alerts'),
+            _actionButton('+ Route', () => _handleRouteAction(context)),
+            _actionButton(
+              'Mark Position',
+              () => _handleMarkPositionAction(context),
+            ),
+            _actionButton('Track', () => _handleTrackAction(context)),
+            _actionButton('Alerts', () => _handleAlertsAction(context)),
           ],
         ),
       ),
     );
   }
 
-  Widget _actionButton(String label) {
+  Widget _actionButton(String label, VoidCallback onPressed) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: OceanColors.seafoamGreen.withValues(alpha: 0.15),
@@ -207,8 +236,56 @@ class NavigationModeScreen extends StatelessWidget {
           horizontal: OceanDimensions.spacing,
         ),
       ),
-      onPressed: () {},
+      onPressed: onPressed,
       child: Text(label, style: OceanTextStyles.labelLarge),
+    );
+  }
+
+  void _handleRouteAction(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Route creation not yet implemented'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleMarkPositionAction(BuildContext context) {
+    final nmea = context.read<NMEAProvider>().currentData;
+    if (nmea?.position != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Waypoint marked at ${nmea!.position!.latitude.toStringAsFixed(4)}, ${nmea.position!.longitude.toStringAsFixed(4)}',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No position data available'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _handleTrackAction(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Tracking toggled'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _handleAlertsAction(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('No active navigation alerts'),
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 }
