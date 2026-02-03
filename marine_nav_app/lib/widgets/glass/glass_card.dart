@@ -93,9 +93,10 @@ class GlassCard extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           color: isDark
-              ? OceanColors.deepNavy.withOpacity(OceanDimensions.glassOpacity)
+              ? OceanColors.deepNavy
+                  .withValues(alpha: OceanDimensions.glassOpacity)
               : OceanColors.pureWhite
-                  .withOpacity(OceanDimensions.glassOpacityLight),
+                  .withValues(alpha: OceanDimensions.glassOpacityLight),
           borderRadius: BorderRadius.circular(radius),
           border: Border.all(
             color:
