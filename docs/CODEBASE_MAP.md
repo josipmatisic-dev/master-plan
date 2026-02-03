@@ -65,6 +65,7 @@ lib/
 ├── screens/                      # Full-screen pages
 │   ├── home_screen.dart         # Main app screen
 │   ├── map_screen.dart          # Primary map view
+│   ├── navigation_mode_screen.dart # SailStream navigation layout (SOG/COG/DEPTH orbs + route actions)
 │   ├── forecast_screen.dart     # Weather forecast details
 │   ├── timeline_screen.dart     # Forecast playback
 │   ├── settings_screen.dart     # App configuration
@@ -72,7 +73,8 @@ lib/
 │   └── about_screen.dart        # About & help
 │
 ├── widgets/                      # Reusable UI components
-│   ├── map_webview.dart         # MapTiler WebView container
+│   ├── map/                     # Map-specific widgets
+│   │   └── map_webview.dart     # MapTiler WebView container
 │   ├── glass/                   # Glass UI components (Ocean Glass design)
 │   │   ├── glass_card.dart     # Base frosted glass container
 │   │   ├── glass_button.dart   # Glass-styled button
