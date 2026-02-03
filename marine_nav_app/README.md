@@ -89,7 +89,8 @@ The iOS project scaffold already exists under `marine_nav_app/ios`. To develop i
 # From marine_nav_app/
 flutter pub get
 
-# Optional if you run pods manually
+# Normally flutter run handles CocoaPods; run this only if you hit pod issues
+# or after changing native iOS dependencies/Podfile.
 cd ios
 pod install
 cd ..
