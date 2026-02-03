@@ -94,8 +94,11 @@ cd ios
 pod install
 cd ..
 
-# Launch on an iOS simulator or device
-flutter run -d ios
+# Launch on an iOS simulator or device (with the simulator/device running)
+flutter run
+# Or, list devices and pass the desired device id:
+# flutter devices
+# flutter run -d <device_id>
 ```
 
 For Xcode workflows, open `ios/Runner.xcworkspace` and run the Runner target.
