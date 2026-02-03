@@ -3,6 +3,7 @@ import 'package:marine_nav_app/main.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
 import 'package:marine_nav_app/providers/nmea_provider.dart';
+import 'package:marine_nav_app/providers/route_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/providers/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +23,7 @@ void main() {
       settingsProvider: settingsProvider,
       cacheProvider: cacheProvider,
     );
+    final routeProvider = RouteProvider();
 
     await settingsProvider.init();
     await themeProvider.init();
@@ -35,6 +37,7 @@ void main() {
         cacheProvider: cacheProvider,
         mapProvider: mapProvider,
         nmeaProvider: nmeaProvider,
+        routeProvider: routeProvider,
       ),
     );
 
