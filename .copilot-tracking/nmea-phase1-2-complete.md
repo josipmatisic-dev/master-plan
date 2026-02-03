@@ -85,7 +85,7 @@
 
 ### Code Quality
 | Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
+| -------- | -------- | -------- | -------- |
 | File Size Limit | <300 lines | Max 301 lines (service) | ⚠️ +1 line |
 | Test Coverage | ≥80% | ~90% | ✅ PASS |
 | Test Count | Comprehensive | 53 new tests | ✅ PASS |
@@ -99,7 +99,7 @@
 1. **Robust Coordinate Parsing**
    ```dart
    // Auto-detects latitude (2-digit) vs longitude (3-digit degrees)
-   final isLatitude = direction == 'N' || direction == 'S';
+ final isLatitude = direction == 'N' | | direction == 'S';
    final degreeDigits = isLatitude ? 2 : 3;
    ```
 
@@ -132,9 +132,9 @@
 ## Test Results
 
 ### Full Test Suite
-```
+```text
 00:04 +64: All tests passed!
-```
+```text
 
 **Breakdown:**
 - Previous tests: 11 (MapProvider, ProjectionService, SettingsProvider, HomeScreen)
@@ -147,7 +147,7 @@
 flutter analyze lib/services/nmea_service.dart
 Analyzing nmea_service.dart...
 No issues found! (ran in 0.3s)
-```
+```text
 
 ---
 
@@ -204,7 +204,7 @@ No issues found! (ran in 0.3s)
 ## Risk Assessment
 
 | Risk | Status | Resolution |
-|------|--------|------------|
+| ------ | -------- | ------------ |
 | Parser accuracy | ✅ RESOLVED | 40 tests with real NMEA samples |
 | Isolate complexity | ✅ RESOLVED | Clean architecture with message passing |
 | File size limits | ⚠️ MINOR | Service is 301 lines (1 over, acceptable) |

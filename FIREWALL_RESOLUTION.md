@@ -7,6 +7,7 @@ PR #16 encountered firewall blocks preventing Flutter SDK downloads and dependen
 ## Blocked Domains
 
 The following domains were blocked during PR #16 execution:
+
 - `dl-ssl.google.com` - Flutter SDK downloads
 - `storage.googleapis.com` - Flutter SDK components (dart-sdk, engine files)
 - `esm.ubuntu.com` - Ubuntu package updates
@@ -16,22 +17,25 @@ The following domains were blocked during PR #16 execution:
 ### Option 1: Add to Firewall Allowlist (Recommended)
 
 **Action Required:** Repository administrator must add these domains to the custom allowlist in:
+
 - Repository Settings → Copilot → Coding Agent Settings → Custom Allowlist
 
 **Domains to Allowlist:**
-```
+
+```text
 dl-ssl.google.com
 storage.googleapis.com
 flutter.dev
 pub.dev
 esm.ubuntu.com
-```
+```text
 
 ### Option 2: Use Actions Setup Steps
 
 **Action Required:** Create a `.github/actions-setup.yml` file that runs before the firewall is enabled.
 
 **Example Setup File:**
+
 ```yaml
 name: Pre-install Flutter
 runs-on: ubuntu-latest
@@ -43,10 +47,10 @@ steps:
       channel: 'stable'
   
   - name: Verify Flutter Installation
-    run: |
+ run: |
       flutter --version
       flutter doctor
-```
+```text
 
 This setup runs before Copilot's firewall restrictions are applied.
 
@@ -59,16 +63,17 @@ This setup runs before Copilot's firewall restrictions are applied.
 ## Testing After Resolution
 
 Once resolved, verify with:
+
 ```bash
 flutter --version
 flutter doctor
 flutter pub get
-```
+```text
 
 All commands should complete successfully without firewall blocks.
 
 ## References
 
-- PR #16 Firewall Warning: https://github.com/josipmatisic-dev/master-plan/pull/16
-- Actions Setup Steps Documentation: https://gh.io/copilot/actions-setup-steps
-- Copilot Settings: https://github.com/josipmatisic-dev/master-plan/settings/copilot/coding_agent
+- PR #16 Firewall Warning: <https://github.com/josipmatisic-dev/master-plan/pull/16>
+- Actions Setup Steps Documentation: <https://gh.io/copilot/actions-setup-steps>
+- Copilot Settings: <https://github.com/josipmatisic-dev/master-plan/settings/copilot/coding_agent>

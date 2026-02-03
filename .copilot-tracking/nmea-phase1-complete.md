@@ -79,9 +79,9 @@
 ## Test Results
 
 ### All Tests Passing
-```
+```text
 00:02 +51: All tests passed!
-```
+```text
 
 **Breakdown:**
 - Previous tests: 11 (MapProvider + ProjectionService)
@@ -89,9 +89,9 @@
 - **Total: 51 tests, 100% pass rate** ✅
 
 ### Static Analysis
-```
+```dart
 flutter analyze lib/models/nmea_data.dart lib/models/nmea_error.dart lib/services/nmea_parser.dart
-```
+```text
 - ✅ No errors
 - ⚠️ 48 info messages (missing documentation for public members)
 - Note: Documentation warnings are acceptable per project standards
@@ -101,7 +101,7 @@ flutter analyze lib/models/nmea_data.dart lib/models/nmea_error.dart lib/service
 ## Code Quality Metrics
 
 | Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
+| -------- | -------- | -------- | -------- |
 | File Size Limit | <300 lines | Max 288 lines | ✅ PASS |
 | Test Coverage | ≥80% | ~95% | ✅ PASS |
 | Test Count | Comprehensive | 40 tests | ✅ PASS |
@@ -116,23 +116,23 @@ flutter analyze lib/models/nmea_data.dart lib/models/nmea_error.dart lib/service
 ### 1. Robust Coordinate Parsing
 ```dart
 // Handles both latitude (2-digit degrees) and longitude (3-digit degrees)
-final isLatitude = direction == 'N' || direction == 'S';
+final isLatitude = direction == 'N' | | direction == 'S';
 final degreeDigits = isLatitude ? 2 : 3;
 final degrees = int.parse(value.substring(0, degreeDigits));
 final minutes = double.parse(value.substring(degreeDigits));
-```
+```text
 
 ### 2. Y2K-Compatible Year Parsing
 ```dart
 // Years 70-99 → 1970-1999, 00-69 → 2000-2069
 final year = yearTwoDigit >= 70 ? 1900 + yearTwoDigit : 2000 + yearTwoDigit;
-```
+```text
 
 ### 3. Graceful Checksum Handling
 ```dart
 // Allows missing checksums (some NMEA devices don't include them)
 if (checksumIndex == -1) return true;
-```
+```text
 
 ### 4. Comprehensive Error Handling
 ```dart
@@ -144,7 +144,7 @@ if (!validateChecksum(trimmed)) {
     sentence: trimmed,
   );
 }
-```
+```text
 
 ---
 
@@ -179,7 +179,7 @@ if (!validateChecksum(trimmed)) {
 ## Risks & Mitigations
 
 | Risk | Status | Mitigation |
-|------|--------|------------|
+| ------ | -------- | ------------ |
 | Parser complexity | ✅ RESOLVED | Comprehensive tests with 100% pass rate |
 | Coordinate conversion accuracy | ✅ RESOLVED | Tested with real NMEA samples |
 | Y2K date handling | ✅ RESOLVED | Verified with 1994 test case |

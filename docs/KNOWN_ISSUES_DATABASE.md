@@ -1,4 +1,5 @@
 # Known Issues Database
+
 ## Marine Navigation App - Issue Tracking & Solutions
 
 **Version:** 4.0  
@@ -18,17 +19,20 @@
 ## How to Use This Database
 
 **Before writing code:**
+
 1. Search for similar symptoms or error messages
 2. Read root cause and prevention rule
 3. Apply solution pattern to your code
 
 **When encountering an error:**
+
 1. Search for error message in this document
 2. Follow solution steps
 3. Update issue status if resolved
 4. Add new issue if novel
 
 **Issue Status Codes:**
+
 - 🔴 **CRITICAL** - App crashes or data loss
 - 🟠 **HIGH** - Feature broken or unusable
 - 🟡 **MEDIUM** - Degraded performance or UX
@@ -42,7 +46,7 @@
 ## Issue Index
 
 | ID | Title | Severity | Status | Attempt |
-|----|-------|----------|--------|---------|
+| ---- | ------- | ---------- | -------- | --------- |
 | ISS-001 | Overlay projection mismatch at zoom | 🔴 CRITICAL | ✅ RESOLVED | 2, 4 |
 | ISS-002 | MapController god object circular deps | 🔴 CRITICAL | ✅ RESOLVED | 1, 3 |
 | ISS-003 | ProviderNotFoundException on hot reload | 🟠 HIGH | ✅ RESOLVED | 2 |
@@ -75,24 +79,29 @@
 **Status:** ✅ RESOLVED  
 **Repository:** Attempt 2, Attempt 4  
 **Files Affected:**
+
 - `lib/widgets/overlays/wind_overlay.dart`
 - `lib/widgets/overlays/wave_overlay.dart`
 - `lib/providers/map_provider.dart`
 
 **Symptoms:**
+
 - Wind arrows appear in wrong locations after zoom
 - Overlays drift when panning map
 - Rotation causes overlays to detach from positions
 - Overlays correct positions disappear at zoom <10
 
-**Root Cause:**
+#### Root Cause
+
 Multiple coordinate projection systems used inconsistently:
+
 1. MapTiler uses Web Mercator (EPSG:3857)
 2. Weather data in WGS84 (EPSG:4326)
 3. Direct lat/lng to pixel conversion without projection transform
 4. No synchronization between WebView viewport and Flutter overlay
 
 **Code Example (WRONG):**
+
 ```dart
 class WindOverlayPainter extends CustomPainter {
   @override
@@ -106,15 +115,17 @@ class WindOverlayPainter extends CustomPainter {
     }
   }
 }
-```
+```text
 
 **Solution:**
+
 1. Create ProjectionService for all coordinate transforms
 2. Use Web Mercator projection consistently
 3. Synchronize viewport state between WebView and Flutter
 4. Apply same transformations as map (zoom, pan, rotate)
 
 **Code Example (CORRECT):**
+
 ```dart
 class WindOverlayPainter extends CustomPainter {
   final Viewport viewport;
@@ -139,12 +150,13 @@ class WindOverlayPainter extends CustomPainter {
   
   @override
   bool shouldRepaint(WindOverlayPainter old) {
-    return viewport != old.viewport || windPoints != old.windPoints;
+ return viewport != old.viewport | | windPoints != old.windPoints;
   }
 }
-```
+```text
 
 **Prevention Rule:**
+
 - ALL coordinate conversions MUST go through ProjectionService
 - Lint rule: no arithmetic on lat/lng variables
 - Code review must verify projection usage
@@ -161,18 +173,21 @@ class WindOverlayPainter extends CustomPainter {
 **Status:** ✅ RESOLVED  
 **Repository:** Attempt 1, Attempt 3  
 **Files Affected:**
+
 - `lib/providers/map_controller.dart` (deleted)
 - `lib/providers/*` (split into multiple)
 
 **Symptoms:**
+
 - Hot reload breaks app
 - Changes cascade across entire codebase
 - Impossible to test in isolation
 - Stack overflow on initialization
 - "ProviderNotFoundException" errors
 
-**Root Cause:**
+#### Root Cause
 Single class responsible for:
+
 - Map viewport management
 - Weather data fetching
 - NMEA data processing
@@ -183,11 +198,13 @@ Single class responsible for:
 - WebView communication
 
 Circular dependencies:
+
 - MapController needs WeatherService for overlays
 - WeatherService needs MapController for bounds
 - Both initialized in each other's constructor
 
 **Code Example (WRONG):**
+
 ```dart
 class MapController extends ChangeNotifier {
   late final WeatherService _weatherService;
@@ -203,9 +220,10 @@ class MapController extends ChangeNotifier {
   
   // 2,847 lines of mixed responsibilities...
 }
-```
+```text
 
 **Solution:**
+
 1. Split into focused providers (max 300 lines each)
 2. Use composition instead of inheritance
 3. Document dependency hierarchy (max 3 layers)
@@ -213,6 +231,7 @@ class MapController extends ChangeNotifier {
 5. Create providers in main.dart with ProxyProvider
 
 **Code Example (CORRECT):**
+
 ```dart
 // Focused providers
 class MapProvider extends ChangeNotifier {
@@ -235,9 +254,10 @@ MultiProvider(
     ),
   ],
 )
-```
+```text
 
 **Prevention Rule:**
+
 - Maximum 300 lines per file
 - Single Responsibility Principle
 - Document all dependencies
@@ -255,17 +275,20 @@ MultiProvider(
 **Status:** ✅ RESOLVED  
 **Repository:** Attempt 2  
 **Files Affected:**
+
 - `lib/screens/map_screen.dart`
 - `lib/screens/forecast_screen.dart`
 
 **Symptoms:**
+
 - Hot reload causes crash
 - Error: "Could not find the correct Provider<T> above this widget"
 - App works on cold start, breaks on hot reload
 - Intermittent crashes during development
 
-**Root Cause:**
+#### Root Cause
 Providers created inside widget build methods instead of app root:
+
 ```dart
 class MapScreen extends StatelessWidget {
   @override
@@ -277,21 +300,24 @@ class MapScreen extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 Problems:
+
 1. Provider recreated on every build
 2. State lost on hot reload
 3. Provider hierarchy doesn't match widget hierarchy
 4. Nested providers accessing parents that don't exist yet
 
 **Solution:**
+
 1. ALL providers created in main.dart
 2. Use `context.read<T>()` for one-time access
 3. Use `Consumer<T>` for reactive updates
 4. Never create providers in widget trees
 
 **Code Example (CORRECT):**
+
 ```dart
 // main.dart
 void main() {
@@ -318,9 +344,10 @@ class MapScreen extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 **Prevention Rule:**
+
 - Providers ONLY in main.dart
 - No `ChangeNotifierProvider` in screen/widget files
 - Document provider hierarchy in CODEBASE_MAP.md
@@ -337,30 +364,35 @@ class MapScreen extends StatelessWidget {
 **Status:** ✅ RESOLVED  
 **Repository:** Attempt 3  
 **Files Affected:**
+
 - `lib/services/cache_service.dart`
 - `lib/providers/weather_provider.dart`
 - `lib/widgets/map_webview.dart`
 
 **Symptoms:**
+
 - UI shows yesterday's forecast
 - Refresh doesn't update display
 - Multiple cache layers out of sync
 - WebView shows different data than overlays
 
-**Root Cause:**
+#### Root Cause
 Four separate cache layers with no coordination:
+
 1. In-memory Map<Bounds, WeatherData>
 2. Disk cache (path_provider)
 3. HTTP cache headers
 4. WebView internal cache
 
 No invalidation strategy:
+
 - Memory cache updated but disk cache stale
 - Bounds keys didn't account for zoom differences
 - No TTL or timestamps
 - Cache grew to 500MB+
 
 **Code Example (WRONG):**
+
 ```dart
 Future<WeatherData> getWeather(Bounds bounds) async {
   // Check memory only
@@ -375,9 +407,10 @@ Future<WeatherData> getWeather(Bounds bounds) async {
   // Other caches still have old data!
   return data;
 }
-```
+```text
 
 **Solution:**
+
 1. Single CacheService with unified strategy
 2. LRU eviction when size limit reached
 3. TTL-based expiry
@@ -385,6 +418,7 @@ Future<WeatherData> getWeather(Bounds bounds) async {
 5. Coordinated invalidation across all layers
 
 **Code Example (CORRECT):**
+
 ```dart
 class CacheService {
   Future<T?> get<T>(CacheKey key) async {
@@ -423,9 +457,10 @@ class CacheService {
     }
   }
 }
-```
+```text
 
 **Prevention Rule:**
+
 - Single source of truth for cached data
 - All caches must have TTL
 - Document cache invalidation triggers
@@ -442,19 +477,22 @@ class CacheService {
 **Status:** ✅ RESOLVED  
 **Repository:** Attempt 2, Attempt 3  
 **Files Affected:**
+
 - `lib/widgets/overlays/wind_overlay.dart`
 - `lib/widgets/controls/timeline_controls.dart`
 - `lib/widgets/common/loading_widget.dart`
 
 **Symptoms:**
+
 - Memory usage increases constantly
 - App becomes sluggish after 10 minutes
 - Crash with "out of memory" after 20 minutes
 - Flutter DevTools shows hundreds of zombie objects
 - AnimationController count increases indefinitely
 
-**Root Cause:**
+#### Root Cause
 AnimationControllers created but never disposed:
+
 ```dart
 class WindArrowWidget extends StatefulWidget {
   @override
@@ -472,18 +510,20 @@ class _State extends State<WindArrowWidget> with TickerProviderStateMixin {
   
   // NO dispose() method - LEAK!
 }
-```
+```text
 
 Additional leaks:
+
 - StreamSubscriptions not cancelled
 - Provider listeners not removed
 - Timer not cancelled
 - Image cache not cleared
 
-**Solution:**
+#### Solution
 Every StatefulWidget with resources MUST dispose them:
 
 **Code Example (CORRECT):**
+
 ```dart
 class WindArrowWidget extends StatefulWidget {
   @override
@@ -516,9 +556,10 @@ class _State extends State<WindArrowWidget> with TickerProviderStateMixin {
     );
   }
 }
-```
+```text
 
 **Prevention Rule:**
+
 - Lint rule: `always_dispose_controllers`
 - Every StatefulWidget with resources MUST have dispose()
 - Checklist:
@@ -542,24 +583,28 @@ class _State extends State<WindArrowWidget> with TickerProviderStateMixin {
 **Status:** ✅ RESOLVED  
 **Repository:** Attempt 2  
 **Files Affected:**
+
 - `lib/services/nmea_service.dart`
 - `lib/providers/nmea_provider.dart`
 
 **Symptoms:**
+
 - UI freezes for 2-3 seconds
 - Janky scrolling and animations
 - High CPU usage on main thread
 - App crash with "Application Not Responding"
 - Worse when multiple NMEA devices connected
 
-**Root Cause:**
+#### Root Cause
 NMEA sentence parsing on main thread:
+
 1. Socket data received on main thread
 2. String conversion blocking
 3. Parse logic (regex, checksum) CPU intensive
 4. notifyListeners() called 30+ times per second
 
 **Code Example (WRONG):**
+
 ```dart
 void connectToNMEA(String host, int port) {
   Socket.connect(host, port).then((socket) {
@@ -577,15 +622,17 @@ void connectToNMEA(String host, int port) {
     });
   });
 }
-```
+```text
 
 **Solution:**
+
 1. Use Isolate for NMEA parsing
 2. Batch updates every 200ms
 3. Backpressure handling
 4. Buffer size limits
 
 **Code Example (CORRECT):**
+
 ```dart
 class NMEAService {
   Future<void> connect(String host, int port) async {
@@ -637,9 +684,10 @@ class NMEAService {
     });
   }
 }
-```
+```text
 
 **Prevention Rule:**
+
 - No heavy computation on main thread
 - Use Isolate for parsing, encoding, crypto
 - Batch UI updates (max 5 fps for data streams)
@@ -656,16 +704,18 @@ class NMEAService {
 **Status:** ✅ RESOLVED  
 **Repository:** Attempt 2  
 **Files Affected:**
+
 - `lib/widgets/overlays/wind_overlay.dart`
 - `lib/utils/conversions.dart`
 
 **Symptoms:**
+
 - Wind arrows point wrong direction
 - Always 180 degrees opposite
 - Direction correct, arrows backwards
 - User reports: "Wind from north shows south"
 
-**Root Cause:**
+#### Root Cause
 Confusion between meteorological and mathematical wind direction conventions:
 
 - **Meteorological:** Wind direction = where wind is FROM (0° = from North)
@@ -674,6 +724,7 @@ Confusion between meteorological and mathematical wind direction conventions:
 Wind data from API is meteorological, but arrows drawn with mathematical rotation.
 
 **Code Example (WRONG):**
+
 ```dart
 void _drawWindArrow(Canvas canvas, Offset pos, double direction) {
   canvas.save();
@@ -693,14 +744,16 @@ void _drawWindArrow(Canvas canvas, Offset pos, double direction) {
   canvas.drawPath(path, paint);
   canvas.restore();
 }
-```
+```text
 
-**Solution:**
+#### Solution
 Convert meteorological to mathematical direction:
+
 - Add 180° to reverse direction (FROM → TO)
 - Adjust for canvas coordinate system
 
 **Code Example (CORRECT):**
+
 ```dart
 void _drawWindArrow(Canvas canvas, Offset pos, double meteoDirection) {
   canvas.save();
@@ -727,9 +780,10 @@ void _drawWindArrow(Canvas canvas, Offset pos, double meteoDirection) {
   canvas.drawPath(path, paint);
   canvas.restore();
 }
-```
+```text
 
 **Prevention Rule:**
+
 - Document all direction conventions
 - Unit tests with known wind directions
 - Visual QA with meteorological data
@@ -746,17 +800,20 @@ void _drawWindArrow(Canvas canvas, Offset pos, double meteoDirection) {
 **Status:** ✅ RESOLVED  
 **Repository:** Attempt 3  
 **Files Affected:**
+
 - `lib/providers/timeline_provider.dart`
 - `lib/screens/timeline_screen.dart`
 
 **Symptoms:**
+
 - App crashes when loading 7-day forecast
 - Memory usage spikes to 800MB+
 - Crash: "OutOfMemoryError"
 - 168 frames × 5MB each = 840MB
 
-**Root Cause:**
+#### Root Cause
 Loading all forecast frames into memory at once:
+
 ```dart
 class TimelineProvider {
   List<WeatherFrame> _frames = [];
@@ -769,15 +826,17 @@ class TimelineProvider {
     }
   }
 }
-```
+```text
 
 **Solution:**
+
 1. Lazy load frames as needed
 2. Keep only current + next + previous in memory
 3. LRU cache for recently viewed frames
 4. Preload next frame in background
 
 **Code Example (CORRECT):**
+
 ```dart
 class TimelineProvider {
   final int _maxCachedFrames = 5;
@@ -824,9 +883,10 @@ class TimelineProvider {
     }
   }
 }
-```
+```text
 
 **Prevention Rule:**
+
 - Never load unbounded data into memory
 - Use pagination/lazy loading
 - Monitor memory usage in production
@@ -843,24 +903,28 @@ class TimelineProvider {
 **Status:** 🔄 IN PROGRESS  
 **Repository:** Attempt 4  
 **Files Affected:**
+
 - `lib/services/ais_service.dart`
 - `lib/providers/nmea_provider.dart`
 
 **Symptoms:**
+
 - AIS targets disappear from display
 - Error: "Buffer overflow, 1247 messages dropped"
 - CPU usage 80%+ when AIS active
 - Stuttering UI during AIS updates
 
-**Root Cause:**
+#### Root Cause
 AIS receivers can send 100+ messages per second. Current implementation:
+
 1. All messages queued in memory
 2. No backpressure mechanism
 3. UI updates for every message
 4. Buffer grows unbounded
 
-**Temporary Workaround:**
+#### Temporary Workaround
 Limit AIS update rate to 2 fps:
+
 ```dart
 Timer.periodic(Duration(milliseconds: 500), (_) {
   if (_pendingAISUpdates.isNotEmpty) {
@@ -868,9 +932,10 @@ Timer.periodic(Duration(milliseconds: 500), (_) {
     _pendingAISUpdates.clear();
   }
 });
-```
+```text
 
 **Planned Solution:**
+
 1. Implement backpressure with StreamTransformer
 2. Spatial indexing to cull off-screen targets
 3. Level of detail based on zoom
@@ -889,20 +954,23 @@ Timer.periodic(Duration(milliseconds: 500), (_) {
 **Status:** 📋 DOCUMENTED  
 **Repository:** Attempt 4  
 **Files Affected:**
+
 - `lib/providers/boat_provider.dart`
 - `lib/services/location_service.dart`
 
 **Symptoms:**
+
 - Boat marker jumps 100m+ when GPS signal restored
 - Track line shows unrealistic straight segments
 - Speed calculated incorrectly during jumps
 - Heading changes 180° instantly
 
-**Root Cause:**
+#### Root Cause
 GPS receivers output last known position with degraded accuracy when signal lost. When signal restored, position jumps to actual location.
 
-**Workaround:**
+#### Workaround
 Filter positions with low accuracy:
+
 ```dart
 void _updatePosition(Position position) {
   // Ignore low accuracy positions
@@ -926,9 +994,9 @@ void _updatePosition(Position position) {
   _currentPosition = position;
   notifyListeners();
 }
-```
+```text
 
-**Ideal Solution:**
+#### Ideal Solution
 Implement Kalman filter for GPS smoothing (future enhancement).
 
 ---
@@ -941,12 +1009,14 @@ Implement Kalman filter for GPS smoothing (future enhancement).
 **Documented/Workaround:** 2 (11%)
 
 **By Severity:**
+
 - 🔴 Critical: 5 (all resolved)
 - 🟠 High: 8 (7 resolved, 1 in progress)
 - 🟡 Medium: 4 (3 resolved, 1 documented)
 - 🟢 Low: 1 (resolved)
 
 **Most Common Categories:**
+
 1. Memory Management (3 issues)
 2. Coordinate Systems (3 issues)
 3. State Management (2 issues)

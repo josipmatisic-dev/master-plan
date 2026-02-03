@@ -24,7 +24,7 @@ class LatLng with _$LatLng {
   bool isValid() => latitude >= -90 && latitude <= 90 && 
                      longitude >= -180 && longitude <= 180;
 }
-```
+```text
 
 ### Viewport Model
 ```dart
@@ -49,7 +49,7 @@ class Viewport with _$Viewport {
   
   factory Viewport.fromJson(Map<String, dynamic> json) => _$ViewportFromJson(json);
 }
-```
+```text
 
 ## Core Services
 
@@ -74,7 +74,7 @@ class ProjectionService {
     // Inverse projection
   }
 }
-```
+```text
 
 **Test Cases:**
 - Known coordinates: (0, 0) → verify projection
@@ -106,7 +106,7 @@ class CacheService {
   /// Get cache statistics
   CacheStats getStats();
 }
-```
+```text
 
 **Configuration:**
 - Default TTL: 1 hour
@@ -127,7 +127,7 @@ class RetryableHttpClient {
   /// POST with retry (no cache fallback)
   Future<http.Response> postWithRetry(String url, {Map<String, dynamic>? body});
 }
-```
+```text
 
 **Retry Logic:**
 - 5xx errors: retry with exponential backoff (1s, 2s, 4s)
@@ -139,7 +139,7 @@ class RetryableHttpClient {
 
 ### Dependency Hierarchy
 
-```
+```text
 Layer 1 (No dependencies):
 ├── SettingsProvider
 └── CacheProvider(CacheService)
@@ -148,7 +148,7 @@ Layer 2 (Depends on Layer 1):
 └── ThemeProvider(SettingsProvider)
 
 Layer 3: Reserved for future providers
-```
+```text
 
 **Rules:**
 - Maximum 3 layers

@@ -24,7 +24,7 @@
 
 Following **CON-004** from `MASTER_DEVELOPMENT_BIBLE.md`, all providers are organized in strict layers with one-directional dependencies:
 
-```
+```text
 ┌─────────────────────────────────────────────────────┐
 │                  Layer 2 (Future)                   │
 │                                                     │
@@ -51,7 +51,7 @@ Following **CON-004** from `MASTER_DEVELOPMENT_BIBLE.md`, all providers are orga
 │                    │  (No Dependencies) │            │
 │                    └───────────────────┘            │
 └─────────────────────────────────────────────────────┘
-```
+```text
 
 ### Provider Specifications
 
@@ -60,6 +60,7 @@ Following **CON-004** from `MASTER_DEVELOPMENT_BIBLE.md`, all providers are orga
 **File:** `lib/providers/settings_provider.dart`
 
 **Responsibilities:**
+
 - User preferences (units, language)
 - App configuration
 - Persist settings to disk
@@ -67,6 +68,7 @@ Following **CON-004** from `MASTER_DEVELOPMENT_BIBLE.md`, all providers are orga
 **Dependencies:** None
 
 **API:**
+
 ```dart
 class SettingsProvider extends ChangeNotifier {
   SpeedUnit get speedUnit;
@@ -81,7 +83,7 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> loadSettings();
   Future<void> saveSettings();
 }
-```
+```text
 
 **No Circular Dependencies:** This is Layer 0, bottom of the hierarchy.
 
@@ -92,14 +94,17 @@ class SettingsProvider extends ChangeNotifier {
 **File:** `lib/providers/theme_provider.dart`
 
 **Responsibilities:**
+
 - Theme mode management (light/dark/system)
 - Provide ThemeData to MaterialApp
 - Persist theme preference
 
 **Dependencies:**
+
 - ✅ SettingsProvider (Layer 0)
 
 **API:**
+
 ```dart
 class ThemeProvider extends ChangeNotifier {
   ThemeProvider(this._settingsProvider);
@@ -113,7 +118,7 @@ class ThemeProvider extends ChangeNotifier {
   ThemeData get lightTheme;
   ThemeData get darkTheme;
 }
-```
+```text
 
 **Dependency Justification:** ThemeProvider needs to persist theme choice through SettingsProvider.
 
@@ -124,14 +129,17 @@ class ThemeProvider extends ChangeNotifier {
 **File:** `lib/providers/cache_provider.dart`
 
 **Responsibilities:**
+
 - Coordinate CacheService lifecycle
 - Provide cache statistics to UI
 - Handle cache clearing
 
 **Dependencies:**
+
 - ✅ SettingsProvider (Layer 0)
 
 **API:**
+
 ```dart
 class CacheProvider extends ChangeNotifier {
   CacheProvider(this._settingsProvider, this._cacheService);
@@ -144,7 +152,7 @@ class CacheProvider extends ChangeNotifier {
   int get cacheSize;
   String get cacheSizeFormatted;
 }
-```
+```text
 
 **Dependency Justification:** CacheProvider may need to respect user-configured cache limits from SettingsProvider.
 
@@ -155,11 +163,13 @@ class CacheProvider extends ChangeNotifier {
 **File:** `lib/providers/map_provider.dart`
 
 **Responsibilities:**
+
 - Map viewport state
 - Coordinate WebView communication
 - Handle map interactions
 
 **Dependencies:**
+
 - ✅ CacheProvider (Layer 1)
 - ✅ SettingsProvider (Layer 0)
 
@@ -172,11 +182,13 @@ class CacheProvider extends ChangeNotifier {
 **File:** `lib/providers/weather_provider.dart`
 
 **Responsibilities:**
+
 - Weather data fetching
 - Weather cache management
 - Overlay data for map
 
 **Dependencies:**
+
 - ✅ CacheProvider (Layer 1)
 - ✅ SettingsProvider (Layer 0)
 
@@ -237,9 +249,10 @@ void main() async {
     ),
   );
 }
-```
+```text
 
 **Key Rules:**
+
 1. All providers created at app root (never in widget build methods)
 2. ProxyProvider used for dependencies
 3. Services provided as values (stateless)
@@ -251,7 +264,7 @@ void main() async {
 
 ### Single Source of Truth (CON-002)
 
-```
+```text
 ┌────────────────────────────────────────────────────────┐
 │                  USER INTERFACE                        │
 │  (Widgets read from Providers, never write directly)  │
@@ -283,7 +296,7 @@ void main() async {
 │  Network (APIs, Servers)                              │
 │  GPS/Sensors (NMEA Data)                              │
 └────────────────────────────────────────────────────────┘
-```
+```text
 
 ### Data Flow Rules
 
@@ -294,7 +307,7 @@ void main() async {
 
 **Example Flow: User Changes Speed Unit**
 
-```
+```json
 1. UI: User taps "Knots" button
    └─> SpeedUnitPicker.onTap(SpeedUnit.knots)
 
@@ -312,7 +325,7 @@ void main() async {
            return Text(settings.speedUnit.displayName);
          }
        )
-```
+```text
 
 **No Duplicate State:** Speed unit exists ONLY in SettingsProvider, nowhere else.
 
@@ -330,11 +343,12 @@ Provider<HttpClient>.value(value: httpClient)
 Provider<ProjectionService>.value(value: projectionService)
 Provider<NMEAParser>.value(value: nmeaParser)
 Provider<DatabaseService>.value(value: databaseService)
-```
+```text
 
 ### Service Usage Pattern
 
 **Access in Providers:**
+
 ```dart
 class CacheProvider extends ChangeNotifier {
   final CacheService _cacheService;
@@ -346,9 +360,10 @@ class CacheProvider extends ChangeNotifier {
     notifyListeners(); // Update UI with new cache size
   }
 }
-```
+```text
 
 **Access in Widgets (Rare):**
+
 ```dart
 class SomeWidget extends StatelessWidget {
   @override
@@ -361,9 +376,10 @@ class SomeWidget extends StatelessWidget {
     return CustomPaint(painter: MyPainter(screenPoint));
   }
 }
-```
+```text
 
 **Never:**
+
 - ❌ Create services inside widgets
 - ❌ Make services ChangeNotifiers
 - ❌ Store state in services
@@ -376,7 +392,7 @@ class SomeWidget extends StatelessWidget {
 
 **Problem Solved:** Prevents projection mismatches that caused overlay rendering failures in Attempts 2 and 4.
 
-```
+```text
 ┌──────────────────────────────────────────────────────┐
 │          DATA SOURCE (Always WGS84)                  │
 │                                                      │
@@ -402,7 +418,7 @@ class SomeWidget extends StatelessWidget {
 │                                                      │
 │  Canvas.drawCircle(Offset(screenX, screenY), ...)   │
 └──────────────────────────────────────────────────────┘
-```
+```text
 
 ### Viewport Synchronization
 
@@ -439,7 +455,7 @@ class WeatherOverlay extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 ---
 
@@ -449,7 +465,7 @@ class WeatherOverlay extends StatelessWidget {
 
 Following lessons from **A.4: Cache Invalidation Race Conditions**, we use a SINGLE cache layer:
 
-```
+```text
 ┌──────────────────────────────────────────────────────┐
 │                    REQUEST                           │
 │  "Fetch weather for bounds (45.5, -122.7, 45.6, -122.6)" │
@@ -479,11 +495,12 @@ Following lessons from **A.4: Cache Invalidation Race Conditions**, we use a SIN
 ┌──────────────────▼───────────────────────────────────┐
 │            4. RETURN TO CALLER                       │
 └──────────────────────────────────────────────────────┘
-```
+```text
 
 ### Cache Key Strategy
 
 **Weather Data:**
+
 ```dart
 String getCacheKey(Bounds bounds, String dataType) {
   // Round to 2 decimal places to increase cache hits
@@ -494,32 +511,36 @@ String getCacheKey(Bounds bounds, String dataType) {
   
   return 'weather_${dataType}_${lat1}_${lng1}_${lat2}_${lng2}';
 }
-```
+```text
 
 **Map Tiles:**
+
 ```dart
 String getTileCacheKey(int x, int y, int z) {
   return 'tile_${z}_${x}_${y}';
 }
-```
+```text
 
 ### Cache Invalidation
 
 **Time-based (TTL):**
+
 - Weather data: 1 hour
 - Map tiles: 7 days
 - API responses: 5 minutes
 
 **Manual:**
+
 ```dart
 // User triggers refresh
 await cacheProvider.clearCache();
 
 // Or specific type
 await cacheService.delete('weather_*'); // Clear all weather data
-```
+```text
 
 **Event-based (Future):**
+
 - When user changes location significantly
 - When app comes to foreground after 1+ hour
 - When network reconnects after offline
@@ -530,7 +551,7 @@ await cacheService.delete('weather_*'); // Clear all weather data
 
 ### Error Hierarchy
 
-```
+```text
 Exception
 ├── NetworkException
 │   ├── TimeoutException
@@ -545,7 +566,7 @@ Exception
 └── ValidationException
     ├── InvalidCoordinateException
     └── InvalidBoundsException
-```
+```text
 
 ### Error Handling Pattern
 
@@ -600,7 +621,7 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 }
-```
+```text
 
 ### UI Error Display
 
@@ -623,7 +644,7 @@ Consumer<WeatherProvider>(
     return WeatherDisplay(data: provider.weatherData);
   },
 )
-```
+```text
 
 ---
 
@@ -631,7 +652,7 @@ Consumer<WeatherProvider>(
 
 ### Unit Test Pyramid
 
-```
+```text
          ┌──────────┐
          │Integration│ (10% - Phase 1+)
          │  Tests    │
@@ -646,11 +667,12 @@ Consumer<WeatherProvider>(
    │  Services, Models,     │
    │  Providers, Utils      │
    └────────────────────────┘
-```
+```text
 
 ### Phase 0 Testing Focus
 
 **Services (85% coverage):**
+
 - ✅ CacheService: LRU eviction, TTL expiry, size limits
 - ✅ HttpClient: Retry logic, timeouts, error handling
 - ✅ ProjectionService: Coordinate accuracy, edge cases
@@ -658,6 +680,7 @@ Consumer<WeatherProvider>(
 - ✅ DatabaseService: CRUD operations
 
 **Models (80% coverage):**
+
 - ✅ LatLng: Validation, equality, serialization
 - ✅ Bounds: Contains, intersects, getters
 - ✅ Viewport: Validation, copyWith
@@ -666,6 +689,7 @@ Consumer<WeatherProvider>(
 - ✅ NMEAMessage: Subclass integrity
 
 **Providers (70% coverage):**
+
 - ✅ SettingsProvider: Load/save, updates
 - ✅ ThemeProvider: Theme switching
 - ✅ CacheProvider: Stats, clearing
@@ -690,7 +714,7 @@ void main() {
     verify(mockCache.clear()).called(1);
   });
 }
-```
+```text
 
 ### CI/CD Integration
 
@@ -715,17 +739,18 @@ jobs:
         run: flutter test --coverage
       
       - name: Check coverage
-        run: |
+ run: |
           lcov --summary coverage/lcov.info
           # Fail if coverage < 80%
-          coverage=$(lcov --summary coverage/lcov.info | grep lines | awk '{print $2}' | sed 's/%//')
-          if [ $(echo "$coverage < 80" | bc) -eq 1 ]; then
+ coverage=$(lcov --summary coverage/lcov.info | grep lines | awk '{print $2}' | sed 's/%//')
+ if [ $(echo "$coverage < 80" | bc) -eq 1 ]; then
             echo "Coverage $coverage% is below 80%"
             exit 1
           fi
-```
+```text
 
 > **Security Note**: For production workflows, pin GitHub Actions to specific commit SHAs instead of version tags to prevent supply chain attacks. For example:
+>
 > - `actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11` (v4.1.1)
 > - `subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225` (v2.12.0)
 
@@ -734,34 +759,40 @@ jobs:
 ## Architecture Compliance Checklist
 
 ### CON-001: Maximum 300 Lines Per File
+
 - [ ] All services under 300 lines
 - [ ] All providers under 300 lines
 - [ ] All models under 300 lines
 - [ ] Automated check in CI/CD
 
 ### CON-002: Single Source of Truth
+
 - [x] Each data element has ONE authoritative source
 - [x] No duplicate state across providers
 - [x] Documented in this architecture file
 
 ### CON-003: All Coordinate Conversions Through ProjectionService
+
 - [x] ProjectionService is only place for WGS84 ↔ Web Mercator
 - [x] All overlays must use ProjectionService
 - [x] No manual lat/lng to pixel math anywhere
 
 ### CON-004: Provider Hierarchy Documented and Acyclic
+
 - [x] Provider dependency graph documented
 - [x] No circular dependencies
 - [x] Maximum 3 layers (actually 2 in Phase 0)
 - [x] Verified in this document
 
 ### CON-005: Network Requests Require Retry + Timeout + Cache Fallback
+
 - [x] HttpClient has 3 retry attempts
 - [x] 30 second timeout enforced
 - [x] Services check cache before network
 - [x] Stale cache used if network fails
 
 ### CON-006: All Resources Disposed
+
 - [x] All providers have dispose() methods
 - [x] All services have dispose() or close() methods
 - [x] dispose() documented in API specs
@@ -800,4 +831,5 @@ jobs:
 
 ## Document End
 
-This architecture is designed to prevent ALL failures from previous attempts while maintaining clean, testable, and maintainable code. Every decision is grounded in lessons learned from `MASTER_DEVELOPMENT_BIBLE.md`.
+This architecture is designed to prevent ALL failures from previous attempts while maintaining clean, testable, and
+maintainable code. Every decision is grounded in lessons learned from `MASTER_DEVELOPMENT_BIBLE.md`.

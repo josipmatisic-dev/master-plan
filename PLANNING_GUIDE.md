@@ -20,9 +20,9 @@ Location: `.copilot-tracking/`
 **Purpose**: Detailed task-by-task execution tracking with research validation
 
 **Workflow**:
-```
+```text
 Research → Planning → Implementation → Changes Tracking
-```
+```text
 
 **Files**:
 - `research/` - Research findings and analysis (MUST exist before planning)
@@ -76,7 +76,7 @@ Location: `/plan/`
 
 You can use both structures for comprehensive planning:
 
-```
+```text
 1. Create Implementation Plan (/plan/)
    ↓
 2. Conduct Research (.copilot-tracking/research/)
@@ -86,7 +86,7 @@ You can use both structures for comprehensive planning:
 4. Execute with Tracking (.copilot-tracking/changes/)
    ↓
 5. Update Implementation Plan status (/plan/)
-```
+```text
 
 ### When to Use Which
 
@@ -157,13 +157,13 @@ Plans should reference each other:
 ## 8. Related Specifications
 - [Task Checklist](./.copilot-tracking/plans/20260201-ui-architecture-adaptation-plan.instructions.md)
 - [Research](./.copilot-tracking/research/20260201-ui-architecture-adaptation-research.md)
-```
+```text
 
 **Task Plan → Implementation Plan**:
 ```markdown
 ## Research Summary
 - #file:../../plan/feature-sailstream-ui-architecture-1.md - Formal implementation specification
-```
+```text
 
 ## Line Number References
 
@@ -174,7 +174,7 @@ Format: `(Lines X-Y)`
 Example:
 ```markdown
 - #file:../research/20260201-ui-architecture-research.md (Lines 40-90) - Design Philosophy
-```
+```text
 
 **CRITICAL**: Always verify line numbers are accurate and update when files change.
 
@@ -194,11 +194,11 @@ Uses status badges:
 Uses checkboxes in tables:
 
 ```markdown
-| Task     | Description           | Completed | Date       |
+| Task | Description | Completed | Date |
 | -------- | --------------------- | --------- | ---------- |
-| TASK-001 | Implementation task 1 | ✅        | 2026-02-01 |
-| TASK-002 | Implementation task 2 |           |            |
-```
+| TASK-001 | Implementation task 1 | ✅ | 2026-02-01 |
+| TASK-002 | Implementation task 2 | | |
+```text
 
 ## Related Documentation
 

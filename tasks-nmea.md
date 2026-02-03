@@ -11,7 +11,9 @@
 ### Phase 1: Data Models & Parser (Days 1-3) ✅ COMPLETED
 
 #### ✅ TASK-001: Create NMEA Data Models
+
 **File:** `lib/models/nmea_data.dart` (157 lines)
+
 - ✅ Define `NMEAData` aggregate model
 - ✅ Define `GPGGAData` model
 - ✅ Define `GPRMCData` model
@@ -22,7 +24,9 @@
 - ✅ Line count: 157 ✅
 
 #### ✅ TASK-002: Create Error Models
+
 **File:** `lib/models/nmea_error.dart` (134 lines)
+
 - ✅ Define `NMEAError` class
 - ✅ Define `NMEAErrorType` enum
 - ✅ Define `ConnectionStatus` enum
@@ -31,7 +35,9 @@
 - ✅ Line count: 134 ✅
 
 #### ✅ TASK-003: Implement NMEA Parser
+
 **File:** `lib/services/nmea_parser.dart` (288 lines)
+
 - ✅ Implement checksum calculation
 - ✅ Implement checksum validation
 - ✅ Implement lat/lng parsing helpers
@@ -43,7 +49,9 @@
 - ✅ Line count: 288 ✅
 
 #### ✅ TASK-004: Parser Unit Tests
+
 **File:** `test/services/nmea_parser_test.dart` (318 lines)
+
 - ✅ Test checksum calculation
 - ✅ Test checksum validation (valid/invalid)
 - ✅ Test lat/lng parsing
@@ -62,7 +70,9 @@
 ### Phase 2: NMEA Service with Isolate (Days 4-7)
 
 #### ✅ TASK-005: Implement NMEA Service (Isolate Logic)
+
 **File:** `lib/services/nmea_service.dart`
+
 - [ ] Implement isolate spawn logic
 - [ ] Implement TCP connection
 - [ ] Implement UDP connection
@@ -74,7 +84,9 @@
 - [ ] Line count: <300
 
 #### ✅ TASK-006: Service Unit Tests
+
 **File:** `test/services/nmea_service_test.dart`
+
 - [ ] Test isolate spawn
 - [ ] Test TCP connection (mock)
 - [ ] Test UDP connection (mock)
@@ -89,7 +101,9 @@
 ### ✅ Phase 3: NMEA Provider (Day 2, Feb 4) - COMPLETE
 
 #### ✅ TASK-007: Implement NMEA Provider
+
 **File:** `lib/providers/nmea_provider.dart` (216 lines)
+
 - [x] Extend ChangeNotifier
 - [x] Add dependencies (SettingsProvider, CacheProvider)
 - [x] Implement connection management
@@ -100,7 +114,9 @@
 - [x] Line count: 216 ✅ (under 300 limit)
 
 #### ✅ TASK-008: Provider Unit Tests
+
 **File:** `test/providers/nmea_provider_test.dart` (161 lines)
+
 - [x] Test initialization (6 tests)
 - [x] Test connection flow
 - [x] Test disconnection
@@ -112,14 +128,18 @@
 - [x] Coverage: ~90% ✅
 
 #### ✅ TASK-009: Wire Provider in main.dart
+
 **File:** `lib/main.dart`
+
 - [x] Add NMEAProvider to MultiProvider (Layer 2)
 - [x] Initialize in correct order (before runApp)
 - [x] Add to MarineNavigationApp constructor
 - [x] Update widget test (test/widget_test.dart)
 
 #### ✅ TASK-010: Update Provider Hierarchy Documentation
+
 **File:** `marine_nav_app/PROVIDER_HIERARCHY.md`
+
 - [ ] Add NMEAProvider to Layer 2 diagram
 - [ ] Document dependencies
 - [ ] Document API surface
@@ -130,7 +150,9 @@
 ### Phase 4: Integration & UI (Days 11-12)
 
 #### ✅ TASK-011: Create BoatProvider (Basic)
+
 **File:** `lib/providers/boat_provider.dart`
+
 - [ ] Extend ChangeNotifier
 - [ ] Consume NMEAProvider data
 - [ ] Expose position, SOG, COG, depth
@@ -138,7 +160,9 @@
 - [ ] Line count: <200
 
 #### ✅ TASK-012: Update NavigationModeScreen
+
 **File:** `lib/screens/navigation_mode_screen.dart`
+
 - [ ] Replace placeholder SOG with `Consumer<BoatProvider>`
 - [ ] Replace placeholder COG with real data
 - [ ] Replace placeholder DEPTH with real data
@@ -146,7 +170,9 @@
 - [ ] Update when data changes
 
 #### ✅ TASK-013: Add Connection Settings UI
+
 **File:** `lib/screens/settings_screen.dart`
+
 - [ ] Add NMEA connection section
 - [ ] Add host/port input fields
 - [ ] Add TCP/UDP selector
@@ -159,7 +185,9 @@
 ### Phase 5: Integration Testing (Days 13-14)
 
 #### ✅ TASK-014: Integration Tests
+
 **File:** `test/integration/nmea_integration_test.dart`
+
 - [ ] Test end-to-end flow with mock NMEA server
 - [ ] Test TCP connection
 - [ ] Test UDP connection
@@ -169,6 +197,7 @@
 - [ ] Test UI updates without jank
 
 #### ✅ TASK-015: Performance Testing
+
 - [ ] Profile isolate overhead
 - [ ] Verify <5% main thread CPU usage
 - [ ] Verify 60 FPS with 200 msg/s
@@ -180,12 +209,14 @@
 ### Phase 6: Documentation & Cleanup (Day 14)
 
 #### ✅ TASK-016: Update Documentation
+
 - [ ] Update `docs/CODEBASE_MAP.md` (add NMEA files)
 - [ ] Update `docs/FEATURE_REQUIREMENTS.md` (mark FEAT-002 complete)
 - [ ] Update `docs/KNOWN_ISSUES_DATABASE.md` (if any issues found)
 - [ ] Update `.github/copilot-instructions.md` (if patterns changed)
 
 #### ✅ TASK-017: Code Review Checklist
+
 - [ ] All files under 300 lines ✅
 - [ ] All controllers/streams disposed ✅
 - [ ] No circular dependencies ✅
@@ -201,9 +232,11 @@
 ## Dependencies
 
 ### Blocked By
+
 - None ✅ (All Phase 0 dependencies complete)
 
 ### Blocks
+
 - FEAT-003 (Boat Position Tracking) - needs NMEA data
 - FEAT-004 (Weather Overlays) - needs position data
 - FEAT-011 (AIS Integration) - needs NMEA parsing
@@ -228,6 +261,7 @@
 ## Progress Tracking
 
 ### ✅ Day 1-3: Parser Implementation - COMPLETED (Feb 3, 2026)
+
 - ✅ Models created (nmea_data.dart 157 lines, nmea_error.dart 134 lines)
 - ✅ Parser implemented (nmea_parser.dart 288 lines)
 - ✅ Tests written (40 comprehensive tests)
@@ -235,6 +269,7 @@
 - ✅ File count: 3 files, 579 total lines
 
 ### ✅ Day 4-7: Service Implementation - COMPLETED (Feb 3, 2026)
+
 - ✅ Isolate logic complete (nmea_service.dart 301 lines)
 - ✅ TCP/UDP working with buffering
 - ✅ Tests written and passing (13 tests, 100% pass rate)
@@ -242,6 +277,7 @@
 - ✅ File count: 1 file, 301 lines
 
 ### ✅ Day 8-10: Provider Implementation - COMPLETED (Feb 4, 2026)
+
 - ✅ Provider complete (nmea_provider.dart 216 lines)
 - ✅ Wired in main.dart (Layer 2 MultiProvider)
 - ✅ Tests passing (15 tests, 100% pass rate, ~90% coverage)
@@ -249,12 +285,14 @@
 - ✅ Total test suite: 79 tests passing (15 provider + 13 service + 40 parser + 11 baseline)
 
 ### Day 11-12: Integration
+
 - [ ] BoatProvider created (aggregate NMEA data for UI)
 - [ ] NavigationModeScreen updated with Consumer<NMEAProvider>
 - [ ] Connection UI added (connect/disconnect buttons)
 - [ ] Connection settings added to SettingsProvider
 
 ### Day 13-14: Testing & Polish
+
 - [ ] Integration tests pass
 - [ ] Performance validated (1 hour soak test)
 - [ ] Documentation complete
@@ -265,7 +303,7 @@
 ## Risk Register
 
 | Risk | Probability | Impact | Mitigation |
-|------|-------------|--------|------------|
+| ------ | ------------- | -------- | ------------ |
 | Isolate complexity | Medium | High | Follow Bible patterns, test thoroughly |
 | TCP/UDP socket issues | Medium | Medium | Mock sockets in tests, handle errors |
 | Performance regression | Low | High | Profile early, batch updates |

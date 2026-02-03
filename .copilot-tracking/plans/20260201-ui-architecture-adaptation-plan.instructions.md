@@ -8,7 +8,8 @@ applyTo: ".copilot-tracking/changes/20260201-ui-architecture-adaptation-changes.
 
 ## Overview
 
-Adapt the master plan documentation to match the exact UI architecture and design specifications from SailStream mockups, implementing the "Ocean Glass" design philosophy with proper Flutter project structure.
+Adapt the master plan documentation to match the exact UI architecture and design specifications from SailStream
+mockups, implementing the "Ocean Glass" design philosophy with proper Flutter project structure.
 
 ## Objectives
 

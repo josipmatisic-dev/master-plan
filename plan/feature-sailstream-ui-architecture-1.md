@@ -12,7 +12,9 @@ tags: [feature, architecture, ui, design-system, sailstream]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This implementation plan defines the complete SailStream UI architecture based on design mockups and the "Ocean Glass" design philosophy. The plan ensures proper documentation of all UI components, architecture rules to prevent past failures, and comprehensive specifications for implementation.
+This implementation plan defines the complete SailStream UI architecture based on design mockups and the "Ocean Glass"
+design philosophy. The plan ensures proper documentation of all UI components, architecture rules to prevent past
+failures, and comprehensive specifications for implementation.
 
 ## 1. Requirements & Constraints
 
