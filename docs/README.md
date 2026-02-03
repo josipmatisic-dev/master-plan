@@ -2,7 +2,17 @@
 
 This directory contains comprehensive documentation based on learnings from 4 failed development attempts.
 
-## 📚 Documentation Files
+## � Quick Start for AI Agents
+
+**New to this codebase?** Start here:
+
+1. Read `.github/copilot-instructions.md` (concise AI guide at repo root)
+2. Read `MASTER_DEVELOPMENT_BIBLE.md` Section A (failure analysis)
+3. Review `KNOWN_ISSUES_DATABASE.md` (18 documented issues)
+4. Scan `CODEBASE_MAP.md` (project structure)
+5. Check `AI_AGENT_INSTRUCTIONS.md` (detailed patterns)
+
+## �📚 Documentation Files
 
 ### 1. MASTER_DEVELOPMENT_BIBLE.md
 
@@ -15,6 +25,7 @@ This directory contains comprehensive documentation based on learnings from 4 fa
 - Feature specifications categorized by phase
 - Technical decisions with rationale
 - Development phases with deliverables
+- **Section G:** SailStream UI Architecture (Ocean Glass design system)
 
 **When to read:** Before starting ANY development work
 
@@ -28,6 +39,8 @@ This directory contains comprehensive documentation based on learnings from 4 fa
 - Mandatory behaviors (read Bible first, follow rules, update docs)
 - Forbidden actions (god objects, mixed state, manual coordinate math)
 - Code patterns (weather fetching, overlay rendering, NMEA processing)
+- **SailStream UI patterns** (DataOrb, NavigationSidebar, TrueWindWidget, GlassCard)
+- **Design token usage** (spacing, colors, typography)
 - Documentation requirements
 - Error handling guidelines
 - Testing requirements
@@ -37,7 +50,25 @@ This directory contains comprehensive documentation based on learnings from 4 fa
 
 ---
 
-### 3. CODEBASE_MAP.md
+### 3. UI_DESIGN_SYSTEM.md
+
+**Purpose:** Complete Ocean Glass design system specification  
+**Sections:**
+
+- Design philosophy and core principles
+- Color system (Deep Navy, Seafoam Green, Safety Orange palette)
+- Typography (data values, headings, body, labels)
+- Glass effects (frosted glass specifications)
+- Component library (GlassCard, DataOrb, NavigationSidebar, TrueWindWidget)
+- Layout system and responsive breakpoints
+- Animation guidelines
+- Implementation checklist
+
+**When to read:** When building or modifying UI components
+
+---
+
+### 4. CODEBASE_MAP.md
 
 **Purpose:** Complete map of Flutter project structure  
 **Sections:**
@@ -47,14 +78,14 @@ This directory contains comprehensive documentation based on learnings from 4 fa
 - Data flow diagrams (weather, NMEA, overlay rendering)
 - Key files reference with line counts
 - Service layer architecture
-- Widget hierarchy visualization
+- Widget hierarchy visualization (including SailStream UI)
 - Module ownership and test coverage
 
 **When to read:** When navigating the codebase or adding new components
 
 ---
 
-### 4. KNOWN_ISSUES_DATABASE.md
+### 5. KNOWN_ISSUES_DATABASE.md
 
 **Purpose:** Comprehensive database of all issues from 4 attempts  
 **Sections:**
@@ -69,7 +100,7 @@ This directory contains comprehensive documentation based on learnings from 4 fa
 
 ---
 
-### 5. FEATURE_REQUIREMENTS.md
+### 6. FEATURE_REQUIREMENTS.md
 
 **Purpose:** Detailed specifications for all planned features  
 **Sections:**
@@ -77,6 +108,7 @@ This directory contains comprehensive documentation based on learnings from 4 fa
 - Core features (Phase 1): Map, NMEA, boat tracking, weather overlays
 - Essential features (Phase 2): Forecasting, timeline, dark mode, offline
 - Advanced features (Phase 3): Settings, harbor alerts, AIS, tides
+- **SailStream UI** (Phase 0): Ocean Glass components and navigation mode
 - Social features (Phase 4): Trip logging, sharing
 - Feature priority matrix with effort/complexity/risk
 

@@ -8,6 +8,7 @@ Master planning documentation for yacht navigation app development based on lear
 
 This repository uses structured planning approaches for AI agents:
 
+- **`.github/copilot-instructions.md`** - Quick AI agent guide for immediate productivity
 - **[PLANNING_GUIDE.md](PLANNING_GUIDE.md)** - Complete guide to planning structures and workflows
 - **`.copilot-tracking/`** - Task-based planning with research validation
 - **`/plan/`** - Formal implementation plan specifications
@@ -18,14 +19,16 @@ See [PLANNING_GUIDE.md](PLANNING_GUIDE.md) for details on when to use each appro
 
 All comprehensive documentation is located in the **`docs/`** directory:
 
-### Core References
+### Core References (Read First for AI Agents)
+- **[.github/copilot-instructions.md](.github/copilot-instructions.md)** (~5 KB) - Quick reference for AI coding agents (start here!)
 - **[MASTER_DEVELOPMENT_BIBLE.md](docs/MASTER_DEVELOPMENT_BIBLE.md)** (16 KB) - Main comprehensive reference with failure analysis, architecture rules, and development phases
-- **[AI_AGENT_INSTRUCTIONS.md](docs/AI_AGENT_INSTRUCTIONS.md)** (18 KB) - Complete guidelines for AI agents building the app
+- **[AI_AGENT_INSTRUCTIONS.md](docs/AI_AGENT_INSTRUCTIONS.md)** (18 KB) - Complete guidelines for AI agents building the app (includes SailStream UI patterns)
 - **[CODEBASE_MAP.md](docs/CODEBASE_MAP.md)** (18 KB) - Project structure and dependency graphs
 
 ### Detailed Specifications
 - **[KNOWN_ISSUES_DATABASE.md](docs/KNOWN_ISSUES_DATABASE.md)** (26 KB) - 18 documented issues with root causes and solutions
 - **[FEATURE_REQUIREMENTS.md](docs/FEATURE_REQUIREMENTS.md)** (19 KB) - Detailed requirements for 14 features
+- **[UI_DESIGN_SYSTEM.md](docs/UI_DESIGN_SYSTEM.md)** (17 KB) - Ocean Glass design system specification
 
 ### Quick Start
 - **[docs/README.md](docs/README.md)** (~10–14 KB) - Quick navigation guide

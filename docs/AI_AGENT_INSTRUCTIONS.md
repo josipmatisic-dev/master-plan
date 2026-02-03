@@ -767,23 +767,65 @@ These rules prevent the regressions documented in `MASTER_DEVELOPMENT_BIBLE.md` 
 6. **Draggable State Persistence:** Draggable widgets (wind widgets, palettes) persist positions via `SettingsProvider` and restore on startup.
 7. **Safe WebView Bridge:** Validate WebView/JS messages (type + bounds), add timeouts, make handlers idempotent, and show fallback UI when the platform WebView is unavailable (e.g., widget tests).
 
-**Example: GlassCard with Performance Guardrails**
+### SailStream Widget Patterns
 
+**DataOrb Pattern** - Use for all critical navigation data displays:
+```dart
+DataOrb(
+  label: 'SOG',           // Data type label
+  value: '13.1',          // Numeric value
+  unit: 'kts',            // Unit of measure
+  subtitle: 'WSW',        // Optional subtitle (e.g., direction)
+  size: DataOrbSize.large,  // small (80px), medium (140px), large (200px)
+  state: DataOrbState.normal, // normal, alert, critical, inactive
+  heroTag: 'orb-sog',     // For hero animations
+  progress: 0.65,         // Optional ring progress (0-1)
+)
+```
+
+**NavigationSidebar Pattern** - Primary app navigation:
+```dart
+NavigationSidebar(
+  items: const [
+    NavItem(icon: Icons.dashboard_outlined, label: 'Dashboard'),
+    NavItem(icon: Icons.map_outlined, label: 'Map'),
+    NavItem(icon: Icons.alt_route, label: 'Route'),
+  ],
+  activeIndex: 1,
+  onSelected: (index) => _handleNavigation(index),
+)
+```
+
+**TrueWindWidget Pattern** - Draggable, repositionable data displays:
+```dart
+TrueWindWidget(
+  speedKnots: 14.2,
+  directionLabel: 'NNE',
+  progress: 0.6,              // Visual indicator 0-1
+  initialOffset: Offset(100, 200),
+  onPositionChanged: (offset) => _savePosition(offset),
+  editMode: _editMode,        // Show delete button
+  onDelete: () => _removeWidget(),
+)
+```
+
+**GlassCard with Performance Guardrails:**
 ```dart
 class WindStatusCard extends StatelessWidget {
   const WindStatusCard({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
+    return RepaintBoundary(  // Critical: prevents cascading repaints
       child: GlassCard(
-        padding: GlassCardPadding.medium,
+        padding: GlassCardPadding.medium,  // Never use raw EdgeInsets
+        borderRadius: OceanDimensions.radiusM,  // Use tokens
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: MainAxisSize.min,  // Don't force unbounded heights
           children: const [
-            Text('True Wind', style: TextStyles.heading2),
-            SizedBox(height: 8),
-            Text('14.2 kts · NNE', style: TextStyles.body),
+            Text('True Wind', style: OceanTextStyles.heading2),
+            SizedBox(height: OceanDimensions.spacingS),  // Token spacing
+            Text('14.2 kts · NNE', style: OceanTextStyles.body),
           ],
         ),
       ),
@@ -791,6 +833,93 @@ class WindStatusCard extends StatelessWidget {
   }
 }
 ```
+
+**Responsive Layout Pattern:**
+```dart
+// Use extension methods for breakpoint checks
+if (context.isMobile) {
+  return _buildMobileLayout();
+} else if (context.isTablet) {
+  return _buildTabletLayout();
+} else {
+  return _buildDesktopLayout();
+}
+
+// Or use ResponsiveUtils for values
+final orbSize = ResponsiveUtils.getResponsiveValue(
+  context: context,
+  mobile: DataOrbSize.small,
+  tablet: DataOrbSize.medium,
+  desktop: DataOrbSize.large,
+);
+```
+
+**Stack Overlay Positioning Pattern:**
+```dart
+Stack(
+  children: [
+    MapWebView(),  // Base layer
+    
+    // Use Positioned with token spacing
+    Positioned(
+      top: OceanDimensions.spacing,
+      left: OceanDimensions.spacing,
+      child: GlassCard(child: TopBar()),
+    ),
+    
+    // Center alignment with SafeArea
+    Positioned(
+      top: context.isMobile ? 80 : 120,  // Responsive offset
+      left: 0,
+      right: 0,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          DataOrb(...),
+          SizedBox(width: OceanDimensions.spacingL),  // Token spacing
+          DataOrb(...),
+        ],
+      ),
+    ),
+  ],
+)
+```
+
+### Design Token Usage Rules
+
+**ALWAYS use design tokens - NEVER hardcode values:**
+
+```dart
+// ❌ WRONG - Magic numbers
+Container(
+  padding: EdgeInsets.all(16),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(12),
+    color: Color(0xFF0A1F3F),
+  ),
+)
+
+// ✅ RIGHT - Design tokens
+Container(
+  padding: EdgeInsets.all(OceanDimensions.spacing),
+  decoration: BoxDecoration(
+    borderRadius: BorderRadius.circular(OceanDimensions.radiusM),
+    color: OceanColors.deepNavy,
+  ),
+)
+
+// ❌ WRONG - Hardcoded text styles
+Text('Speed', style: TextStyle(fontSize: 56, fontWeight: FontWeight.bold))
+
+// ✅ RIGHT - Token text styles
+Text('Speed', style: OceanTextStyles.dataValue)
+```
+
+**Token Reference Quick List:**
+- Spacing: `spacingXS` (4), `spacingS` (8), `spacingM` (12), `spacing` (16), `spacingL` (24), `spacingXL` (32)
+- Radius: `radiusS` (8), `radiusM` (12), `radius` (16), `radiusL` (20)
+- Colors: `deepNavy`, `seafoamGreen`, `teal`, `safetyOrange`, `coralRed`, `pureWhite`, `surface`
+- Text: `dataValue`, `heading1`, `heading2`, `body`, `bodySmall`, `label`, `labelSmall`
 
 ---
 
