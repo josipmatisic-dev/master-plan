@@ -135,7 +135,7 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
     return Consumer<SettingsProvider>(
       builder: (context, settings, child) {
         return DropdownButtonFormField<ConnectionType>(
-          value: settings.nmeaConnectionType,
+          initialValue: settings.nmeaConnectionType,
           style: OceanTextStyles.body,
           dropdownColor: OceanColors.surface,
           decoration: InputDecoration(
@@ -183,7 +183,8 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
             'Automatically connect to NMEA when app starts',
             style: OceanTextStyles.bodySmall.copyWith(color: OceanColors.textDisabled),
           ),
-          activeColor: OceanColors.seafoamGreen,
+          activeTrackColor: OceanColors.seafoamGreen.withValues(alpha: 0.5),
+          activeThumbColor: OceanColors.seafoamGreen,
           contentPadding: EdgeInsets.zero,
         );
       },
@@ -242,9 +243,9 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         backgroundColor: OceanColors.surface,
-        content: Column(
+        content: const Column(
           mainAxisSize: MainAxisSize.min,
-          children: const [
+          children: [
             CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(OceanColors.seafoamGreen),
             ),
