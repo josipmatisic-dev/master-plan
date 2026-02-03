@@ -67,6 +67,21 @@ Follow all architecture rules from ../master-plan/docs/MASTER_DEVELOPMENT_BIBLE.
 Implement all services, models, providers, and theme system as specified.
 ```
 
+### Parallel iOS Setup (Optional)
+
+If you want to work on iOS in parallel, ensure you are on macOS with Xcode and CocoaPods installed, then run:
+
+```bash
+cd marine_nav_app
+flutter pub get
+cd ios
+pod install
+cd ..
+flutter run -d ios
+```
+
+You can also open `ios/Runner.xcworkspace` in Xcode to build and run the Runner target.
+
 ## Option 3: Manual Implementation (Full Control)
 
 ### Phase 1: Project Setup (30 min)

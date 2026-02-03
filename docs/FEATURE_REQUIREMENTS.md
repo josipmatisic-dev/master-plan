@@ -20,6 +20,8 @@
 
 ## Core Features (Phase 1)
 
+**Platform Support (Phase 0 foundation):** Android and iOS are both supported by the Flutter scaffold; iOS work can proceed in parallel on macOS with Xcode and CocoaPods.
+
 ### FEAT-001: Interactive Map Display
 
 **Priority:** P0 (Must Have)  

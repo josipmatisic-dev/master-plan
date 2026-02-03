@@ -21,6 +21,8 @@
 
 ## Directory Structure
 
+The Flutter scaffold includes Android and iOS native folders under `marine_nav_app/android` and `marine_nav_app/ios` for parallel platform work.
+
 ```
 lib/
 ├── main.dart                     # App entry, provider setup
