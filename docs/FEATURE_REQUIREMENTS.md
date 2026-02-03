@@ -2,8 +2,8 @@
 # Feature Requirements
 ## Marine Navigation App - Detailed Feature Specifications
 
-**Version:** 4.0  
-**Last Updated:** 2026-02-01  
+**Version:** 4.1  
+**Last Updated:** 2026-02-03  
 **Purpose:** Comprehensive requirements for all planned features (includes SailStream UI)
 
 ---
@@ -19,6 +19,8 @@
 ---
 
 ## Core Features (Phase 1)
+
+**Platform Support (Phase 0 foundation):** Android and iOS are both supported by the Flutter scaffold; iOS work can proceed in parallel on macOS with Xcode and CocoaPods.
 
 ### FEAT-001: Interactive Map Display
 

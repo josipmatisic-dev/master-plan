@@ -3,8 +3,8 @@
 
 ## Marine Navigation App - Flutter Project Structure
 
-**Version:** 3.0  
-**Last Updated:** 2026-02-01  
+**Version:** 3.1  
+**Last Updated:** 2026-02-03  
 **Purpose:** Complete map of codebase structure, dependencies, and data flow (includes SailStream UI)
 
 ---
@@ -22,6 +22,9 @@
 
 ## Directory Structure
 
+The Flutter scaffold includes Android and iOS native folders under `marine_nav_app/android` and `marine_nav_app/ios` for parallel platform work.
+
+```
 ```text
 lib/
 ├── main.dart                     # App entry, provider setup
