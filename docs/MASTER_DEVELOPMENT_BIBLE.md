@@ -1,4 +1,5 @@
 # Master Development Bible
+
 ## Marine Navigation App - Complete Development Reference
 
 **Version:** 6.0  
@@ -28,11 +29,13 @@ This section documents all critical failures from Attempts 1-4, their root cause
 **Problem:** Wind vector overlays rendered at incorrect positions when zooming/panning the map.
 
 **Root Cause:** Multiple coordinate projection systems used inconsistently:
+
 - MapTiler SDK uses Web Mercator (EPSG:3857)
 - Wind data from Open-Meteo in WGS84 (EPSG:4326)
 - Flutter overlay widgets assumed linear screen coordinates
 
 **Failed Code Example:**
+
 ```dart
 // WRONG: Direct lat/lng to pixel conversion
 Widget buildWindArrow(double lat, double lng) {
@@ -45,6 +48,7 @@ Widget buildWindArrow(double lat, double lng) {
 ```
 
 **What Went Wrong:**
+
 1. No projection transform between coordinate systems
 2. Screen position calculations didn't account for map zoom/pan state
 3. WebView map and Flutter overlay had separate viewport states
@@ -59,6 +63,7 @@ Widget buildWindArrow(double lat, double lng) {
 **Problem:** `MapController` grew to 2,847 lines and had circular provider dependencies.
 
 **Root Cause:** Single class trying to manage:
+
 - Map viewport state
 - Weather data fetching
 - NMEA parsing
@@ -69,6 +74,7 @@ Widget buildWindArrow(double lat, double lng) {
 - WebView communication
 
 **Failed Architecture:**
+
 ```dart
 class MapController extends ChangeNotifier {
   late WeatherService _weatherService;
@@ -83,6 +89,7 @@ class MapController extends ChangeNotifier {
 ```
 
 **What Went Wrong:**
+
 1. Single Responsibility Principle violated
 2. Providers depending on other providers in constructor
 3. No clear data flow boundaries
@@ -100,6 +107,7 @@ class MapController extends ChangeNotifier {
 **Root Cause:** Incorrect provider hierarchy and missing providers in widget tree.
 
 **Failed Code:**
+
 ```dart
 // WRONG: Provider created inside widget build
 class MapScreen extends StatelessWidget {
@@ -120,6 +128,7 @@ class MapScreen extends StatelessWidget {
 ```
 
 **What Went Wrong:**
+
 1. Providers created inside widget build methods
 2. Provider hierarchy not matching consumption hierarchy
 3. ProxyProvider chains too deep (7 levels)
@@ -134,12 +143,14 @@ class MapScreen extends StatelessWidget {
 **Problem:** Stale weather data displayed after fetching new data.
 
 **Root Cause:** Multiple cache layers with no coordination:
+
 - In-memory Map cache
 - Disk cache via path_provider
 - HTTP cache headers
 - WebView cache
 
 **Failed Code:**
+
 ```dart
 Future<WeatherData> getWeather(Bounds bounds) async {
   // Check memory cache
@@ -160,6 +171,7 @@ Future<WeatherData> getWeather(Bounds bounds) async {
 ```
 
 **What Went Wrong:**
+
 1. No cache versioning or timestamps
 2. Bounds-based keys didn't account for zoom level differences
 3. No cache invalidation cascade
@@ -177,6 +189,7 @@ Future<WeatherData> getWeather(Bounds bounds) async {
 **Root Cause:** Fixed-size widgets and hardcoded dimensions.
 
 **Failed Code:**
+
 ```dart
 // WRONG: Fixed heights and no overflow handling
 Column(
@@ -191,6 +204,7 @@ Column(
 ```
 
 **What Went Wrong:**
+
 1. No Flexible or Expanded widgets
 2. SafeArea not used
 3. No responsive breakpoints
@@ -208,6 +222,7 @@ Column(
 **Root Cause:** AnimationController not disposed, TickerProviders accumulating.
 
 **Failed Code:**
+
 ```dart
 class WindArrowWidget extends StatefulWidget {
   @override
@@ -232,6 +247,7 @@ class _WindArrowWidgetState extends State<WindArrowWidget>
 ```
 
 **What Went Wrong:**
+
 1. AnimationControllers created but never disposed
 2. Listeners not removed from providers
 3. StreamSubscriptions not cancelled
@@ -249,6 +265,7 @@ class _WindArrowWidgetState extends State<WindArrowWidget>
 **Root Cause:** Mixing setState, Provider, and StreamBuilder with no clear pattern.
 
 **What Went Wrong:**
+
 1. Three sources of truth for position data
 2. No synchronization between approaches
 3. Widget rebuilding excessively
@@ -266,6 +283,7 @@ class _WindArrowWidgetState extends State<WindArrowWidget>
 **Root Cause:** Async communication between WebView and Flutter with no debouncing.
 
 **What Went Wrong:**
+
 1. 60+ messages per second during pan
 2. No debouncing or throttling
 3. Message queue backed up
@@ -283,6 +301,7 @@ class _WindArrowWidgetState extends State<WindArrowWidget>
 **Root Cause:** Synchronous parsing of NMEA sentences in UI thread.
 
 **What Went Wrong:**
+
 1. Network I/O on main thread
 2. String parsing blocking UI
 3. notifyListeners called excessively
@@ -300,6 +319,7 @@ class _WindArrowWidgetState extends State<WindArrowWidget>
 **Root Cause:** No offline-first architecture, cache only used as fallback.
 
 **What Went Wrong:**
+
 1. Network-first instead of cache-first
 2. No stale-while-revalidate pattern
 3. Cache not pre-populated
@@ -315,6 +335,7 @@ class _WindArrowWidgetState extends State<WindArrowWidget>
 See AI_AGENT_INSTRUCTIONS.md for detailed working code patterns (B.1-B.8).
 
 Key working components:
+
 - NMEA Parser with checksum validation
 - HTTP client with exponential backoff
 - LRU disk cache with TTL
@@ -329,29 +350,35 @@ Key working components:
 ## Section C: Architecture Rules
 
 ### C.1 Single Source of Truth
+
 Each piece of data has exactly ONE authoritative source. No duplicate state across providers, widgets, or caches.
 
 ### C.2 Projection Consistency
+
 ALL coordinate transformations go through ProjectionService. No manual lat/lng to pixel math.
 
 ### C.3 Provider Discipline
+
 - Maximum 3 dependency layers
 - No circular dependencies
 - All providers created in main.dart
 - Document dependency graph
 
 ### C.4 Network Request Discipline
+
 - All requests use RetryableHttpClient
 - All requests have timeout (10s default)
 - All requests have cache fallback
 - Proper error handling (Timeout, Socket, API errors)
 
 ### C.5 File Size Limits
+
 - Maximum 300 lines per file
 - Maximum 50 lines per method
 - Refactor before adding features
 
 ### C.6 Overlay Rendering Pipeline
+
 1. Data in WGS84
 2. Transform to Web Mercator
 3. Convert to screen pixels with Viewport
@@ -360,6 +387,7 @@ ALL coordinate transformations go through ProjectionService. No manual lat/lng t
 6. Update only on data/viewport change
 
 ### C.7 Timeline Playback Control
+
 - Max 100 frames in memory
 - Lazy loading
 - Pauseable
@@ -367,15 +395,18 @@ ALL coordinate transformations go through ProjectionService. No manual lat/lng t
 - Saved progress
 
 ### C.8 Cache Invalidation Strategy
+
 - Version tags
 - Time-based expiry (TTL)
 - LRU eviction
 - Coordinated invalidation
 
 ### C.9 No Demo Code in Production
+
 Remove all hardcoded keys, mocks, debug prints, test shortcuts before release.
 
 ### C.10 Dispose Everything
+
 Every controller, subscription, listener, timer MUST be disposed.
 
 ---
@@ -383,30 +414,35 @@ Every controller, subscription, listener, timer MUST be disposed.
 ## Section D: Feature Specifications
 
 ### D.1 Core Features (Must Have - Phase 1)
+
 - **Map Display:** Interactive map with zoom/pan/rotate, nautical charts, satellite, depth contours
 - **NMEA Integration:** GPS position, speed, course, heading, depth, wind
 - **Boat Tracking:** Real-time GPS, track history, speed display, ETA, MOB marker
 - **Weather Overlays:** Wind vectors, wave height/direction, currents, SST, precipitation
 
 ### D.2 Essential Features (Should Have - Phase 2)
+
 - **Weather Forecasting:** 7-day forecast, hourly breakdown, model comparison, confidence
 - **Timeline Playback:** Scrub forecast, play/pause, speed controls, export video
 - **Dark Mode:** Auto/manual toggle, red light mode, custom schemes
 - **Offline Mode:** Download regions, cache weather, offline routing, sync
 
 ### D.3 Advanced Features (Nice to Have - Phase 3)
+
 - **Settings:** Units (metric/imperial/nautical), language, map styles, refresh rates
 - **Harbor Alerts:** Approaching notifications, marina info, fuel prices, warnings
 - **AIS Integration:** Nearby vessels, collision warnings, vessel info, CPA/TCPA
 - **Tides:** Tide graphs, predictions, tidal currents, moon phase
 
 ### D.4 Polish Features (Phase 3 Continued)
+
 - **Quick Settings:** One-tap toggles, brightness, layer opacity
 - **Audio Alerts:** Depth alarm, anchor drag, weather warnings, AIS collision
 - **Screenshots:** Capture view, include overlays, annotations, social sharing
 - **Performance:** FPS counter, memory stats, network monitor, battery tracking
 
 ### D.5 Social Features (Phase 4)
+
 - **Trip Logging:** Auto-save, manual creation, statistics, replay, photos
 - **Social Sharing:** Routes, waypoints, reports, community feeds
 - **User Profiles:** Boat info, home port, sync, badges
@@ -417,24 +453,31 @@ Every controller, subscription, listener, timer MUST be disposed.
 ## Section E: Technical Decisions
 
 ### E.1 Framework: Flutter 3.16+
+
 Cross-platform, high performance, rich ecosystem, geolocation support.
 
 ### E.2 State Management: Provider 6.1+
+
 Official recommendation, simple DI, rebuild optimization, good DX.
 
 ### E.3 Map Engine: MapTiler SDK + WebView
+
 Nautical chart support, vector tiles, offline capability, 3D terrain, MapLibre GL JS.
 
 ### E.4 Weather API: Open-Meteo
+
 Free, ECMWF data, marine variables, 7-day forecasts, hourly resolution.
 
 ### E.5 Oceanographic Data: NOAA APIs
+
 Authoritative, real-time, tides/currents, buoy data (CO-OPS, NDBC, NOS).
 
 ### E.6 Backend: Supabase
+
 PostgreSQL+PostGIS, real-time subscriptions, auth, storage, RLS.
 
 ### E.7 Offline Strategy: Cache-First
+
 Check cache first, return immediately, background refresh, update on success.
 
 Storage: SQLite (structured), Hive (key-value), filesystem (tiles), SharedPreferences (settings).
@@ -444,22 +487,27 @@ Storage: SQLite (structured), Hive (key-value), filesystem (tiles), SharedPrefer
 ## Section F: Development Phases
 
 ### Phase 0: Foundation (Week 1-2)
+
 Setup, base architecture, core services, testing infrastructure.
 **Deliverables:** Project init, providers, ProjectionService, CacheService, HTTP client, NMEA parser, theme, CI/CD.
 
 ### Phase 1: Core Navigation (Week 3-6)
+
 Map display, GPS tracking, basic overlays.
 **Deliverables:** MapWebView, viewport sync, GPS display, track history, wind/wave overlays, basic UI.
 
 ### Phase 2: Weather Intelligence (Week 7-10)
+
 Weather integration, forecasting, timeline.
 **Deliverables:** Open-Meteo integration, 7-day forecast, timeline scrubber, playback controls, multiple overlays, offline cache.
 
 ### Phase 3: Polish & Features (Week 11-14)
+
 Advanced features, UI/UX, performance.
 **Deliverables:** Dark mode, settings, harbor alerts, AIS, tides, audio alerts, screenshots, performance monitoring.
 
 ### Phase 4: Social & Community (Week 15-18)
+
 Social features, launch prep.
 **Deliverables:** Trip logging, social sharing, profiles, collaborative routes, app store assets, beta testing, launch plan.
 
@@ -472,6 +520,7 @@ Social features, launch prep.
 **Vision:** Create a fluid, marine-inspired user interface where data flows like water and UI elements feel like frosted sea glass over nautical charts.
 
 **Core Principles:**
+
 1. **Data as Fluid Element** - Information flows and connects visually
 2. **Contextual Priority & Holographic Layering** - Critical data expands, less critical recedes
 3. **Ambient Intelligence** - UI adapts to time of day and weather conditions
@@ -480,6 +529,7 @@ Social features, launch prep.
 ### G.2 Design System Specifications
 
 **Color Palette:**
+
 - **Deep Navy:** `#0A1F3F` - Primary background, night navigation
 - **Teal:** `#1D566E` - Secondary accents, depth
 - **Seafoam Green:** `#00C9A7` - Primary accent, active states, data highlights
@@ -488,6 +538,7 @@ Social features, launch prep.
 - **Pure White:** `#FFFFFF` - Text, icons, contrast
 
 **Typography:**
+
 - **Font Family:** SF Pro Display (iOS/macOS) or Poppins (fallback)
 - **Data Values:** 56pt bold - Large numeric displays
 - **Headings:** 24pt semibold - Section headers
@@ -495,6 +546,7 @@ Social features, launch prep.
 - **Labels:** 12pt medium, 0.5px letter-spacing - Small labels, units
 
 **Glass Effect Specifications:**
+
 - **Backdrop Blur:** 10-12px sigma for frosted glass
 - **Opacity:** 75-85% for glass cards
 - **Border Radius:** 12-16px for polished sea glass aesthetic
@@ -508,6 +560,7 @@ Social features, launch prep.
 **Purpose:** Reusable frosted glass container for all overlay UI elements
 
 **Specifications:**
+
 - **Backdrop Blur:** 12px
 - **Background:** Dark (#0A1F3F) at 80% opacity or Light (#FFFFFF) at 85% opacity
 - **Border Radius:** 16px
@@ -516,6 +569,7 @@ Social features, launch prep.
 - **Shadow:** 0px 8px 32px rgba(0,0,0,0.3)
 
 **Usage:**
+
 ```dart
 GlassCard(
   padding: GlassCardPadding.medium,
@@ -528,11 +582,13 @@ GlassCard(
 **Purpose:** Circular glass display for critical navigation data (SOG, COG, DEPTH)
 
 **Size Variants:**
+
 - **Small:** 80×80px - Compact display
 - **Medium:** 140×140px - Standard display (default)
 - **Large:** 200×200px - Prominent display
 
 **Anatomy:**
+
 - **Outer Ring:** Seafoam green (#00C9A7) progress indicator or accent ring
 - **Glass Background:** Frosted glass effect matching theme
 - **Value Text:** 48pt bold (medium size) - Primary data value
@@ -541,6 +597,7 @@ GlassCard(
 - **Subtitle** (optional): 10pt regular - Additional context (WSW, ft)
 
 **States:**
+
 - **Normal:** Standard display
 - **Alert:** Orange ring for warnings
 - **Critical:** Red ring for danger
@@ -553,6 +610,7 @@ GlassCard(
 **Dimensions:** Minimum 200×200px, scales responsively
 
 **Components:**
+
 - **Compass Rose:** Rotating SVG or CustomPaint with N/S/E/W markers
 - **Heading Display:** Current magnetic or true heading (e.g., "N 25°")
 - **Speed Indicators:** Inner ring showing boat speed (e.g., "15.2 kt")
@@ -561,6 +619,7 @@ GlassCard(
 - **Direction Indicator:** Arrow or triangle pointing to wind direction
 
 **Interaction:**
+
 - Tap to toggle between Magnetic/True heading
 - Long press for detailed wind analysis
 - VR button opens immersive compass view
@@ -570,10 +629,12 @@ GlassCard(
 **Purpose:** Draggable, repositionable widget showing true wind data
 
 **Dimensions:**
+
 - **Widget Mode:** 120×120px circular
 - **Card Mode:** 200×140px with extended info
 
 **Anatomy:**
+
 - **Circular Progress Ring:** Seafoam green, shows wind strength visually (0-50kt scale)
 - **Wind Speed:** 32pt bold centered (e.g., "14.2 kts")
 - **Wind Direction:** 16pt medium below speed (e.g., "NNE")
@@ -581,6 +642,7 @@ GlassCard(
 - **Drag Handle:** Subtle indicator that widget is movable
 
 **Features:**
+
 - **Draggable:** Long press to enter drag mode
 - **Multi-Instance:** Support multiple wind widgets on screen
 - **Deletable:** Trash icon appears in edit mode
@@ -593,6 +655,7 @@ GlassCard(
 **Layout:** Vertical icon-based menu on left side (desktop/tablet) or bottom sheet (mobile)
 
 **Menu Items:**
+
 - Dashboard - Overview/home
 - Map - Main navigation map
 - Weather - Forecast details
@@ -601,6 +664,7 @@ GlassCard(
 - Boat Icon - Vessel management (bottom position)
 
 **Styling:**
+
 - **Icon Size:** 24×24px
 - **Active State:** Seafoam green (#00C9A7) background with glow
 - **Inactive State:** White icons at 60% opacity
@@ -612,6 +676,7 @@ GlassCard(
 #### G.4.1 Main Map Screen
 
 **Z-Index Layers (bottom to top):**
+
 1. MapTiler WebView (base layer)
 2. Wind Particle Overlay (animated cyan/teal flowing particles)
 3. Wave Overlay (optional)
@@ -626,6 +691,7 @@ GlassCard(
 12. Time Scrubber (when in forecast mode) - Bottom
 
 **Responsive Breakpoints:**
+
 - **Mobile:** < 600px - Bottom navigation, stacked orbs
 - **Tablet:** 600-1200px - Side navigation, flexible layouts
 - **Desktop:** > 1200px - Full sidebar, multi-column layouts
@@ -633,27 +699,32 @@ GlassCard(
 #### G.4.2 Navigation Mode Screen
 
 **Top Section:**
+
 - Title: "navigation mode"
 - Back button (left)
 - Settings icon (right)
 
 **Data Orbs Section:**
+
 - Three large data orbs in row: SOG, COG, DEPTH
 - Spacing: 16px between orbs
 
 **Map Section:**
+
 - Full-width map with route visualization
 - Dashed line from current position to next waypoint
 - Waypoint markers with labels
 - Place names for navigation reference
 
 **Bottom Info Card:**
+
 - Next waypoint name
 - Distance to waypoint
 - Estimated Time of Arrival (ETA)
 - Glass card background
 
 **Action Buttons:**
+
 - "+ Route" - Create new route
 - "Mark Position" - Save current location
 - "Track" - Start/stop track recording
@@ -682,11 +753,22 @@ Draggable widgets MUST save positions to user preferences. Restore on app restar
 **Rule G.7: Animation Fluidity**
 ALL animations MUST use curves (easeInOut, decelerate) and complete in 200-400ms.
 
+### G.6 Failure Guards (Directly Addressing Past Issues)
+
+1. **No God Widgets/Controllers** – Any UI class over 300 lines must be split; overlay state lives in providers, not widgets. (Prevents Attempt 1 god object.)
+2. **Projection Single Source** – All lat/lng ↔ screen math flows through `ProjectionService`/`ViewportProjector` to avoid overlay drift. (Fixes Attempt 2/4 projection mismatch.)
+3. **Provider Discipline** – Providers are created only in `main.dart` per documented layers; no provider creation in widget subtrees. (Fixes Attempt 2 wiring disasters.)
+4. **Viewport Sync Contract** – Map WebView publishes viewport deltas; Flutter overlays consume the same viewport; no duplicate viewport state. (Prevents dual-state divergence.)
+5. **Glass Performance Budget** – Backdrop blurs wrapped in `RepaintBoundary` and profiled to hold 60 FPS; fall back to opacity-only styles on low-end devices. (Avoids jank regressions.)
+6. **Responsive First** – All SailStream components implement mobile/tablet/desktop layouts via `ResponsiveLayout` helpers; no fixed pixel layouts. (Prevents RenderFlex overflows.)
+7. **Persisted Drag Positions** – Draggable widgets (e.g., wind widgets) persist positions in SettingsProvider; default positions loaded on startup. (Avoids lost layouts on restart.)
+
 ---
 
 ## Appendix
 
 ### Glossary
+
 - **AIS:** Automatic Identification System
 - **NMEA:** National Marine Electronics Association
 - **Web Mercator:** EPSG:3857 projection
@@ -696,6 +778,7 @@ ALL animations MUST use curves (easeInOut, decelerate) and complete in 200-400ms
 - **CPA/TCPA:** Closest Point of Approach / Time to CPA
 
 ### References
+
 - [Flutter Docs](https://flutter.dev/docs)
 - [Provider Package](https://pub.dev/packages/provider)
 - [MapLibre GL JS](https://maplibre.org)
@@ -705,4 +788,4 @@ ALL animations MUST use curves (easeInOut, decelerate) and complete in 200-400ms
 
 ---
 
-**Document End**
+<!-- Document End -->

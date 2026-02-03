@@ -4,7 +4,6 @@ library;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
-import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart';
 
 import '../../providers/map_provider.dart';
 import '../../theme/colors.dart';
