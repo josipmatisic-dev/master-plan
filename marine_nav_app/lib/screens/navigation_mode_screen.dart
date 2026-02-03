@@ -334,7 +334,7 @@ class NavigationModeScreen extends StatelessWidget {
   Widget _actionButton(String label) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: OceanColors.seafoamGreen.withValues(alpha: 0.15),
+        backgroundColor: OceanColors.seafoamGreen.withOpacity(0.15),
         foregroundColor: OceanColors.pureWhite,
         padding: const EdgeInsets.symmetric(
           vertical: OceanDimensions.spacingS,

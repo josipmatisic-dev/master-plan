@@ -98,8 +98,7 @@ class _TrueWindWidgetState extends State<TrueWindWidget> {
                 child: CircularProgressIndicator(
                   value: widget.progress?.clamp(0.0, 1.0),
                   strokeWidth: 6,
-                  backgroundColor:
-                      OceanColors.seafoamGreen.withValues(alpha: 0.2),
+                  backgroundColor: OceanColors.seafoamGreen.withOpacity(0.2),
                   valueColor: const AlwaysStoppedAnimation<Color>(
                     OceanColors.seafoamGreen,
                   ),

@@ -108,9 +108,9 @@ class DataOrb extends StatelessWidget {
               child: CircularProgressIndicator(
                 value: progress?.clamp(0.0, 1.0),
                 strokeWidth: 6,
-                backgroundColor: ringColor.withValues(alpha: 0.2),
+                backgroundColor: ringColor.withOpacity(0.2),
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  inactive ? ringColor.withValues(alpha: 0.4) : ringColor,
+                  inactive ? ringColor.withOpacity(0.4) : ringColor,
                 ),
               ),
             ),
@@ -152,7 +152,7 @@ class DataOrb extends StatelessWidget {
     final valueStyle = OceanTextStyles.dataValue.copyWith(
       fontSize: _fontSizeForSize(size),
       color: inactive
-          ? OceanColors.textSecondary.withValues(alpha: 0.6)
+          ? OceanColors.textSecondary.withOpacity(0.6)
           : OceanColors.pureWhite,
     );
 
@@ -165,7 +165,7 @@ class DataOrb extends StatelessWidget {
           unit,
           style: OceanTextStyles.labelLarge.copyWith(
             color: inactive
-                ? OceanColors.textSecondary.withValues(alpha: 0.6)
+                ? OceanColors.textSecondary.withOpacity(0.6)
                 : OceanColors.textSecondary,
           ),
         ),
@@ -173,7 +173,7 @@ class DataOrb extends StatelessWidget {
           label,
           style: OceanTextStyles.label.copyWith(
             color: inactive
-                ? OceanColors.textSecondary.withValues(alpha: 0.6)
+                ? OceanColors.textSecondary.withOpacity(0.6)
                 : OceanColors.textSecondary,
             letterSpacing: 0.5,
           ),
@@ -184,7 +184,7 @@ class DataOrb extends StatelessWidget {
             subtitle!,
             style: OceanTextStyles.labelSmall.copyWith(
               color: inactive
-                  ? OceanColors.textSecondary.withValues(alpha: 0.5)
+                  ? OceanColors.textSecondary.withOpacity(0.5)
                   : OceanColors.textSecondary,
             ),
           ),
