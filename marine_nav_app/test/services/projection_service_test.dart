@@ -41,5 +41,26 @@ void main() {
       expect((result.latitude - point.latitude).abs(), lessThan(1e-6));
       expect((result.longitude - point.longitude).abs(), lessThan(1e-6));
     });
+
+    test('clamps latitude to Web Mercator max', () {
+      const zoom = 3.0;
+      const overMax = LatLng(latitude: 90, longitude: 0);
+      const underMin = LatLng(latitude: -90, longitude: 0);
+
+      final overWorld = ProjectionService.latLngToWorld(overMax, zoom);
+      final underWorld = ProjectionService.latLngToWorld(underMin, zoom);
+
+      final overResult = ProjectionService.worldToLatLng(overWorld, zoom);
+      final underResult = ProjectionService.worldToLatLng(underWorld, zoom);
+
+      expect(
+        overResult.latitude,
+        lessThanOrEqualTo(ProjectionService.maxLatitude),
+      );
+      expect(
+        underResult.latitude,
+        greaterThanOrEqualTo(-ProjectionService.maxLatitude),
+      );
+    });
   });
 }

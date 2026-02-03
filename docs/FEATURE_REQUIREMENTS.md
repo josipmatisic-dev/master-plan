@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD022 MD031 MD032 MD034 MD036 MD040 MD058 MD060 -->
 # Feature Requirements
 ## Marine Navigation App - Detailed Feature Specifications
 
@@ -44,7 +45,7 @@ Interactive nautical chart display with multi-layer support, smooth zoom/pan/rot
 
 **Technical Notes:**
 - Use MapTiler SDK with MapLibre GL JS
-- WebView integration for map rendering
+- WebView integration for map rendering (`webview_flutter` scaffold)
 - Flutter Canvas for overlay layers
 - Viewport synchronization critical (see ISS-001)
 - Projection: Web Mercator (EPSG:3857)

@@ -67,19 +67,19 @@ class OceanColors {
   // ============ Glass Effect Colors ============
 
   /// Dark glass background with 75% opacity
-  static final Color glassBackground = deepNavy.withOpacity(0.75);
+  static final Color glassBackground = deepNavy.withValues(alpha: 0.75);
 
   /// Light glass background with 85% opacity
-  static final Color glassBackgroundLight = pureWhite.withOpacity(0.85);
+  static final Color glassBackgroundLight = pureWhite.withValues(alpha: 0.85);
 
   /// Glass border with 20% opacity
-  static final Color glassBorder = pureWhite.withOpacity(0.2);
+  static final Color glassBorder = pureWhite.withValues(alpha: 0.2);
 
   /// Glass border for light mode
-  static final Color glassBorderLight = Colors.black.withOpacity(0.1);
+  static final Color glassBorderLight = Colors.black.withValues(alpha: 0.1);
 
   /// Shadow color for glass effects
-  static final Color glassShadow = Colors.black.withOpacity(0.3);
+  static final Color glassShadow = Colors.black.withValues(alpha: 0.3);
 
   // ============ Light Mode Colors ============
 

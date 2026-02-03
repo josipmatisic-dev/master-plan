@@ -23,6 +23,7 @@ dependencies:
   
   # UI & Icons
   cupertino_icons: ^1.0.2
+  webview_flutter: ^4.7.0
 
 dev_dependencies:
   flutter_test:
@@ -33,3 +34,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/map.html

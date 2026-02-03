@@ -13,7 +13,6 @@ linter:
     
     # Effective Dart - Documentation
     - slash_for_doc_comments
-    - package_api_docs
     - public_member_api_docs
     
     # Effective Dart - Usage

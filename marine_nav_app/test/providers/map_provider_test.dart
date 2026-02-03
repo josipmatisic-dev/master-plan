@@ -49,5 +49,12 @@ void main() {
       mapProvider.setSize(const Size(320, 200));
       expect(mapProvider.viewport.size, const Size(320, 200));
     });
+
+    test('ignores empty size updates', () {
+      mapProvider.setSize(const Size(320, 200));
+      mapProvider.setSize(Size.zero);
+
+      expect(mapProvider.viewport.size, const Size(320, 200));
+    });
   });
 }
