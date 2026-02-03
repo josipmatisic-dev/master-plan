@@ -14,29 +14,29 @@ Following **CON-004** from MASTER_DEVELOPMENT_BIBLE.md, all providers are organi
 ┌─────────────────────────────────────────────────────┐
 │                   Layer 2 (Partial)                 │
 │                                                     │
-│  ┌──────────────┐         ┌──────────────┐        │
-│  │ MapProvider  │         │WeatherProvider│        │
-│  └──────┬───────┘         └──────┬────────┘        │
-│         │                         │                 │
-│         └─────────┬───────────────┘                 │
-└───────────────────┼─────────────────────────────────┘
-                    │
-┌───────────────────┼─────────────────────────────────┐
-│                   │      Layer 1                    │
-│         ┌─────────▼─────────┐  ┌──────────────┐    │
-│         │  CacheProvider    │  │ThemeProvider │    │
-│         └─────────┬─────────┘  └──────┬───────┘    │
-│                   │                    │             │
-│                   └──────────┬─────────┘             │
-└──────────────────────────────┼──────────────────────┘
-                               │
-┌──────────────────────────────┼──────────────────────┐
-│                              │  Layer 0             │
-│                    ┌─────────▼─────────┐            │
-│                    │ SettingsProvider  │            │
-│                    │  (No Dependencies) │            │
-│                    └───────────────────┘            │
-└─────────────────────────────────────────────────────┘
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────┐  │
+│  │ MapProvider  │  │NMEAProvider  │  │ Weather  │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───┘  │
+│         │                  │                 │       │
+│         └──────────┬───────┴─────────────────┘       │
+└────────────────────┼─────────────────────────────────┘
+                     │
+┌────────────────────┼─────────────────────────────────┐
+│                    │      Layer 1                    │
+│         ┌──────────▼──────────┐  ┌──────────────┐   │
+│         │  CacheProvider      │  │ThemeProvider │   │
+│         └──────────┬──────────┘  └──────┬───────┘   │
+│                    │                     │            │
+│                    └──────────┬──────────┘            │
+└───────────────────────────────┼───────────────────────┘
+                                │
+┌───────────────────────────────┼───────────────────────┐
+│                               │  Layer 0              │
+│                    ┌──────────▼──────────┐            │
+│                    │ SettingsProvider    │            │
+│                    │  (No Dependencies)  │            │
+│                    └─────────────────────┘            │
+└────────────────────────────────────────────────────────┘
 ```
 
 ## Implementation Status
@@ -134,6 +134,39 @@ class CacheProvider extends ChangeNotifier {
   - Emits map errors to UI
   - Coordinates with ProjectionService
 
+#### NMEAProvider (Implemented)
+
+- File: `lib/providers/nmea_provider.dart`
+- Lines: ~216 (under 300 limit ✅)
+- Dependencies: SettingsProvider, CacheProvider
+- Responsibilities:
+  - Manage NMEA data connection lifecycle (TCP/UDP)
+  - Provide real-time marine navigation data (SOG, COG, depth, wind, GPS position)
+  - Auto-reconnect with exponential backoff
+  - Stream parsed NMEA sentences to UI
+  
+**API:**
+
+```dart
+class NMEAProvider extends ChangeNotifier {
+  // Connection state
+  ConnectionStatus get status;
+  bool get isConnected;
+  bool get isActive;
+  int get reconnectAttempts;
+  NMEAError? get lastError;
+  
+  // Data streams
+  NMEAData? get currentData;
+  DateTime? get lastUpdateTime;
+  
+  // Actions
+  Future<void> connect();
+  Future<void> disconnect();
+  void clearError();
+}
+```
+
 #### WeatherProvider (Not yet implemented)
 
 - Will manage weather data
@@ -154,6 +187,10 @@ void main() async {
     settingsProvider: settingsProvider,
     cacheProvider: cacheProvider,
   );
+  final nmeaProvider = NMEAProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
   
   // 2. Initialize all (Layer 0 first, then Layer 1)
   await Future.wait([
@@ -169,6 +206,7 @@ void main() async {
     themeProvider: themeProvider,
     cacheProvider: cacheProvider,
     mapProvider: mapProvider,
+    nmeaProvider: nmeaProvider,
   ));
 }
 ```
@@ -191,9 +229,12 @@ MultiProvider(
       value: cacheProvider,
     ),
     
-    // Layer 2: MapProvider (WeatherProvider future)
+    // Layer 2: Domain providers (depend on Layers 0+1)
     ChangeNotifierProvider<MapProvider>.value(
       value: mapProvider,
+    ),
+    ChangeNotifierProvider<NMEAProvider>.value(
+      value: nmeaProvider,
     ),
   ],
   child: ...,

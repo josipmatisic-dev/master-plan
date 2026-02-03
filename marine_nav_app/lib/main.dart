@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 
 import 'providers/cache_provider.dart';
 import 'providers/map_provider.dart';
+import 'providers/nmea_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
@@ -35,6 +36,10 @@ void main() async {
     settingsProvider: settingsProvider,
     cacheProvider: cacheProvider,
   );
+  final nmeaProvider = NMEAProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
 
   // Initialize all providers
   await Future.wait([
@@ -50,6 +55,7 @@ void main() async {
       themeProvider: themeProvider,
       cacheProvider: cacheProvider,
       mapProvider: mapProvider,
+      nmeaProvider: nmeaProvider,
     ),
   );
 }
@@ -57,7 +63,7 @@ void main() async {
 /// Marine Navigation App Root Widget
 ///
 /// Implements provider hierarchy following CON-004:
-/// Layer 2: (Future) MapProvider, WeatherProvider
+/// Layer 2: MapProvider, NMEAProvider (WeatherProvider future)
 /// Layer 1: ThemeProvider, CacheProvider
 /// Layer 0: SettingsProvider
 class MarineNavigationApp extends StatelessWidget {
@@ -73,6 +79,9 @@ class MarineNavigationApp extends StatelessWidget {
   /// The map provider (Layer 2).
   final MapProvider mapProvider;
 
+  /// The NMEA data provider (Layer 2).
+  final NMEAProvider nmeaProvider;
+
   /// Creates a MarineNavigationApp with pre-initialized providers.
   const MarineNavigationApp({
     super.key,
@@ -80,6 +89,7 @@ class MarineNavigationApp extends StatelessWidget {
     required this.themeProvider,
     required this.cacheProvider,
     required this.mapProvider,
+    required this.nmeaProvider,
   });
 
   @override
@@ -100,9 +110,12 @@ class MarineNavigationApp extends StatelessWidget {
           value: cacheProvider,
         ),
 
-        // Layer 2: MapProvider (WeatherProvider future)
+        // Layer 2: Domain providers (depend on Layers 0+1)
         ChangeNotifierProvider<MapProvider>.value(
           value: mapProvider,
+        ),
+        ChangeNotifierProvider<NMEAProvider>.value(
+          value: nmeaProvider,
         ),
       ],
       child: Consumer<ThemeProvider>(

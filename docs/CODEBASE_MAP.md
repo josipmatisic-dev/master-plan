@@ -47,7 +47,7 @@ lib/
 │   ├── boat_provider.dart       # Boat position & tracking state
 │   ├── cache_provider.dart      # Cache coordination
 │   ├── map_provider.dart        # Map viewport & interaction state
-│   ├── nmea_provider.dart       # NMEA data stream processing
+│   ├── nmea_provider.dart       # ✅ NMEA data stream provider (connection mgmt, auto-reconnect)
 │   ├── settings_provider.dart   # User preferences & configuration
 │   ├── theme_provider.dart      # Theme & dark mode state
 │   ├── timeline_provider.dart   # Forecast playback state
@@ -58,6 +58,7 @@ lib/
 │   ├── http_client.dart         # HTTP with retry & backoff
 │   ├── location_service.dart    # GPS/location wrapper
 │   ├── nmea_parser.dart         # ✅ NMEA 0183 sentence parser (checksum, coordinate conversion)
+│   ├── nmea_service.dart        # ✅ Background isolate for NMEA TCP/UDP (200ms batching)
 │   ├── projection_service.dart  # Coordinate transformations
 │   ├── weather_api.dart         # Open-Meteo API client
 │   ├── noaa_api.dart            # NOAA tides/buoys API

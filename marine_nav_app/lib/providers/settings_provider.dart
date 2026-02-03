@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../models/nmea_error.dart' show ConnectionType;
 
 /// Unit types for speed measurement
 enum SpeedUnit {
@@ -43,6 +44,12 @@ class SettingsProvider extends ChangeNotifier {
   DistanceUnit _distanceUnit = DistanceUnit.nauticalMiles;
   String _language = 'en';
   int _mapRefreshRate = 5000; // milliseconds
+  
+  // NMEA Configuration
+  String _nmeaHost = 'localhost';
+  int _nmeaPort = 10110;
+  ConnectionType _nmeaConnectionType = ConnectionType.tcp;
+  bool _autoConnectNMEA = false;
 
   // ============ Public Getters ============
 
@@ -57,6 +64,18 @@ class SettingsProvider extends ChangeNotifier {
 
   /// Map refresh rate in milliseconds
   int get mapRefreshRate => _mapRefreshRate;
+
+  /// NMEA host address
+  String get nmeaHost => _nmeaHost;
+
+  /// NMEA port number
+  int get nmeaPort => _nmeaPort;
+
+  /// NMEA connection type (TCP/UDP)
+  ConnectionType get nmeaConnectionType => _nmeaConnectionType;
+
+  /// Auto-connect to NMEA on startup
+  bool get autoConnectNMEA => _autoConnectNMEA;
 
   /// Check if settings are initialized
   bool get isInitialized => _prefs != null;
@@ -91,6 +110,17 @@ class SettingsProvider extends ChangeNotifier {
 
       _language = _prefs!.getString('language') ?? 'en';
       _mapRefreshRate = _prefs!.getInt('mapRefreshRate') ?? 5000;
+
+      // NMEA settings
+      _nmeaHost = _prefs!.getString('nmeaHost') ?? 'localhost';
+      _nmeaPort = _prefs!.getInt('nmeaPort') ?? 10110;
+      
+      final nmeaConnectionTypeIndex = _prefs!.getInt('nmeaConnectionType');
+      if (nmeaConnectionTypeIndex != null) {
+        _nmeaConnectionType = ConnectionType.values[nmeaConnectionTypeIndex];
+      }
+      
+      _autoConnectNMEA = _prefs!.getBool('autoConnectNMEA') ?? false;
 
       notifyListeners();
     } catch (e) {
@@ -128,6 +158,37 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Update NMEA host address
+  Future<void> setNMEAHost(String host) async {
+    _nmeaHost = host;
+    await _prefs?.setString('nmeaHost', host);
+    notifyListeners();
+  }
+
+  /// Update NMEA port number
+  Future<void> setNMEAPort(int port) async {
+    if (port < 1 || port > 65535) {
+      throw ArgumentError('Port must be between 1 and 65535');
+    }
+    _nmeaPort = port;
+    await _prefs?.setInt('nmeaPort', port);
+    notifyListeners();
+  }
+
+  /// Update NMEA connection type
+  Future<void> setNMEAConnectionType(ConnectionType type) async {
+    _nmeaConnectionType = type;
+    await _prefs?.setInt('nmeaConnectionType', type.index);
+    notifyListeners();
+  }
+
+  /// Update auto-connect NMEA preference
+  Future<void> setAutoConnectNMEA(bool autoConnect) async {
+    _autoConnectNMEA = autoConnect;
+    await _prefs?.setBool('autoConnectNMEA', autoConnect);
+    notifyListeners();
+  }
+
   // ============ Utility Methods ============
 
   /// Reset all settings to defaults
@@ -136,6 +197,10 @@ class SettingsProvider extends ChangeNotifier {
     _distanceUnit = DistanceUnit.nauticalMiles;
     _language = 'en';
     _mapRefreshRate = 5000;
+    _nmeaHost = 'localhost';
+    _nmeaPort = 10110;
+    _nmeaConnectionType = ConnectionType.tcp;
+    _autoConnectNMEA = false;
 
     await _prefs?.clear();
     notifyListeners();
