@@ -57,7 +57,7 @@ class AppTheme {
       ),
 
       // Card Theme
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: OceanColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -73,7 +73,7 @@ class AppTheme {
 
       // Divider
       dividerTheme: DividerThemeData(
-        color: OceanColors.textDisabled.withValues(alpha: 0.2),
+        color: OceanColors.textDisabled.withOpacity(0.2),
         thickness: 1,
         space: OceanDimensions.spacingM,
       ),
@@ -122,7 +122,7 @@ class AppTheme {
       ),
 
       // Card Theme
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         color: OceanColors.surfaceLight,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -138,7 +138,7 @@ class AppTheme {
 
       // Divider
       dividerTheme: DividerThemeData(
-        color: OceanColors.textSecondaryLight.withValues(alpha: 0.2),
+        color: OceanColors.textSecondaryLight.withOpacity(0.2),
         thickness: 1,
         space: OceanDimensions.spacingM,
       ),
