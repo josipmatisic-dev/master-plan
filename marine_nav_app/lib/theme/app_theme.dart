@@ -57,7 +57,7 @@ class AppTheme {
       ),
 
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: OceanColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -122,7 +122,7 @@ class AppTheme {
       ),
 
       // Card Theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: OceanColors.surfaceLight,
         elevation: 0,
         shape: RoundedRectangleBorder(
