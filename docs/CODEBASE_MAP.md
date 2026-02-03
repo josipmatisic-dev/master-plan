@@ -34,6 +34,8 @@ lib/
 │   ├── cache_entry.dart         # Cache metadata (TTL, LRU)
 │   ├── forecast_data.dart       # Weather forecast time series
 │   ├── lat_lng.dart             # WGS84 coordinate pair
+│   ├── nmea_data.dart           # ✅ NMEA sentence data models (GPGGA, GPRMC, GPVTG, MWV, DPT)
+│   ├── nmea_error.dart          # ✅ NMEA error types & connection config
 │   ├── nmea_message.dart        # Parsed NMEA sentences
 │   ├── viewport.dart            # Map viewport state
 │   ├── weather_data.dart        # Current weather conditions
@@ -55,7 +57,7 @@ lib/
 │   ├── cache_service.dart       # LRU disk cache with TTL
 │   ├── http_client.dart         # HTTP with retry & backoff
 │   ├── location_service.dart    # GPS/location wrapper
-│   ├── nmea_parser.dart         # NMEA 0183 sentence parser
+│   ├── nmea_parser.dart         # ✅ NMEA 0183 sentence parser (checksum, coordinate conversion)
 │   ├── projection_service.dart  # Coordinate transformations
 │   ├── weather_api.dart         # Open-Meteo API client
 │   ├── noaa_api.dart            # NOAA tides/buoys API
