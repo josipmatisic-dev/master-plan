@@ -13,6 +13,9 @@ dependencies:
   # State Management
   provider: ^6.1.0
   
+  # Geospatial
+  latlong2: ^0.9.0
+  
   # Network & HTTP
   http: ^1.1.0
   
