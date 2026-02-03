@@ -1,4 +1,5 @@
 # UI Design System
+
 ## SailStream - Ocean Glass Design Language
 
 **Version:** 1.0  
@@ -33,18 +34,23 @@ The Ocean Glass design system creates a fluid, marine-inspired interface where i
 ### Core Principles
 
 #### 1. Data as Fluid Element
+
 Information flows and connects visually. Data transitions are smooth and organic, mimicking the movement of water.
 
 #### 2. Contextual Priority & Holographic Layering
+
 Critical navigation data expands and becomes prominent when needed. Less critical information recedes into the background, creating a visual hierarchy through depth.
 
 #### 3. Ambient Intelligence
+
 The UI adapts to environmental conditions:
+
 - **Night Navigation:** Deep navy backgrounds with reduced brightness
 - **Daytime Use:** Lighter glass effects with higher contrast
 - **Weather Conditions:** UI color temperature adjusts to conditions
 
 #### 4. Glass Aesthetics
+
 All UI elements use frosted glass effects with subtle translucency, creating depth while maintaining readability over complex map backgrounds.
 
 ---
@@ -190,6 +196,7 @@ class OceanTextStyles {
 ### Glass Effect Variants
 
 #### Standard Glass (Default)
+
 ```dart
 Container(
   decoration: BoxDecoration(
@@ -218,11 +225,13 @@ Container(
 ```
 
 #### Light Glass (Daytime)
+
 - Opacity: 85%
 - Background: Pure white (#FFFFFF)
 - Border: Black at 10% opacity
 
 #### Intense Glass (Overlays)
+
 - Opacity: 85%
 - Blur: 15px sigma
 - Shadow: More pronounced
@@ -247,6 +256,7 @@ Container(
 #### Specifications
 
 **Padding Variants:**
+
 - Small: 12px
 - Medium: 16px
 - Large: 24px
@@ -598,6 +608,7 @@ class OceanCurves {
 ### Common Animations
 
 **Fade In/Out:**
+
 ```dart
 AnimatedOpacity(
   opacity: isVisible ? 1.0 : 0.0,
@@ -608,6 +619,7 @@ AnimatedOpacity(
 ```
 
 **Slide Transition:**
+
 ```dart
 SlideTransition(
   position: Tween<Offset>(
@@ -628,6 +640,7 @@ SlideTransition(
 ### Screen Size Adaptations
 
 #### Mobile (< 600px)
+
 - Stack data orbs vertically
 - Full-width components
 - Bottom navigation
@@ -635,12 +648,14 @@ SlideTransition(
 - Reduced padding
 
 #### Tablet (600-1200px)
+
 - Two-column layouts
 - Side navigation drawer
 - Flexible component sizing
 - Standard font sizes
 
 #### Desktop (> 1200px)
+
 - Multi-column layouts
 - Fixed sidebar navigation
 - Larger components
@@ -711,6 +726,7 @@ double getOrbSize(BuildContext context) {
 ### Widget Tests
 
 **Required for Each Component:**
+
 - [ ] Renders without errors
 - [ ] Displays correct data
 - [ ] Handles null/missing data
@@ -721,6 +737,7 @@ double getOrbSize(BuildContext context) {
 ### Golden Tests
 
 **Visual Regression Testing:**
+
 - [ ] Each component in all size variants
 - [ ] Each component in all states
 - [ ] Dark mode vs light mode
@@ -729,6 +746,7 @@ double getOrbSize(BuildContext context) {
 ### Performance Tests
 
 **Requirements:**
+
 - [ ] Glass blur maintains 60 FPS
 - [ ] Animations are smooth
 - [ ] No jank during scrolling
@@ -738,6 +756,7 @@ double getOrbSize(BuildContext context) {
 ### Integration Tests
 
 **User Flows:**
+
 - [ ] Navigate between screens
 - [ ] Drag and position wind widgets
 - [ ] Toggle compass modes

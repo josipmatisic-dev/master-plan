@@ -187,6 +187,7 @@ RULES:
 - No circular dependencies
 - All created in main.dart
 - Dependencies documented in code
+- `MapViewportService` is the ONLY source of viewport truth; MapProvider owns it and exposes read-only viewport snapshots to widgets/overlays.
 
 ```
 
@@ -371,6 +372,7 @@ void main() async {
 
 - `EARTH_RADIUS = 6378137.0` meters
 - `MAX_LATITUDE = 85.05112878` degrees
+- **Contract:** ProjectionService pairs with MapViewportService as `ViewportProjector`; all overlays/widgets must consume projection via this contract—no manual pixel math.
 
 ---
 
@@ -378,15 +380,16 @@ void main() async {
 
 **Purpose:** WebView container for MapTiler GL JS  
 **Lines:** ~200  
-**Dependencies:** InAppWebView, MapProvider  
+**Dependencies:** webview_flutter, MapProvider  
 **Used By:** MapScreen  
 
 **Key Features:**
 
-- JavaScript bridge for bi-directional communication
+- JavaScript bridge for bi-directional communication (viewport + tap events)
 - Debounced viewport sync (200ms)
 - Map control methods (setCenter, setZoom, flyTo)
 - Layer visibility toggles
+- Graceful fallback (glass card placeholder) when WebView platform is unavailable (used in tests)
 
 **JavaScript Handlers:**
 
@@ -424,6 +427,17 @@ void main() async {
 - **Strategy:** LRU eviction, TTL-based expiry
 - **Size Limit:** 100MB default
 - **Index:** In-memory Map for fast lookups
+
+**MapViewportService**
+
+- **Type:** Singleton owned by MapProvider
+- **State:** Current viewport (center, zoom, bearing, pitch, size)
+- **Responsibilities:**
+      - Normalize viewport updates from WebView → Provider
+      - Provide read-only snapshots to overlays/widgets
+      - Apply clamp rules (zoom 1-20, lat clamp 85.05°)
+- **Consumers:** MapProvider, overlay painters, NavigationMode screen
+- **Guarantee:** Single source of truth for all projection math
 
 **WeatherApi**
 
@@ -504,6 +518,26 @@ MapScreen (StatefulWidget)
 └── FloatingActionButton (optional, for quick actions)
 
 ```
+
+## Screen Flows
+
+### Primary Navigation
+
+- **Splash → HomeScreen** (initial load)
+- **HomeScreen → MapScreen** (primary nav)
+- **HomeScreen → ForecastScreen** (weather deep dive)
+- **HomeScreen → SettingsScreen** (preferences)
+- **MapScreen → NavigationModeScreen** (enter navigation mode)
+- **MapScreen → TimelineScreen** (forecast playback)
+- **NavigationModeScreen → MapScreen** (back)
+- **Any Screen → AboutScreen** (help/attribution)
+
+### MapScreen Internal Flow
+
+- Map load start → show glass loading overlay → Map ready → load overlays → enable interactions
+- Enter forecast mode → show TimelineScrubber + overlays → exit forecast mode → hide scrubber
+- Drag wind widgets → persist position via SettingsProvider → restore on reopen
+- NavigationSidebar item tap → route to destination screen (Map, Weather, Settings, Profile)
 
 ### NavigationMode Screen Widget Tree
 

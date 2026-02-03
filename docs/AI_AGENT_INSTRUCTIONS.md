@@ -15,6 +15,7 @@
 5. [Error Handling](#error-handling)
 6. [Testing Requirements](#testing-requirements)
 7. [Review Checklist](#review-checklist)
+8. [SailStream UI Architecture Rules](#sailstream-ui-architecture-rules)
 
 ---
 
@@ -748,6 +749,45 @@ void main() {
     // Overlay should still be visible and positioned correctly
     expect(find.byType(WindOverlay), findsOneWidget);
   });
+}
+```
+
+---
+
+## SailStream UI Architecture Rules
+
+These rules prevent the regressions documented in `MASTER_DEVELOPMENT_BIBLE.md` Section A and govern all SailStream UI work.
+
+1. **Single Viewport Source:** All overlay positioning uses `ProjectionService` + `MapViewportService`; never compute pixels from lat/lng manually.
+2. **Provider Discipline:** Providers are created only in `main.dart` per Layer 0-3; no widget-local shared providers; no circular deps.
+3. **Glass Performance Budget:** Wrap blur-heavy widgets (e.g., `GlassCard`) in `RepaintBoundary`; blur radius ≤12px; profile to sustain 60 FPS.
+4. **Responsive First:** Every SailStream widget supports mobile (<600px), tablet (600-1200px), and desktop (>1200px) layouts via responsive helpers.
+5. **No Fixed Dimensions:** Use design tokens (`dimensions.dart`) + `LayoutBuilder`/`MediaQuery`; allow scaling for accessibility and prevent overflows.
+6. **Draggable State Persistence:** Draggable widgets (wind widgets, palettes) persist positions via `SettingsProvider` and restore on startup.
+7. **Safe WebView Bridge:** Validate WebView/JS messages (type + bounds), add timeouts, make handlers idempotent, and show fallback UI when the platform WebView is unavailable (e.g., widget tests).
+
+**Example: GlassCard with Performance Guardrails**
+
+```dart
+class WindStatusCard extends StatelessWidget {
+  const WindStatusCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return RepaintBoundary(
+      child: GlassCard(
+        padding: GlassCardPadding.medium,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Text('True Wind', style: TextStyles.heading2),
+            SizedBox(height: 8),
+            Text('14.2 kts · NNE', style: TextStyles.body),
+          ],
+        ),
+      ),
+    );
+  }
 }
 ```
 
