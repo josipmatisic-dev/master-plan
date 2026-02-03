@@ -83,8 +83,7 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isActive ? OceanColors.seafoamGreen : OceanColors.textSecondary;
+    final color = isActive ? OceanColors.seafoamGreen : OceanColors.textSecondary;
 
     return InkWell(
       onTap: onTap,
@@ -96,7 +95,7 @@ class _NavButton extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isActive
-              ? OceanColors.seafoamGreen.withOpacity(0.15)
+              ? OceanColors.seafoamGreen.withValues(alpha: 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(OceanDimensions.radiusM),
         ),
