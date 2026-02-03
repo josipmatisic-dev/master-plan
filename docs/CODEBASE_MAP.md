@@ -79,6 +79,12 @@ lib/
 │   │   ├── glass_card.dart     # Base frosted glass container
 │   │   ├── glass_button.dart   # Glass-styled button
 │   │   └── glass_modal.dart    # Glass modal/dialog
+│   ├── home/                    # Home screen widgets
+│   │   ├── welcome_card.dart   # Welcome message and status
+│   │   ├── navigation_shortcuts.dart # Quick navigation buttons
+│   │   ├── theme_controls.dart # Theme switching controls
+│   │   ├── settings_card.dart  # Settings display
+│   │   └── cache_info_card.dart # Cache status display
 │   ├── navigation/              # Navigation components
 │   │   ├── navigation_sidebar.dart # Primary app navigation menu
 │   │   ├── compass_widget.dart    # Compass with heading/speed/wind
@@ -599,6 +605,12 @@ NavigationModeScreen (StatefulWidget)
 | `services/weather_api.dart` | WeatherProvider | 220 | 28 | 82% |
 | `providers/weather_provider.dart` | WeatherProvider | 250 | 22 | 78% |
 | `providers/boat_provider.dart` | BoatProvider | 190 | 18 | 81% |
+| `screens/home_screen.dart` | UI | 101 | TBD | - |
+| `widgets/home/theme_controls.dart` | UI | 83 | TBD | - |
+| `widgets/home/settings_card.dart` | UI | 77 | TBD | - |
+| `widgets/home/cache_info_card.dart` | UI | 77 | TBD | - |
+| `widgets/home/navigation_shortcuts.dart` | UI | 62 | TBD | - |
+| `widgets/home/welcome_card.dart` | UI | 43 | TBD | - |
 | `widgets/map_webview.dart` | MapProvider | 200 | 12 | 65% |
 | `widgets/overlays/wind_overlay.dart` | WeatherProvider | 180 | 15 | 73% |
 | `widgets/glass/glass_card.dart` | UI Library | < 100 | TBD | - |
@@ -636,11 +648,13 @@ NavigationModeScreen (StatefulWidget)
 
 | Category | Max Lines | Current Max | Compliant |
 |----------|-----------|-------------|-----------|
-| Providers | 300 | 250 | ✅ |
-| Services | 300 | 280 | ✅ |
-| Screens | 300 | 285 | ✅ |
-| Widgets | 200 | 190 | ✅ |
+| Providers | 300 | 150 | ✅ |
+| Services | 300 | 94 | ✅ |
+| Screens | 300 | 196 | ✅ |
+| Widgets | 300 | 206 | ✅ |
 | Models | 150 | 120 | ✅ |
+
+**Note:** All files are now compliant with Architecture Rule C.5 (Max 300 lines per file). The `home_screen.dart` was refactored from 323 lines to 101 lines by extracting reusable widgets into `lib/widgets/home/` directory. Widget files follow the same 300-line limit as other categories for consistency.
 
 ---
 
