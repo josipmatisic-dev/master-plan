@@ -73,7 +73,7 @@ This document summarizes the alignment of execution planning structures with the
   - Details file → Plan file: 16 task references validated ✅
 
 **Validation Results**:
-```
+```text
 Research File References (8/8 valid):
 ✅ Lines 40-90: Ocean Glass Design Philosophy
 ✅ Lines 92-120: Design System Specifications
@@ -101,7 +101,7 @@ Details File References (16/16 valid):
 ✅ Task 4.1: Lines 281-302
 ✅ Task 4.2: Lines 303-322
 ✅ Task 4.3: Lines 323-343
-```
+```text
 
 ### 6. Cross-Reference Network
 
@@ -112,7 +112,7 @@ Details File References (16/16 valid):
 
 ## File Structure After Alignment
 
-```
+```text
 master-plan/
 ├── README.md                              [Updated with planning guide reference]
 ├── PLANNING_GUIDE.md                      [NEW - Complete planning guide]
@@ -136,7 +136,7 @@ master-plan/
     └── agents/
         ├── task-planner.agent.md          [Reference template]
         └── implementation-plan.agent.md   [Reference template]
-```
+```text
 
 ## Alignment with Agent Instructions
 

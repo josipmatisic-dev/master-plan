@@ -17,7 +17,7 @@ CREATE TABLE users (
   avatar_url TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
-```
+```text
 
 **Boats Table:**
 ```sql
@@ -30,7 +30,7 @@ CREATE TABLE boats (
   home_port TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
-```
+```text
 
 **Trips Table:**
 ```sql
@@ -50,7 +50,7 @@ CREATE TABLE trips (
 
 -- PostGIS for spatial queries
 CREATE INDEX idx_trips_track ON trips USING GIST ((track_data::geometry));
-```
+```text
 
 ### Row-Level Security
 
@@ -64,7 +64,7 @@ CREATE POLICY trips_select ON trips
 CREATE POLICY trips_insert ON trips
   FOR INSERT
   WITH CHECK (user_id = auth.uid());
-```
+```text
 
 ## Authentication Flow
 
@@ -91,7 +91,7 @@ class AuthService {
   Stream<AuthState> get authStateChanges => 
     _supabase.auth.onAuthStateChange;
 }
-```
+```text
 
 ## Trip Logging
 
@@ -120,7 +120,7 @@ class TripService {
     _isMoving = isMovingNow;
   }
 }
-```
+```text
 
 ## GPX Export
 
@@ -145,7 +145,7 @@ String exportToGPX(Trip trip) {
   
   return gpx.toXmlString();
 }
-```
+```text
 
 ## Collaborative Features
 
@@ -169,7 +169,7 @@ class RouteService {
     // All subscribers notified automatically
   }
 }
-```
+```text
 
 ## Launch Checklist
 

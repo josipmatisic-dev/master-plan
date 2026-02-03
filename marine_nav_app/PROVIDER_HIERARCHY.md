@@ -37,7 +37,7 @@ Following **CON-004** from MASTER_DEVELOPMENT_BIBLE.md, all providers are organi
 │                    │  (No Dependencies)  │            │
 │                    └─────────────────────┘            │
 └────────────────────────────────────────────────────────┘
-```
+```text
 
 ## Implementation Status
 
@@ -68,7 +68,7 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setMapRefreshRate(int ms);
   Future<void> resetToDefaults();
 }
-```
+```text
 
 ### ✅ Layer 1: UI Coordination (Complete)
 
@@ -96,7 +96,7 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> enableRedLightMode();
   Future<void> disableRedLightMode();
 }
-```
+```text
 
 #### CacheProvider
 
@@ -121,7 +121,7 @@ class CacheProvider extends ChangeNotifier {
   Future<void> invalidate(String key);
   Future<T?> get<T>(String key);
 }
-```
+```text
 
 ### ⏳ Layer 2: Feature Providers (Partial)
 
@@ -165,7 +165,7 @@ class NMEAProvider extends ChangeNotifier {
   Future<void> disconnect();
   void clearError();
 }
-```
+```text
 
 #### RouteProvider (NEW - Phase 1)
 
@@ -206,7 +206,7 @@ class RouteProvider extends ChangeNotifier {
   void deactivateRoute();
   void clearPosition();
 }
-```
+```text
 
 #### Weather Provider (Planned - Phase 2)
 
@@ -238,7 +238,7 @@ void main() async {
   // 5. Setup app with all providers
   runApp(MarineNavigationApp(...));
 }
-```
+```text
 
 ## Constraint Compliance
 

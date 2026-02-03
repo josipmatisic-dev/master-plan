@@ -20,7 +20,7 @@
 Comprehensive execution plans for all development phases (Phase 0 - Phase 4).
 
 | Phase | File | Status | Description |
-|-------|------|--------|-------------|
+| ------- | ------ | -------- | ------------- |
 | Phase 0 | [phase-0-foundation-plan.md](plans/phase-0-foundation-plan.md) | Planned | Foundation setup, architecture, core services, testing infrastructure |
 | Phase 1 | [phase-1-core-navigation-plan.md](plans/phase-1-core-navigation-plan.md) | Planned | Map display, GPS tracking, basic overlays |
 | Phase 2 | [phase-2-weather-intelligence-plan.md](plans/phase-2-weather-intelligence-plan.md) | Planned | Weather integration, forecasting, timeline playback |
@@ -45,7 +45,7 @@ Each plan includes:
 Detailed specifications for components and features in each phase.
 
 | Phase | File | Contents |
-|-------|------|----------|
+| ------- | ------ | ---------- |
 | Phase 0 | [phase-0-foundation-details.md](details/phase-0-foundation-details.md) | Project initialization, provider architecture, core services, test infrastructure |
 | Phase 1 | [phase-1-core-navigation-details.md](details/phase-1-core-navigation-details.md) | Map component specs, GPS integration, overlay rendering, boat tracking |
 | Phase 2 | [phase-2-weather-intelligence-details.md](details/phase-2-weather-intelligence-details.md) | Weather API integration, forecast models, timeline controls, cache strategy |
@@ -70,7 +70,7 @@ Each detail file includes:
 AI agent implementation prompts with step-by-step instructions.
 
 | Phase | File | Purpose |
-|-------|------|---------|
+| ------- | ------ | --------- |
 | Phase 0 | [implement-phase-0-foundation.prompt.md](prompts/implement-phase-0-foundation.prompt.md) | Guide for implementing foundation infrastructure |
 | Phase 1 | [implement-phase-1-core-navigation.prompt.md](prompts/implement-phase-1-core-navigation.prompt.md) | Guide for implementing core navigation features |
 | Phase 2 | [implement-phase-2-weather-intelligence.prompt.md](prompts/implement-phase-2-weather-intelligence.prompt.md) | Guide for implementing weather features |
@@ -94,7 +94,7 @@ Each prompt includes:
 Research and analysis documents for design and architecture decisions.
 
 | Date | File | Topic |
-|------|------|-------|
+| ------ | ------ | ------- |
 | 2026-02-01 | [20260201-ui-architecture-adaptation-research.md](research/20260201-ui-architecture-adaptation-research.md) | SailStream UI architecture and "Ocean Glass" design system |
 
 ---
@@ -106,7 +106,7 @@ All planning artifacts reference these core documents:
 ### Primary Documentation
 
 | Document | Purpose | Location |
-|----------|---------|----------|
+| ---------- | --------- | ---------- |
 | MASTER_DEVELOPMENT_BIBLE | Failure analysis, architecture rules, phases | `/docs/MASTER_DEVELOPMENT_BIBLE.md` |
 | AI_AGENT_INSTRUCTIONS | Mandatory behaviors, code patterns | `/docs/AI_AGENT_INSTRUCTIONS.md` |
 | KNOWN_ISSUES_DATABASE | All issues, solutions, prevention | `/docs/KNOWN_ISSUES_DATABASE.md` |
@@ -134,7 +134,7 @@ Located in `.github/agents/`:
 
 ## Phase Timeline
 
-```
+```text
 Phase 0: Foundation (Week 1-2)
 ├── Setup Flutter project
 ├── Configure providers
@@ -164,7 +164,7 @@ Phase 4: Social & Community (Week 15-18)
 ├── Social features
 ├── Launch preparation
 └── Beta testing
-```
+```text
 
 ---
 
@@ -210,14 +210,14 @@ This directory contains execution planning artifacts, research, implementation d
 
 ## Directory Structure
 
-```
+```text
 .copilot-tracking/
 ├── INDEX.md (this file)
 ├── plans/          # Multi-phase execution plans
 ├── details/        # Detailed implementation specifications
 ├── prompts/        # Implementation prompts for agents
 └── research/       # Research and analysis documents
-```
+```text
 
 ## Plans Directory
 
@@ -347,7 +347,7 @@ tags: [Tags]
 
 ## 8. Related Specifications / Further Reading
 [References and links]
-```
+```text
 
 ## Status Tracking
 
@@ -408,10 +408,10 @@ Tasks in implementation steps use checkboxes and dates:
 
 ```markdown
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-001 | Do something | ✅ | 2026-02-01 |
 | TASK-002 | Do another thing | | |
-```
+```text
 
 ## Verification
 

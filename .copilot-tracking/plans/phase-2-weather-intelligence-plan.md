@@ -18,7 +18,9 @@ tags: [weather, forecasting, timeline, api, caching]
 
 ## Introduction
 
-Phase 2 integrates comprehensive weather data into the navigation app, including current conditions, 7-day forecasts, timeline playback, and advanced weather overlays. This phase transforms the app into a weather-intelligent navigation tool.
+Phase 2 integrates comprehensive weather data into the navigation app, including current conditions, 7-day forecasts,
+timeline playback, and advanced weather overlays. This phase transforms the app into a weather-intelligent navigation
+tool.
 
 **Key Objectives:**
 - Integrate Open-Meteo API for marine weather data
@@ -75,7 +77,7 @@ Phase 2 integrates comprehensive weather data into the navigation app, including
 **GOAL-201**: Integrate Open-Meteo API for marine weather data
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-201 | Create WeatherApi service class | | |
 | TASK-202 | Implement fetchMarineWeather(bounds) method | | |
 | TASK-203 | Add weather parameter selection (wind, waves, currents, temp) | | |
@@ -90,7 +92,7 @@ Phase 2 integrates comprehensive weather data into the navigation app, including
 **GOAL-202**: Create comprehensive weather data models
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-209 | Create ForecastData model with time series | | |
 | TASK-210 | Create CurrentData model for current conditions | | |
 | TASK-211 | Create OceanCurrentData model | | |
@@ -104,7 +106,7 @@ Phase 2 integrates comprehensive weather data into the navigation app, including
 **GOAL-203**: Implement WeatherProvider with cache-first architecture (Avoid ISS-004, ISS-010)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-216 | Create WeatherProvider class (<300 lines) | | |
 | TASK-217 | Implement cache-first getWeather() method | | |
 | TASK-218 | Add background refresh after cache return | | |
@@ -150,14 +152,14 @@ Future<WeatherData> getWeather(Bounds bounds) async {
     rethrow;
   }
 }
-```
+```text
 
 ### Implementation Phase 4: Timeline Playback System
 
 **GOAL-204**: Create timeline playback with lazy loading (Avoid ISS-013)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-224 | Create TimelineProvider class (<300 lines) | | |
 | TASK-225 | Implement lazy frame loading (max 5 frames cached) | | |
 | TASK-226 | Add play/pause controls | | |
@@ -194,14 +196,14 @@ class TimelineProvider extends ChangeNotifier {
     return frame;
   }
 }
-```
+```text
 
 ### Implementation Phase 5: Timeline Controls UI
 
 **GOAL-205**: Create timeline scrubber and playback controls
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-232 | Create TimelineControls widget | | |
 | TASK-233 | Implement scrubber slider | | |
 | TASK-234 | Add play/pause button | | |
@@ -216,7 +218,7 @@ class TimelineProvider extends ChangeNotifier {
 **GOAL-206**: Add precipitation, currents, and temperature overlays
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-240 | Create PrecipitationOverlay widget | | |
 | TASK-241 | Create OceanCurrentOverlay widget | | |
 | TASK-242 | Create SeaTempOverlay widget (SST) | | |
@@ -231,7 +233,7 @@ class TimelineProvider extends ChangeNotifier {
 **GOAL-207**: Create dedicated forecast viewing screen
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-248 | Create ForecastScreen scaffold | | |
 | TASK-249 | Add 7-day forecast list | | |
 | TASK-250 | Implement hourly breakdown expansion | | |
@@ -246,7 +248,7 @@ class TimelineProvider extends ChangeNotifier {
 **GOAL-208**: Implement weather alerts and warnings
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-256 | Create WeatherAlert model | | |
 | TASK-257 | Implement alert detection logic | | |
 | TASK-258 | Add alert notification system | | |
@@ -260,7 +262,7 @@ class TimelineProvider extends ChangeNotifier {
 **GOAL-209**: Pre-download weather for offline access
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-263 | Implement region download for offline use | | |
 | TASK-264 | Add download progress indicator | | |
 | TASK-265 | Implement storage management (size limits) | | |
@@ -273,7 +275,7 @@ class TimelineProvider extends ChangeNotifier {
 **GOAL-210**: Comprehensive testing and documentation
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-269 | Unit tests for WeatherApi (≥80% coverage) | | |
 | TASK-270 | Unit tests for WeatherProvider (cache-first validation) | | |
 | TASK-271 | Unit tests for TimelineProvider (lazy loading validation) | | |

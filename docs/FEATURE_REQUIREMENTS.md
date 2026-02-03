@@ -29,7 +29,7 @@
 **Dependencies:** None  
 **Owner:** MapProvider
 
-**Description:**
+#### Description
 Interactive nautical chart display with multi-layer support, smooth zoom/pan/rotate, and offline tile caching.
 
 **Acceptance Criteria:**
@@ -65,7 +65,7 @@ Interactive nautical chart display with multi-layer support, smooth zoom/pan/rot
 - Prevent over-zooming (max zoom 20)
 - Handle zero network (offline mode)
 
-**Test Scenarios:**
+#### Test Scenarios
 1. Load map with network → Success
 2. Load map without network → Cached tiles
 3. Pan map smoothly → 60 FPS maintained
@@ -81,7 +81,7 @@ Interactive nautical chart display with multi-layer support, smooth zoom/pan/rot
 **Dependencies:** FEAT-001  
 **Owner:** NMEAProvider
 
-**Description:**
+#### Description
 Connect to NMEA 0183 devices via TCP/UDP, parse sentences, extract GPS position, speed, heading, depth, wind data.
 
 **Acceptance Criteria:**
@@ -109,7 +109,7 @@ Connect to NMEA 0183 devices via TCP/UDP, parse sentences, extract GPS position,
 
 **Supported Sentence Types:**
 | Type | Description | Priority |
-|------|-------------|----------|
+| ------ | ------------- | ---------- |
 | GPGGA | GPS Fix Data | P0 |
 | GPRMC | Recommended Minimum | P0 |
 | GPVTG | Track & Speed | P1 |
@@ -125,7 +125,7 @@ Connect to NMEA 0183 devices via TCP/UDP, parse sentences, extract GPS position,
 - Connection timeout (retry with backoff)
 - High message rate (>100/sec) → Throttle
 
-**Test Scenarios:**
+#### Test Scenarios
 1. Valid GPGGA → Position updated
 2. Invalid checksum → Rejected
 3. Incomplete sentence → Buffered
@@ -141,7 +141,7 @@ Connect to NMEA 0183 devices via TCP/UDP, parse sentences, extract GPS position,
 **Dependencies:** FEAT-001, FEAT-002  
 **Owner:** BoatProvider
 
-**Description:**
+#### Description
 Display real-time boat position on map with heading indicator, track history, speed/distance statistics.
 
 **Acceptance Criteria:**
@@ -190,7 +190,7 @@ class TrackPoint {
   final DateTime timestamp;
   final double? speed;
 }
-```
+```text
 
 **Edge Cases:**
 - GPS signal lost → Show last known + age
@@ -198,7 +198,7 @@ class TrackPoint {
 - Unrealistic speed → Reject (see ISS-018)
 - Track history full → Auto-prune oldest
 
-**Test Scenarios:**
+#### Test Scenarios
 1. GPS updates → Boat marker moves
 2. Change heading → Arrow rotates
 3. Track records → History saved
@@ -214,7 +214,7 @@ class TrackPoint {
 **Dependencies:** FEAT-001  
 **Owner:** WeatherProvider
 
-**Description:**
+#### Description
 Display wind vectors, wave height/direction, ocean currents, sea surface temperature as map overlays.
 
 **Acceptance Criteria:**
@@ -272,7 +272,7 @@ Display wind vectors, wave height/direction, ocean currents, sea surface tempera
 - Too many overlay points → Decimate
 - Old cached data → Show age indicator
 
-**Test Scenarios:**
+#### Test Scenarios
 1. Load wind overlay → Barbs appear
 2. Zoom map → Overlays reposition
 3. Toggle layer → Overlay hides/shows
@@ -290,7 +290,7 @@ Display wind vectors, wave height/direction, ocean currents, sea surface tempera
 **Dependencies:** FEAT-004  
 **Owner:** WeatherProvider
 
-**Description:**
+#### Description
 7-day marine weather forecast with hourly breakdown, multiple model comparison, confidence indicators.
 
 **Acceptance Criteria:**
@@ -337,7 +337,7 @@ Display wind vectors, wave height/direction, ocean currents, sea surface tempera
 **Dependencies:** FEAT-005  
 **Owner:** TimelineProvider
 
-**Description:**
+#### Description
 Animate forecast progression, scrub through time, adjust playback speed, export video.
 
 **Acceptance Criteria:**
@@ -361,11 +361,11 @@ Animate forecast progression, scrub through time, adjust playback speed, export 
 - Background export using ffmpeg
 
 **UI Controls:**
-```
+```text
 [◀◀] [◀] [▶/⏸] [▶▶]  [0.5x] [1x] [2x] [4x]
 ━━━━━●━━━━━━━━━━━━━━━━━━━
 12:00      18:00        00:00
-```
+```text
 
 **Edge Cases:**
 - Fast scrubbing → Skip frames
@@ -381,7 +381,7 @@ Animate forecast progression, scrub through time, adjust playback speed, export 
 **Dependencies:** None  
 **Owner:** ThemeProvider
 
-**Description:**
+#### Description
 Light/dark themes, auto mode based on time, red light mode for night vision, high contrast mode.
 
 **Acceptance Criteria:**
@@ -433,7 +433,7 @@ Light/dark themes, auto mode based on time, red light mode for night vision, hig
 **Dependencies:** FEAT-001, FEAT-004  
 **Owner:** CacheProvider
 
-**Description:**
+#### Description
 Download map regions and weather data for offline use, background sync, storage management.
 
 **Acceptance Criteria:**
@@ -485,7 +485,7 @@ Download map regions and weather data for offline use, background sync, storage 
 **Dependencies:** None  
 **Owner:** SettingsProvider
 
-**Description:**
+#### Description
 User preferences for units, language, map style, data refresh, privacy.
 
 **Acceptance Criteria:**
@@ -533,7 +533,7 @@ User preferences for units, language, map style, data refresh, privacy.
 **Dependencies:** FEAT-003  
 **Owner:** BoatProvider
 
-**Description:**
+#### Description
 Notify when approaching harbors, show marina information, fuel prices, weather warnings.
 
 **Acceptance Criteria:**
@@ -554,14 +554,14 @@ Notify when approaching harbors, show marina information, fuel prices, weather w
 - NOAA: Weather warnings, tides
 
 **Notification:**
-```
+```text
 ⚓ Approaching San Francisco Bay
 5.2 NM away • ETA 45 min
 
 Fuel: $4.89/gal
 Services: ⚡ 🚿 🛢️
 Weather: ⚠️ Small craft advisory
-```
+```text
 
 ---
 
@@ -572,7 +572,7 @@ Weather: ⚠️ Small craft advisory
 **Dependencies:** FEAT-002, FEAT-003  
 **Owner:** NMEAProvider
 
-**Description:**
+#### Description
 Display AIS targets, collision warnings, vessel information, CPA/TCPA calculations.
 
 **Acceptance Criteria:**
@@ -593,21 +593,21 @@ Display AIS targets, collision warnings, vessel information, CPA/TCPA calculatio
 - Message type 5: Static data
 - Message type 18,19: Class B position
 
-**CPA/TCPA Algorithm:**
+#### CPA/TCPA Algorithm
 1. Calculate relative velocity
 2. Find closest point of approach (CPA)
 3. Calculate time to CPA (TCPA)
 4. If CPA <0.5 NM AND TCPA <10 min → Warn
 
 **Collision Warning:**
-```
+```text
 ⚠️ COLLISION WARNING
 
 Vessel: PACIFIC STAR (MMSI: 123456789)
 CPA: 0.3 NM
 TCPA: 6 minutes
 Bearing: 045°
-```
+```text
 
 ---
 
@@ -618,7 +618,7 @@ Bearing: 045°
 **Dependencies:** FEAT-001  
 **Owner:** WeatherProvider
 
-**Description:**
+#### Description
 Tide predictions, current station data, high/low times, tidal current display.
 
 **Acceptance Criteria:**
@@ -639,7 +639,7 @@ Tide predictions, current station data, high/low times, tidal current display.
 - Predictions: https://api.tidesandcurrents.noaa.gov/api/prod/
 
 **Tide Graph:**
-```
+```text
 High: 6.2 ft at 11:32 AM
 ────────────────────────
         ╱╲
@@ -648,7 +648,7 @@ High: 6.2 ft at 11:32 AM
 Low: 0.8 ft at 5:47 AM
 ────────────────────────
 6AM   9AM   12PM  3PM   6PM
-```
+```text
 
 ---
 
@@ -661,7 +661,7 @@ Low: 0.8 ft at 5:47 AM
 **Dependencies:** FEAT-003  
 **Owner:** BoatProvider
 
-**Description:**
+#### Description
 Auto-save trips, manual trip creation, statistics, replay, photo attachments.
 
 **Acceptance Criteria:**
@@ -693,7 +693,7 @@ class Trip {
   final List<TrackPoint> track;
   final List<Photo> photos;
 }
-```
+```text
 
 ---
 
@@ -704,7 +704,7 @@ class Trip {
 **Dependencies:** FEAT-013  
 **Owner:** Backend
 
-**Description:**
+#### Description
 Share routes, waypoints, trip reports, screenshots, community feeds.
 
 **Acceptance Criteria:**
@@ -732,7 +732,7 @@ Share routes, waypoints, trip reports, screenshots, community feeds.
 **Dependencies:** None  
 **Owner:** UI Library Team
 
-**Description:**
+#### Description
 Complete implementation of the Ocean Glass design system with reusable frosted glass UI components including GlassCard, DataOrb, CompassWidget, WindWidget, and NavigationSidebar.
 
 **Acceptance Criteria:**
@@ -767,7 +767,7 @@ Complete implementation of the Ocean Glass design system with reusable frosted g
 - Coral Red: #FF6B6B
 - Pure White: #FFFFFF
 
-**Test Scenarios:**
+#### Test Scenarios
 1. GlassCard renders with blur on both platforms
 2. DataOrb displays all size variants correctly
 3. Color palette matches specifications
@@ -783,7 +783,7 @@ Complete implementation of the Ocean Glass design system with reusable frosted g
 **Dependencies:** FEAT-001, FEAT-015  
 **Owner:** Navigation Team
 
-**Description:**
+#### Description
 Dedicated navigation mode screen with large data orbs for SOG, COG, and DEPTH, route visualization, waypoint management, and action buttons for creating routes and marking positions.
 
 **Acceptance Criteria:**
@@ -824,7 +824,7 @@ Dedicated navigation mode screen with large data orbs for SOG, COG, and DEPTH, r
 - Invalid GPS → Show "No GPS Signal"
 - SOG/COG/DEPTH unavailable → Show "--" in orbs
 
-**Test Scenarios:**
+#### Test Scenarios
 1. Enter navigation mode from map → Success
 2. Create new route → Saved to database
 3. Mark current position → Waypoint created
@@ -841,7 +841,7 @@ Dedicated navigation mode screen with large data orbs for SOG, COG, and DEPTH, r
 **Dependencies:** FEAT-002, FEAT-015  
 **Owner:** Weather Team
 
-**Description:**
+#### Description
 Draggable, multi-instance true wind widgets that can be positioned anywhere on the map. Widgets display wind speed and direction with circular progress indicators and support delete functionality.
 
 **Acceptance Criteria:**
@@ -888,7 +888,7 @@ Draggable, multi-instance true wind widgets that can be positioned anywhere on t
 - Maximum widgets reached → Show toast warning
 - Invalid wind data → Show error indicator
 
-**Test Scenarios:**
+#### Test Scenarios
 1. Add wind widget → Appears on screen
 2. Drag widget → Position updates smoothly
 3. Restart app → Positions restored
@@ -901,7 +901,7 @@ Draggable, multi-instance true wind widgets that can be positioned anywhere on t
 ## Feature Priority Matrix
 
 | Feature | Priority | Phase | Effort | Complexity | Risk |
-|---------|----------|-------|--------|------------|------|
+| --------- | ---------- | ------- | -------- | ------------ | ------ |
 | Map Display | P0 | 1 | 3w | High | Medium |
 | NMEA Integration | P0 | 1 | 2w | Medium | Low |
 | Boat Tracking | P0 | 1 | 1w | Low | Low |

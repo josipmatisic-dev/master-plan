@@ -158,7 +158,7 @@ From the conversation research, the core visual language is defined as:
 
 From conversation Lines 400-500, the required structure is:
 
-```
+```text
 lib/
 ├── main.dart                 # Provider setup ONLY (<100 lines)
 ├── app.dart                  # MaterialApp + routing (<100 lines)
@@ -218,7 +218,7 @@ lib/
 │       └── wind_widget.dart       # NEW: Draggable wind indicator
 └── routes/
     └── app_router.dart
-```
+```text
 
 ---
 
@@ -319,7 +319,7 @@ From conversation analysis, essential features are:
 
 From conversation Lines 350-400:
 
-```
+```dart
 ✅ lib/services/nmea_parser.dart - NMEA sentence parsing
 ✅ lib/services/forecast/forecast_http_client.dart - HTTP with retry
 ✅ lib/services/forecast/http_retry.dart - getWithRetry function
@@ -330,16 +330,16 @@ From conversation Lines 350-400:
 ✅ lib/models/beaufort_scale.dart - Wind classification
 ✅ lib/theme/ocean_theme.dart - Color system
 ✅ assets/www/index.html - MapTiler WebView
-```
+```text
 
 ### Rewrite (Architecture Problems)
 
-```
+```dart
 ⚠️ lib/screens/map_screen.dart - Split into components (was 3,839 lines)
 ⚠️ lib/widgets/forecast_overlay_host.dart - Simplify
 ⚠️ lib/services/forecast/forecast_state.dart - Clean up
 ⚠️ lib/widgets/quick_settings_panel.dart - Responsive redesign
-```
+```text
 
 ---
 
@@ -421,7 +421,7 @@ class OceanTheme {
   static const glassOpacity = 0.8;
   static const borderRadius = 12.0;
 }
-```
+```text
 
 ---
 

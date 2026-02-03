@@ -75,7 +75,7 @@ This document provides detailed technical specifications for Phase 0 foundation 
 
 Following CON-004 from `docs/MASTER_DEVELOPMENT_BIBLE.md`:
 
-```
+```text
 Layer 0 (No Dependencies):
 - SettingsProvider
 
@@ -86,7 +86,7 @@ Layer 1 (Depends on Layer 0):
 Layer 2 (Future phases):
 - MapProvider (depends on CacheProvider, SettingsProvider)
 - WeatherProvider (depends on CacheProvider, SettingsProvider)
-```
+```text
 
 **Rules:**
 - Providers NEVER depend on providers in the same layer
@@ -115,7 +115,7 @@ class CacheService {
   Future<int> getSize();
   Future<void> dispose();
 }
-```
+```text
 
 **Requirements:**
 
@@ -166,7 +166,7 @@ class HttpClient {
   Future<T> getJson<T>(String url, T Function(Map<String, dynamic>) fromJson);
   void dispose();
 }
-```
+```text
 
 **Requirements:**
 
@@ -224,7 +224,7 @@ class ProjectionService {
   Point latLngToScreen(LatLng latLng, Viewport viewport, Size screenSize);
   LatLng screenToLatLng(Offset screenPoint, Viewport viewport, Size screenSize);
 }
-```
+```text
 
 **Requirements:**
 
@@ -276,7 +276,7 @@ class NMEAParser {
   static NMEAMessage? parseGPRMC(String sentence);
   static NMEAMessage? parseGPVTG(String sentence);
 }
-```
+```text
 
 **Requirements:**
 
@@ -289,7 +289,7 @@ class NMEAParser {
 
 **NMEA Sentence Format:**
 
-```
+```bash
 $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47
   │     │       │        │ │         │ │ │   │   │     │ │    │  └─ Checksum
   │     │       │        │ │         │ │ │   │   │     │ │    └─ Units
@@ -302,7 +302,7 @@ $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47
   │     │       │        │ └─ Longitude
   │     │       └─ Latitude
   └─ Type
-```
+```text
 
 **Implementation Details:**
 
@@ -346,7 +346,7 @@ class LatLng {
   
   // Validation, equality, toString, toJson, fromJson
 }
-```
+```text
 
 **Requirements:**
 
@@ -374,7 +374,7 @@ class Bounds {
   bool intersects(Bounds other);
   // Additional methods
 }
-```
+```text
 
 ---
 
@@ -398,7 +398,7 @@ class Viewport {
     this.pitch = 0.0,
   });
 }
-```
+```text
 
 ---
 
@@ -422,7 +422,7 @@ class SettingsProvider extends ChangeNotifier {
   void setDistanceUnit(DistanceUnit unit);
   void setLanguage(String lang);
 }
-```
+```text
 
 **Requirements:**
 
@@ -449,7 +449,7 @@ class ThemeProvider extends ChangeNotifier {
   ThemeData get lightTheme;
   ThemeData get darkTheme;
 }
-```
+```text
 
 **Requirements:**
 
@@ -481,7 +481,7 @@ class MarineColors {
   static const seafoam = Color(0xFFA8DADC);
   static const white = Color(0xFFF1FAEE);
 }
-```
+```text
 
 ---
 
@@ -489,7 +489,7 @@ class MarineColors {
 
 ### Test Structure
 
-```
+```text
 test/
 ├── unit/
 │   ├── services/
@@ -508,7 +508,7 @@ test/
 │       └── theme_provider_test.dart
 └── integration/
     └── app_initialization_test.dart
-```
+```text
 
 ### Coverage Requirements
 
@@ -569,7 +569,7 @@ test/
 
 ### Complete File List
 
-```
+```text
 lib/
 ├── main.dart
 ├── models/
@@ -596,7 +596,7 @@ lib/
 │   └── app_theme.dart
 └── utils/
     └── constants.dart
-```
+```text
 
 ---
 

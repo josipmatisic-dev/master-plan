@@ -9,11 +9,14 @@
 
 ## Executive Summary
 
-The codebase is in **excellent shape** with strong adherence to established architectural principles. Phase 4 UI integration work has been implemented cleanly with proper separation of concerns. However, 2 files exceed the 300-line limit, and several TODOs indicate incomplete integrations that should be tracked as technical debt.
+The codebase is in **excellent shape** with strong adherence to established architectural principles. Phase 4 UI
+integration work has been implemented cleanly with proper separation of concerns. However, 2 files exceed the 300-line
+limit, and several TODOs indicate incomplete integrations that should be tracked as technical debt.
 
 ### Key Findings
 
 ✅ **Strengths:**
+
 - Provider hierarchy is properly acyclic (verified)
 - NMEA integration follows clean architecture (Parser → Service → Provider → UI)
 - All 79 tests passing (100% pass rate)
@@ -21,10 +24,12 @@ The codebase is in **excellent shape** with strong adherence to established arch
 - Null safety properly implemented throughout
 
 ⚠️ **Violations:**
+
 - **ISS-019**: `navigation_mode_screen.dart` exceeds 300-line limit (348 lines, 16% over)
 - **ISS-020**: `nmea_service.dart` exceeds 300-line limit (335 lines, 12% over)
 
 📋 **Improvement Opportunities:**
+
 - 3 unresolved TODOs in NMEAProvider (cache integration, auto-reconnect config)
 - 6 TODOs in CacheProvider indicating incomplete CacheService integration
 - MapScreen missing NMEA integration (inconsistent with NavigationModeScreen)
@@ -43,16 +48,18 @@ The codebase is in **excellent shape** with strong adherence to established arch
 ```bash
 ⚠️ lib/screens/navigation_mode_screen.dart (348 lines) - 16% over limit
 ⚠️ lib/services/nmea_service.dart (335 lines) - 12% over limit
-```
+```text
 
 **Impact:** Medium - Files are still manageable, but approaching complexity threshold
 
 **Recommendations:**
 
 #### navigation_mode_screen.dart (348 lines)
+
 **Root Cause:** Connection dialog and helper methods added in Phase 4
 
 **Refactoring Plan:**
+
 1. Extract `_buildConnectionIndicator()` and `_showConnectionDialog()` to separate widget
 2. Create `lib/widgets/navigation/nmea_connection_widget.dart` (~100 lines)
 3. Reduces navigation_mode_screen.dart to ~250 lines
@@ -60,6 +67,7 @@ The codebase is in **excellent shape** with strong adherence to established arch
 **Estimated Effort:** 1 hour
 
 **Code Structure:**
+
 ```dart
 // NEW FILE: lib/widgets/navigation/nmea_connection_widget.dart
 class NMEAConnectionIndicator extends StatelessWidget {
@@ -83,12 +91,14 @@ Widget _buildTopBar(BuildContext context) {
     ),
   );
 }
-```
+```text
 
 #### nmea_service.dart (335 lines)
+
 **Root Cause:** Complex isolate communication and TCP/UDP socket handling
 
 **Refactoring Plan:**
+
 1. Extract socket connection logic to `lib/services/nmea_socket_handler.dart` (~80 lines)
 2. Extract batch processing to `lib/services/nmea_batch_processor.dart` (~50 lines)
 3. Reduces nmea_service.dart to ~205 lines
@@ -107,13 +117,13 @@ Widget _buildTopBar(BuildContext context) {
 
 **Verified Hierarchy:**
 
-```
+```text
 Layer 0: SettingsProvider (no dependencies)
          ↓
 Layer 1: ThemeProvider, CacheProvider (depend on Layer 0)
          ↓
 Layer 2: MapProvider, NMEAProvider (depend on Layers 0+1)
-```
+```text
 
 **Evidence:**
 
@@ -130,12 +140,12 @@ final nmeaProvider = NMEAProvider(
   settingsProvider: settingsProvider,                           // ✅ Depends on Layer 0
   cacheProvider: cacheProvider,                                 // ✅ Depends on Layer 1
 );
-```
+```text
 
 **Constructor Dependencies Verified:**
 
 | Provider | Depends On | Layer | Valid? |
-|----------|------------|-------|--------|
+| ---------- | ------------ | ------- | -------- |
 | SettingsProvider | None | 0 | ✅ |
 | ThemeProvider | None | 1 | ✅ |
 | CacheProvider | None | 1 | ✅ |
@@ -154,7 +164,7 @@ final nmeaProvider = NMEAProvider(
 
 **Data Flow:**
 
-```
+```text
 TCP/UDP Socket
     ↓ (raw NMEA strings)
 NMEAService (Isolate)
@@ -166,35 +176,40 @@ NMEAProvider (State Management)
 Consumer<NMEAProvider> (UI)
     ↓
 DataOrbs (Visual Display)
-```
+```text
 
 **Checkpoints:**
 
 ✅ **Parser Layer** (`nmea_parser.dart`)
+
 - 40 unit tests covering all sentence types
 - Pure functions (no side effects)
 - Proper checksum validation
 - Coordinate conversion (DDMM.MMMM → decimal degrees)
 
 ✅ **Service Layer** (`nmea_service.dart`)
+
 - Isolate pattern isolates blocking I/O from UI thread
 - 200ms batching reduces UI rebuild frequency
 - Automatic reconnection with exponential backoff
 - 13 unit tests covering connection lifecycle
 
 ✅ **Provider Layer** (`nmea_provider.dart`)
+
 - Proper ChangeNotifier implementation
 - Stream subscription cleanup in dispose()
 - 15 unit tests covering state management
 - Connection config from SettingsProvider (✅ Phase 4 integration)
 
 ✅ **UI Layer** (`navigation_mode_screen.dart`)
+
 - Consumer pattern for reactive updates
 - Null-safe data extraction (fallback to '--')
 - State-based UI (inactive/normal/alert)
 - Connection indicator with manual controls
 
 **Test Coverage:**
+
 - Parser: 40 tests
 - Service: 13 tests
 - Provider: 15 tests
@@ -234,7 +249,7 @@ DataOrbs (Visual Display)
 ✅ GlassCard with GlassCardPadding.small
 ✅ DataOrb with DataOrbSize.large
 ✅ NavigationSidebar with NavItem array
-```
+```text
 
 **No Magic Numbers Found:** ✅ All hardcoded values eliminated
 
@@ -247,11 +262,12 @@ DataOrbs (Visual Display)
 #### High Priority (Blocking)
 
 **TODO #1-3: NMEAProvider Cache Integration**
+
 ```dart
 // lib/providers/nmea_provider.dart:152
 // TODO: Cache latest data when cache API is available
 // _cacheProvider.set('nmea_last_data', data, ttl: const Duration(hours: 1));
-```
+```text
 
 **Impact:** NMEA data not persisted between sessions (cold starts lose last position)
 
@@ -260,10 +276,11 @@ DataOrbs (Visual Display)
 **Resolution:** Implement CacheService with SQLite backend (estimated 4-6 hours)
 
 **TODO #4: NMEAProvider Auto-Reconnect Configuration**
+
 ```dart
 // lib/providers/nmea_provider.dart:171
 // TODO: Make auto-reconnect configurable in settings
-```
+```text
 
 **Impact:** Low - Auto-reconnect is hardcoded (works, but not user-controllable)
 
@@ -272,6 +289,7 @@ DataOrbs (Visual Display)
 #### Medium Priority (Future Enhancement)
 
 **TODO #5-9: CacheProvider Integration**
+
 ```dart
 // lib/providers/cache_provider.dart (6 locations)
 // TODO: Integrate with CacheService once implemented
@@ -281,7 +299,7 @@ DataOrbs (Visual Display)
 // TODO: Call CacheService.delete()
 // TODO: Call CacheService.get()
 // TODO: Dispose CacheService if needed
-```
+```text
 
 **Impact:** Medium - Cache system is placeholder (no persistence)
 
@@ -314,7 +332,7 @@ DataOrbs (Visual Display)
 #### Complexity Metrics (estimated)
 
 | Metric | Target | Actual | Status |
-|--------|--------|--------|--------|
+| -------- | -------- | -------- | -------- |
 | Cyclomatic Complexity | < 10 per method | ~6 avg | ✅ |
 | Provider Count | 5-7 | 5 | ✅ |
 | Max File Lines | 300 | 348 | ⚠️ |
@@ -330,21 +348,25 @@ DataOrbs (Visual Display)
 #### Accurate Documentation
 
 ✅ **PROVIDER_HIERARCHY.md**
+
 - Layer structure matches implementation
 - Dependency graph is current
 - API signatures match actual code
 
 ✅ **CODEBASE_MAP.md**
+
 - Directory structure updated (includes NMEA files)
 - Version 3.1 (last updated 2026-02-03)
 - NMEA models documented with ✅ checkmarks
 
 ✅ **PHASE_3_NMEA_PROVIDER_COMPLETE.md**
+
 - Accurate completion report
 - Test counts verified (79/79)
 - Integration guide matches actual implementation
 
 ✅ **PHASE_4_UI_INTEGRATION_PROGRESS.md**
+
 - Detailed progress report created
 - Pending tasks clearly documented
 - Code examples match actual implementation
@@ -354,6 +376,7 @@ DataOrbs (Visual Display)
 ⚠️ **PROVIDER_HIERARCHY.md - SettingsProvider Section (Incomplete)**
 
 **Current State (line 65):**
+
 ```dart
 // Documented API
 class SettingsProvider extends ChangeNotifier {
@@ -363,9 +386,10 @@ class SettingsProvider extends ChangeNotifier {
   int get mapRefreshRate;
   // ... setters
 }
-```
+```text
 
 **Actual API (from settings_provider.dart):**
+
 ```dart
 // MISSING from docs:
 String get nmeaHost;                      // Added Phase 4
@@ -376,7 +400,7 @@ Future<void> setNMEAHost(String host);
 Future<void> setNMEAPort(int port);
 Future<void> setNMEAConnectionType(ConnectionType type);
 Future<void> setAutoConnectNMEA(bool autoConnect);
-```
+```text
 
 **Impact:** Medium - Future developers won't know about NMEA settings API
 
@@ -397,6 +421,7 @@ Future<void> setAutoConnectNMEA(bool autoConnect);
 #### Current Risks
 
 **🟡 MEDIUM RISK: File Size Violations**
+
 - **Files:** navigation_mode_screen.dart (348 lines), nmea_service.dart (335 lines)
 - **Likelihood:** File will continue growing if features added
 - **Impact:** Reduced maintainability, harder code reviews
@@ -404,12 +429,14 @@ Future<void> setAutoConnectNMEA(bool autoConnect);
 - **Timeline:** Complete before adding more features to these files
 
 **🟢 LOW RISK: Incomplete Cache Integration**
+
 - **Impact:** NMEA data not persisted (cold starts lose state)
 - **Likelihood:** Low urgency (app functions without cache)
 - **Mitigation:** Defer to Phase 5, track as technical debt
 - **Workaround:** Manual reconnection on app restart works
 
 **🟢 LOW RISK: Missing Settings Screen**
+
 - **Impact:** NMEA config hardcoded (localhost:10110 TCP)
 - **Likelihood:** Blocks real device testing
 - **Mitigation:** Phase 4 pending task, well-documented
@@ -433,12 +460,12 @@ Future<void> setAutoConnectNMEA(bool autoConnect);
 ```bash
 flutter test
 00:04 +79: All tests passed!
-```
+```text
 
 **Test Breakdown:**
 
 | Category | Tests | Status | Coverage |
-|----------|-------|--------|----------|
+| ---------- | ------- | -------- | ---------- |
 | NMEA Parser | 40 | ✅ Pass | ~95% |
 | NMEA Service | 13 | ✅ Pass | ~85% |
 | NMEA Provider | 15 | ✅ Pass | ~90% |
@@ -535,10 +562,12 @@ flutter test
 #### 1. Fix File Size Violations (Priority: HIGH)
 
 **Files:**
+
 - `navigation_mode_screen.dart` (348 → target 250 lines)
 - `nmea_service.dart` (335 → target 205 lines)
 
 **Action:**
+
 1. Extract NMEAConnectionIndicator widget (save ~100 lines from navigation_mode_screen.dart)
 2. Extract NMEASocketHandler and NMEABatchProcessor (save ~130 lines from nmea_service.dart)
 
@@ -549,6 +578,7 @@ flutter test
 #### 2. Update Documentation (Priority: MEDIUM)
 
 **Files:**
+
 - `PROVIDER_HIERARCHY.md` - Add NMEA settings API to SettingsProvider section
 - `CODEBASE_MAP.md` - Add Settings Screen placeholder entry
 
@@ -562,6 +592,7 @@ flutter test
 **Purpose:** Unblock real NMEA device testing
 
 **Requirements:**
+
 - TextFields for host/port
 - Dropdown for TCP/UDP
 - Switch for auto-connect
@@ -573,6 +604,7 @@ flutter test
 #### 4. Add Integration Tests (Priority: HIGH)
 
 **Scope:**
+
 - Mock NMEA server → UI flow
 - Connection error handling
 - Depth alert visual feedback
@@ -585,6 +617,7 @@ flutter test
 **Purpose:** Consistency with NavigationModeScreen
 
 **Changes:**
+
 - Add Consumer<NMEAProvider> to top bar
 - Display medium DataOrbs (SOG, COG, DEPTH)
 
@@ -596,6 +629,7 @@ flutter test
 #### 6. Implement CacheService (Priority: MEDIUM)
 
 **Blockers Resolved:**
+
 - NMEAProvider TODO #1-3
 - CacheProvider TODO #5-9
 
@@ -615,7 +649,9 @@ flutter test
 
 ### Overall Assessment: 🟢 **STRONG**
 
-The application architecture is **solid and well-maintained**. Phase 4 UI integration demonstrates excellent understanding of Flutter best practices and clean architecture principles. The NMEA data pipeline is production-ready with comprehensive test coverage.
+The application architecture is **solid and well-maintained**. Phase 4 UI integration demonstrates excellent
+understanding of Flutter best practices and clean architecture principles. The NMEA data pipeline is production-ready
+with comprehensive test coverage.
 
 ### Key Strengths
 
@@ -628,10 +664,12 @@ The application architecture is **solid and well-maintained**. Phase 4 UI integr
 ### Required Actions
 
 **Before Adding More Features:**
+
 1. ⚠️ Refactor 2 oversized files (3 hours)
 2. 📝 Update documentation (20 minutes)
 
 **To Complete Phase 4:**
+
 1. 🔨 Create Settings Screen (3 hours)
 2. 🧪 Add integration tests (2 hours)
 3. 🗺️ Integrate MapScreen with NMEA (30 minutes)
@@ -647,4 +685,3 @@ Current violations are **minor** and **easily addressable**. No blocking archite
 **Report Generated:** February 3, 2026  
 **Next Review:** After Phase 4 completion (estimated Feb 4-5, 2026)  
 **Inspector:** Architecture Guard Agent v1.0
-

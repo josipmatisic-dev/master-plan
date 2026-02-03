@@ -31,7 +31,7 @@ class MarineTheme {
     // Red light mode for night navigation
   );
 }
-```
+```text
 
 ### Theme Persistence
 
@@ -59,7 +59,7 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
   }
 }
-```
+```text
 
 ## AIS Integration
 
@@ -101,7 +101,7 @@ class AISService {
     super.dispose();
   }
 }
-```
+```text
 
 ### CPA/TCPA Calculations
 
@@ -117,7 +117,7 @@ class AISCalculations {
     // Time calculation
   }
 }
-```
+```text
 
 ## Tide Integration
 
@@ -155,7 +155,7 @@ class WindOverlayPainter extends CustomPainter {
   @override
   bool shouldRepaint(WindOverlayPainter old) {
     // Only repaint if data or viewport changed
-    return windData != old.windData || viewport != old.viewport;
+ return windData != old.windData | | viewport != old.viewport;
   }
   
   @override
@@ -170,7 +170,7 @@ class WindOverlayPainter extends CustomPainter {
     }
   }
 }
-```
+```text
 
 ---
 

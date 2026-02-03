@@ -11,12 +11,12 @@
 **Endpoint:** `https://marine-api.open-meteo.com/v1/marine`
 
 **Parameters:**
-```
+```text
 latitude=48.0&longitude=-123.0
 &hourly=wave_height,wave_direction,wave_period,wind_wave_height,wind_wave_direction,wind_wave_period
 &daily=wave_height_max,wave_period_max,wind_wave_height_max
 &timezone=auto
-```
+```text
 
 **Response Model:**
 ```dart
@@ -28,7 +28,7 @@ class WeatherData with _$WeatherData {
     required DateTime fetchedAt,
   }) = _WeatherData;
 }
-```
+```text
 
 ## Cache-First Architecture
 
@@ -64,7 +64,7 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 }
-```
+```text
 
 ## Timeline Playback
 
@@ -102,7 +102,7 @@ class TimelineProvider extends ChangeNotifier {
     return frame;
   }
 }
-```
+```text
 
 ## Weather Overlay Rendering
 

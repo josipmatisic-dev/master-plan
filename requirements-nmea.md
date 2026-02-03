@@ -10,15 +10,19 @@
 ## User Stories
 
 ### US-001: Connect to NMEA Device
+
 As a navigator, I want to connect to my boat's NMEA 0183 data stream via TCP/UDP so that the app receives real-time navigation data.
 
 ### US-002: Display Boat Data
+
 As a navigator, I want to see my current speed (SOG), course (COG), and depth displayed in real-time so that I can monitor critical navigation parameters.
 
 ### US-003: Wind Data
+
 As a sailor, I want to see true wind speed and direction so that I can optimize sail trim and course.
 
 ### US-004: Auto-Reconnect
+
 As a navigator, I want the app to automatically reconnect if the NMEA connection is lost so that I don't have to manually reconnect while underway.
 
 ---
@@ -26,6 +30,7 @@ As a navigator, I want the app to automatically reconnect if the NMEA connection
 ## Acceptance Criteria (EARS Notation)
 
 ### Connection Management
+
 - WHEN the user configures an NMEA connection (TCP or UDP), THE SYSTEM SHALL establish a connection within 5 seconds.
 - WHEN the connection is established, THE SYSTEM SHALL display a "Connected" indicator in the UI.
 - IF the connection fails, THEN THE SYSTEM SHALL retry with exponential backoff (1s, 2s, 4s, 8s, max 30s).
@@ -33,6 +38,7 @@ As a navigator, I want the app to automatically reconnect if the NMEA connection
 - WHEN the user disconnects manually, THE SYSTEM SHALL close the connection and stop reconnection attempts.
 
 ### Data Parsing
+
 - WHEN an NMEA sentence is received, THE SYSTEM SHALL validate the checksum before processing.
 - IF the checksum is invalid, THEN THE SYSTEM SHALL log the error and skip the sentence.
 - WHEN a valid GPGGA sentence is received, THE SYSTEM SHALL extract latitude, longitude, and GPS fix quality.
@@ -43,18 +49,21 @@ As a navigator, I want the app to automatically reconnect if the NMEA connection
 - IF an unknown sentence type is received, THEN THE SYSTEM SHALL log it and continue processing.
 
 ### Performance Requirements
+
 - WHEN NMEA data is received at >100 messages/second, THE SYSTEM SHALL process it without blocking the UI thread.
 - WHEN parsing NMEA data, THE SYSTEM SHALL use a background isolate to prevent UI jank.
 - WHEN updates are processed, THE SYSTEM SHALL batch notifications every 200ms to avoid excessive rebuilds.
 - WHEN the data rate exceeds 200 msg/s, THE SYSTEM SHALL throttle updates while maintaining latest values.
 
 ### Data Updates
+
 - WHEN new GPS data is parsed, THE SYSTEM SHALL update the BoatProvider with current position.
 - WHEN new speed/course data is parsed, THE SYSTEM SHALL update NavigationModeScreen data orbs.
 - WHEN new wind data is parsed, THE SYSTEM SHALL update wind displays.
 - WHEN new depth data is parsed, THE SYSTEM SHALL update depth display and trigger depth alarms if configured.
 
 ### Error Handling
+
 - IF incomplete sentences remain in the buffer, THEN THE SYSTEM SHALL retain them for the next read.
 - IF the buffer exceeds 10KB, THEN THE SYSTEM SHALL clear it and log a warning.
 - WHEN a malformed sentence is detected, THE SYSTEM SHALL skip it and continue processing.
@@ -87,11 +96,13 @@ As a navigator, I want the app to automatically reconnect if the NMEA connection
 ## Dependencies
 
 ### Upstream (Must exist first)
+
 - ✅ SettingsProvider (Layer 0) - for connection configuration
 - ✅ ThemeProvider (Layer 1) - for UI status indicators
 - ✅ CacheProvider (Layer 1) - for storing connection history
 
 ### Downstream (Will use this)
+
 - 🔜 BoatProvider (Layer 2) - will consume GPS/speed/heading data
 - 🔜 NavigationModeScreen - will display SOG/COG/DEPTH in DataOrbs
 - 🔜 Weather overlays - will use position for weather queries
@@ -101,14 +112,16 @@ As a navigator, I want the app to automatically reconnect if the NMEA connection
 ## Technical Notes
 
 ### NMEA 0183 Format
-```
+
+```bash
 $<talker><sentence_type>,<data_field_1>,<data_field_2>,...*<checksum>\r\n
 
 Example:
 $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47
-```
+```text
 
 ### Checksum Calculation
+
 ```dart
 // XOR of all bytes between $ and *
 int calculateChecksum(String sentence) {
@@ -120,12 +133,12 @@ int calculateChecksum(String sentence) {
   }
   return checksum;
 }
-```
+```text
 
 ### Supported Sentences (Phase 1)
 
 | Type | Description | Priority | Fields |
-|------|-------------|----------|--------|
+| ------ | ------------- | ---------- | -------- |
 | GPGGA | GPS Fix Data | P0 | Time, Lat, Lon, Fix Quality, Satellites, HDOP, Altitude |
 | GPRMC | Recommended Minimum | P0 | Time, Status, Lat, Lon, Speed, Course, Date |
 | GPVTG | Track & Speed | P1 | True Track, Magnetic Track, Speed (knots), Speed (km/h) |
@@ -133,6 +146,7 @@ int calculateChecksum(String sentence) {
 | DPT | Depth | P1 | Depth, Offset, Max Range |
 
 ### Performance Budget
+
 - **Parse time:** <1ms per sentence (target)
 - **Update latency:** <200ms from receive to UI update
 - **Memory:** <10MB for buffers and state
@@ -143,6 +157,7 @@ int calculateChecksum(String sentence) {
 ## Testing Requirements
 
 ### Unit Tests (≥80% coverage)
+
 - [ ] Checksum validation (valid/invalid)
 - [ ] GPGGA parsing
 - [ ] GPRMC parsing
@@ -153,6 +168,7 @@ int calculateChecksum(String sentence) {
 - [ ] Error cases (malformed, unknown types)
 
 ### Integration Tests
+
 - [ ] TCP connection establishment
 - [ ] UDP connection establishment
 - [ ] Auto-reconnect on connection loss
@@ -160,6 +176,7 @@ int calculateChecksum(String sentence) {
 - [ ] High data rate (100+ msg/s)
 
 ### Widget Tests
+
 - [ ] Connection status indicator
 - [ ] Data orbs update with parsed data
 - [ ] Error messages display correctly

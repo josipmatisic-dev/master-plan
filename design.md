@@ -210,7 +210,7 @@ class TimelineProvider {
     return frame;
   }
 }
-```
+```text
 
 ### Interfaces
 

@@ -39,10 +39,10 @@ version: [Version number]
 date_created: [YYYY-MM-DD]
 last_updated: [YYYY-MM-DD]
 owner: [Team/Individual]
-status: 'Completed'|'In progress'|'Planned'|'Deprecated'|'On Hold'
+status: 'Completed' | 'In progress' | 'Planned' | 'Deprecated' | 'On Hold'
 tags: [List of tags]
 ---
-```
+```text
 
 ### Required Sections
 

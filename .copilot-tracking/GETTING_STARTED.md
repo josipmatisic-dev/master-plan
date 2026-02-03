@@ -90,7 +90,7 @@ Step-by-step implementation guides for AI agents:
 1. docs/MASTER_DEVELOPMENT_BIBLE.md (especially Section A and C)
 2. docs/AI_AGENT_INSTRUCTIONS.md (all sections)
 3. docs/KNOWN_ISSUES_DATABASE.md (relevant ISS-XXX items)
-```
+```text
 
 **Step 2: Planning**
 
@@ -99,7 +99,7 @@ Step-by-step implementation guides for AI agents:
 1. .copilot-tracking/plans/phase-N-*.md
 2. .copilot-tracking/details/phase-N-*.md  
 3. .copilot-tracking/prompts/implement-phase-N-*.prompt.md
-```
+```text
 
 **Step 3: Implementation**
 
@@ -111,7 +111,7 @@ Step-by-step implementation guides for AI agents:
 - Check known issues before implementing
 - Write tests as you go
 - Update plan with completion status
-```
+```text
 
 **Step 4: Validation**
 
@@ -123,7 +123,7 @@ flutter format .               # Format code
 # Check coverage ≥80%
 # Verify known issues avoided
 # Update documentation
-```
+```text
 
 ## Understanding the Structure
 
@@ -150,7 +150,7 @@ Every phase plan follows this template:
 6. Testing (TEST-XXX)
 7. Risks & Assumptions (RISK-XXX, ASSUMPTION-XXX)
 8. Related Specifications
-```
+```text
 
 ### Identifier Prefixes
 
@@ -284,7 +284,7 @@ A: Yes, plans are living documents. Update as you learn.
 
 ## Success Path
 
-```
+```text
 Phase 0 (Week 1-2)
   └─> Foundation, Core Services, Testing Infrastructure
        └─> Phase 1 (Week 3-6)
@@ -295,7 +295,7 @@ Phase 0 (Week 1-2)
                                 └─> Dark Mode, AIS, Performance
                                      └─> Phase 4 (Week 15-18)
                                           └─> Backend, Social, Launch 🚀
-```
+```text
 
 ## Final Note
 

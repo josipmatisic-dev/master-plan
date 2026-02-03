@@ -24,7 +24,7 @@
 
 The Flutter scaffold includes Android and iOS native folders under `marine_nav_app/android` and `marine_nav_app/ios` for parallel platform work.
 
-```
+```text
 ```text
 lib/
 ├── main.dart                     # App entry, provider setup
@@ -133,7 +133,7 @@ lib/
 │   └── dimensions.dart          # Spacing/sizing
 │
 └── l10n/                         # Localization
-```
+```text
     ├── app_en.arb               # English strings
     ├── app_es.arb               # Spanish strings
     └── app_fr.arb               # French strings
@@ -167,7 +167,7 @@ test/
 
 ## Provider Dependency Graph
 
-```
+```text
 
 Layer 0 (No Dependencies):
 ┌─────────────────────┐
@@ -205,7 +205,7 @@ RULES:
 - Dependencies documented in code
 - `MapViewportService` is the ONLY source of viewport truth; MapProvider owns it and exposes read-only viewport snapshots to widgets/overlays.
 
-```
+```text
 
 ---
 
@@ -213,7 +213,7 @@ RULES:
 
 ### Weather Data Flow
 
-```
+```text
 
 User Pans Map
       ↓
@@ -240,11 +240,11 @@ Widget Rebuild:
 - WeatherCard shows new data
 - ForecastScreen updates timeline
 
-```
+```text
 
 ### NMEA Data Flow
 
-```
+```text
 
 GPS Device
       ↓
@@ -274,11 +274,11 @@ Widget Rebuild:
 - BoatInfoCard updates speed/heading
 - TrackOverlay adds breadcrumb
 
-```
+```text
 
 ### Overlay Rendering Flow
 
-```
+```text
 
 WeatherProvider has new data
       ↓
@@ -300,7 +300,7 @@ Canvas rendered to screen
       ↓
 60 FPS smooth animation
 
-```
+```text
 
 ---
 
@@ -343,7 +343,7 @@ void main() async {
     ),
   );
 }
-```
+```text
 
 ---
 
@@ -483,7 +483,7 @@ void main() async {
 
 ### MapScreen Widget Tree (SailStream UI)
 
-```
+```text
 MapScreen (StatefulWidget)
 ├── Scaffold
 │   ├── Body
@@ -533,7 +533,7 @@ MapScreen (StatefulWidget)
 │
 └── FloatingActionButton (optional, for quick actions)
 
-```
+```text
 
 ## Screen Flows
 
@@ -557,7 +557,7 @@ MapScreen (StatefulWidget)
 
 ### NavigationMode Screen Widget Tree
 
-```
+```text
 NavigationModeScreen (StatefulWidget)
 ├── Scaffold
 │   ├── AppBar (GlassCard)
@@ -594,14 +594,14 @@ NavigationModeScreen (StatefulWidget)
 │                   ├── GlassButton("Mark Position")
 │                   ├── GlassButton("Track")
 │                   └── GlassButton("Alerts")
-```
+```text
 
 ---
 
 ## Module Ownership
 
 | Module | Primary Owner | Lines | Tests | Coverage |
-|--------|---------------|-------|-------|----------|
+| -------- | --------------- | ------- | ------- | ---------- |
 | `services/nmea_parser.dart` | NMEAProvider | 280 | 47 | 94% |
 | `services/projection_service.dart` | MapProvider | 180 | 38 | 100% |
 | `services/cache_service.dart` | CacheProvider | 250 | 31 | 87% |
@@ -650,7 +650,7 @@ NavigationModeScreen (StatefulWidget)
 ## File Size Compliance
 
 | Category | Max Lines | Current Max | Compliant |
-|----------|-----------|-------------|-----------|
+| ---------- | ----------- | ------------- | ----------- |
 | Providers | 300 | 150 | ✅ |
 | Services | 300 | 94 | ✅ |
 | Screens | 300 | 196 | ✅ |

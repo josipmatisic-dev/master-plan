@@ -103,7 +103,7 @@ class MapController extends ChangeNotifier {
   // Knows about everything
   // Depends on everything
 }
-```
+```text
 
 **Required:**
 ```dart
@@ -114,7 +114,7 @@ class MapController extends ChangeNotifier {
   // Single responsibility
   // Clear dependencies
 }
-```
+```text
 
 ---
 
@@ -138,12 +138,12 @@ class MapController extends ChangeNotifier {
 ```dart
 final x = (lng + 180) * width / 360;
 final y = (90 - lat) * height / 180;
-```
+```text
 
 **Required:**
 ```dart
 final offset = ProjectionService.latLngToPixels(lat, lng, viewport);
-```
+```text
 
 **Why:** This was the root cause of overlay mismatch in Attempt 2 and 4.
 
@@ -170,7 +170,7 @@ class _MyWidgetState extends State<MyWidget>
   
   // NO dispose() method - MEMORY LEAK
 }
-```
+```text
 
 **Required:**
 ```dart
@@ -179,7 +179,7 @@ class _MyWidgetState extends State<MyWidget>
     _controller.dispose();
     super.dispose();
   }
-```
+```text
 
 ---
 
@@ -190,7 +190,7 @@ class _MyWidgetState extends State<MyWidget>
 final response = await http.get(url);
 final data = json.decode(response.body);
 return data;
-```
+```text
 
 **Required:**
 ```dart
@@ -212,7 +212,7 @@ try {
   logger.error('API call failed', e);
   rethrow;
 }
-```
+```text
 
 ---
 
@@ -230,7 +230,7 @@ Container(
     ],
   ),
 )
-```
+```text
 
 **Required:**
 ```dart
@@ -244,7 +244,7 @@ LayoutBuilder(
     );
   },
 )
-```
+```text
 
 ---
 
@@ -262,7 +262,7 @@ class MyWidget extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 **Required:**
 ```dart
@@ -277,7 +277,7 @@ void main() {
     ),
   );
 }
-```
+```text
 
 ---
 
@@ -325,7 +325,7 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 }
-```
+```text
 
 ---
 
@@ -376,11 +376,11 @@ class WindOverlayPainter extends CustomPainter {
   
   @override
   bool shouldRepaint(WindOverlayPainter oldDelegate) {
-    return weatherData != oldDelegate.weatherData ||
+ return weatherData != oldDelegate.weatherData | |
            viewport != oldDelegate.viewport;
   }
 }
-```
+```text
 
 ---
 
@@ -443,7 +443,7 @@ class NMEAProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-```
+```text
 
 ---
 
@@ -511,7 +511,7 @@ class TimelineProvider extends ChangeNotifier {
     super.dispose();
   }
 }
-```
+```text
 
 ---
 
@@ -538,7 +538,7 @@ class TimelineProvider extends ChangeNotifier {
 class WeatherProvider extends ChangeNotifier {
   // ...
 }
-```
+```text
 
 ---
 
@@ -562,7 +562,7 @@ class WindData {
     this.gustSpeed,
   });
 }
-```
+```text
 
 ---
 
@@ -584,7 +584,7 @@ class WeatherApi {
     // ...
   }
 }
-```
+```text
 
 ---
 
@@ -607,7 +607,7 @@ Future<T> fetchData<T>() async {
     throw OfflineException('No network and no cache');
   }
 }
-```
+```text
 
 ---
 
@@ -640,7 +640,7 @@ void _showError(BuildContext context, dynamic error) {
     ),
   );
 }
-```
+```text
 
 ---
 
@@ -663,7 +663,7 @@ try {
   );
   rethrow;
 }
-```
+```text
 
 ---
 
@@ -691,7 +691,7 @@ void main() {
     });
   });
 }
-```
+```text
 
 ---
 
@@ -720,7 +720,7 @@ void main() {
     expect(find.byIcon(Icons.play_arrow), findsNothing);
   });
 }
-```
+```text
 
 ---
 
@@ -751,7 +751,7 @@ void main() {
     expect(find.byType(WindOverlay), findsOneWidget);
   });
 }
-```
+```text
 
 ---
 
@@ -781,7 +781,7 @@ DataOrb(
   heroTag: 'orb-sog',     // For hero animations
   progress: 0.65,         // Optional ring progress (0-1)
 )
-```
+```text
 
 **NavigationSidebar Pattern** - Primary app navigation:
 ```dart
@@ -794,7 +794,7 @@ NavigationSidebar(
   activeIndex: 1,
   onSelected: (index) => _handleNavigation(index),
 )
-```
+```text
 
 **TrueWindWidget Pattern** - Draggable, repositionable data displays:
 ```dart
@@ -807,7 +807,7 @@ TrueWindWidget(
   editMode: _editMode,        // Show delete button
   onDelete: () => _removeWidget(),
 )
-```
+```text
 
 **GlassCard with Performance Guardrails:**
 ```dart
@@ -832,7 +832,7 @@ class WindStatusCard extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 **Responsive Layout Pattern:**
 ```dart
@@ -852,7 +852,7 @@ final orbSize = ResponsiveUtils.getResponsiveValue(
   tablet: DataOrbSize.medium,
   desktop: DataOrbSize.large,
 );
-```
+```text
 
 **Stack Overlay Positioning Pattern:**
 ```dart
@@ -883,7 +883,7 @@ Stack(
     ),
   ],
 )
-```
+```text
 
 ### Design Token Usage Rules
 
@@ -913,7 +913,7 @@ Text('Speed', style: TextStyle(fontSize: 56, fontWeight: FontWeight.bold))
 
 // ✅ RIGHT - Token text styles
 Text('Speed', style: OceanTextStyles.dataValue)
-```
+```text
 
 **Token Reference Quick List:**
 - Spacing: `spacingXS` (4), `spacingS` (8), `spacingM` (12), `spacing` (16), `spacingL` (24), `spacingXL` (32)

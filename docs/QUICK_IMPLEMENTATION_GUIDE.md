@@ -15,7 +15,7 @@ cd marine_nav_app
 
 # Verify
 flutter doctor
-```
+```text
 
 ---
 
@@ -39,12 +39,13 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   mockito: ^5.4.0
   build_runner: ^2.4.0
-```
+```text
 
 Run:
+
 ```bash
 flutter pub get
-```
+```text
 
 ---
 
@@ -59,7 +60,7 @@ mkdir -p lib/utils
 mkdir -p test/unit/services
 mkdir -p test/unit/models
 mkdir -p test/widget/providers
-```
+```text
 
 ---
 
@@ -78,7 +79,7 @@ class LatLng {
   
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
+ identical(this, other) | |
       other is LatLng &&
           runtimeType == other.runtimeType &&
           latitude == other.latitude &&
@@ -100,7 +101,7 @@ class LatLng {
         json['longitude'] as double,
       );
 }
-```
+```text
 
 **Test (test/unit/models/lat_lng_test.dart):**
 
@@ -152,9 +153,10 @@ void main() {
     });
   });
 }
-```
+```text
 
 **Copy pattern for other models:** Bounds, Viewport, BoatPosition, CacheEntry, NMEAMessage
+
 - All from `docs/BACKEND_SERVICES_SPECIFICATION.md`
 
 ---
@@ -247,7 +249,7 @@ class ProjectionService {
     return webMercatorToWgs84(x, y);
   }
 }
-```
+```text
 
 **Test:** See `docs/BACKEND_SERVICES_SPECIFICATION.md` Section "ProjectionService Tests"
 
@@ -256,6 +258,7 @@ class ProjectionService {
 ## Step 6: Implement CacheService (2 hours)
 
 Key points:
+
 - Use `path_provider` for cache directory
 - Metadata in JSON file
 - LRU tracking with lastAccess timestamp
@@ -269,6 +272,7 @@ Key points:
 ## Step 7: Implement HttpClient (1 hour)
 
 Key points:
+
 - 3 retry attempts
 - Exponential backoff (1s, 2s, 4s)
 - 30s timeout
@@ -281,6 +285,7 @@ Key points:
 ## Step 8: Implement NMEAParser (2 hours)
 
 Key points:
+
 - Checksum validation (XOR of bytes)
 - Parse GPGGA, GPRMC, GPVTG
 - Convert DDMM.MMMM to decimal degrees
@@ -293,6 +298,7 @@ Key points:
 ## Step 9: Implement DatabaseService (1 hour)
 
 Key points:
+
 - Use sqflite package
 - Create schema on init()
 - Parameterized queries only
@@ -354,7 +360,7 @@ class SettingsProvider extends ChangeNotifier {
     await prefs.setString('language', _language);
   }
 }
-```
+```text
 
 **Copy pattern for:** ThemeProvider, CacheProvider
 
@@ -434,7 +440,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 ---
 
@@ -449,7 +455,7 @@ flutter test --coverage
 
 # View coverage report
 lcov --summary coverage/lcov.info
-```
+```text
 
 **Fix any failing tests**
 
@@ -467,7 +473,7 @@ find lib -name "*.dart" -exec wc -l {} \; | awk '$1 > 300 {print "FAIL: " $2 " h
 flutter analyze
 
 # Should output: No issues found!
-```
+```text
 
 ---
 
@@ -498,11 +504,11 @@ jobs:
         run: flutter test --coverage
       
       - name: Check coverage
-        run: |
+ run: |
           lcov --summary coverage/lcov.info
-          coverage=$(lcov --summary coverage/lcov.info 2>&1 | grep lines | awk '{print $2}' | sed 's/%//')
+ coverage=$(lcov --summary coverage/lcov.info 2>&1 | grep lines | awk '{print $2}' | sed 's/%//')
           echo "Coverage: $coverage%"
-          if (( $(echo "$coverage < 80" | bc -l) )); then
+ if (( $(echo "$coverage < 80" | bc -l) )); then
             echo "Coverage $coverage% is below 80%"
             exit 1
           fi
@@ -511,9 +517,10 @@ jobs:
         uses: codecov/codecov-action@v3
         with:
           files: coverage/lcov.info
-```
+```text
 
 > **Security Note**: For production use, pin GitHub Actions to specific commit SHAs instead of version tags to prevent supply chain attacks. For example:
+>
 > - `actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11` (v4.1.1)
 > - `subosito/flutter-action@2783a3f08e1baf891508463f8c6653c258246225` (v2.12.0)
 > - `codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673` (v4.5.0)

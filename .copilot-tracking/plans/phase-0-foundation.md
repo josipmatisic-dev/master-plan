@@ -12,7 +12,10 @@ tags: ["phase-0", "foundation", "infrastructure", "architecture", "setup"]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establishing the project structure, core services, testing infrastructure, and architectural foundation. This phase must be completed before any feature development begins to ensure a solid, maintainable codebase that avoids the critical failures documented in the MASTER_DEVELOPMENT_BIBLE.
+This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establishing the project structure, core
+services, testing infrastructure, and architectural foundation. This phase must be completed before any feature
+development begins to ensure a solid, maintainable codebase that avoids the critical failures documented in the
+MASTER_DEVELOPMENT_BIBLE.
 
 **Duration:** Week 1-2 (10 working days)  
 **Prerequisites:** Flutter 3.16+ SDK, development environment setup  
@@ -66,7 +69,7 @@ This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establish
 **GOAL-001**: Set up Flutter project structure avoiding ISS-002 (God objects) and ISS-003 (Provider chaos)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-001 | Create Flutter project: `flutter create --org com.marine marine_navigation_app` | | |
 | TASK-002 | Configure pubspec.yaml: provider ^6.1.0, http ^1.1.0, shared_preferences ^2.2.0, sqflite ^2.3.0, path_provider ^2.1.0, equatable ^2.0.5 | | |
 | TASK-003 | Set up directory structure per CODEBASE_MAP: lib/{models,providers,services,screens,widgets,utils,theme} | | |
@@ -80,7 +83,7 @@ This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establish
 **GOAL-002**: Implement ProjectionService to prevent ISS-001 (overlay projection mismatch)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-008 | Implement ProjectionService.latLngToMeters() (WGS84 → Web Mercator) per MASTER_DEVELOPMENT_BIBLE Section C.2 | | |
 | TASK-009 | Implement ProjectionService.metersToLatLng() (inverse transformation) | | |
 | TASK-010 | Implement ProjectionService.latLngToPixels(lat, lng, viewport) for overlay rendering | | |
@@ -94,7 +97,7 @@ This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establish
 **GOAL-003**: Implement CacheService with LRU and TTL to prevent ISS-004 (stale data)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-015 | Implement CacheService.get<T>(CacheKey) with TTL check and LRU update | | |
 | TASK-016 | Implement CacheService.set<T>(CacheKey, value, ttl) with eviction when limit exceeded | | |
 | TASK-017 | Implement LRU eviction algorithm (default limit: 100MB) | | |
@@ -108,7 +111,7 @@ This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establish
 **GOAL-004**: Implement network and NMEA services to prevent ISS-009 (UI blocking)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-022 | Implement RetryableHttpClient with exponential backoff (3 attempts: 1s, 2s, 4s delays) | | |
 | TASK-023 | Add timeout handling (10s default), proper error types (TimeoutException, SocketException, ApiException) | | |
 | TASK-024 | Implement NMEAParser.parse(sentence) with XOR checksum validation per NMEA 0183 standard | | |
@@ -123,7 +126,7 @@ This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establish
 **GOAL-005**: Create immutable, validated data models
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-030 | Create LatLng model with validation, equals/hashCode using equatable | | |
 | TASK-031 | Create Bounds model with SW/NE corners, validation, contains() method | | |
 | TASK-032 | Create Viewport model: center, zoom (1-20), bearing (0-360°), tilt (0-60°) | | |
@@ -140,7 +143,7 @@ This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establish
 **GOAL-006**: Implement marine-themed UI with multiple color schemes
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-040 | Define marine color palette: oceanBlue (#003F87), nauticalGold (#D4AF37), safety colors | | |
 | TASK-041 | Create light theme (WCAG AA compliant contrast ratios) | | |
 | TASK-042 | Create dark theme (optimized for night navigation) | | |
@@ -156,7 +159,7 @@ This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establish
 **GOAL-007**: Set up provider hierarchy to prevent ISS-003 (ProviderNotFoundException)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-049 | Create SettingsProvider (Layer 0): units, language, refreshInterval, gpsUpdateRate | | |
 | TASK-050 | Create ThemeProvider (Layer 1, depends on SettingsProvider) | | |
 | TASK-051 | Create CacheProvider (Layer 1, depends on SettingsProvider) | | |
@@ -170,7 +173,7 @@ This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establish
 **GOAL-008**: Establish comprehensive testing framework
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-056 | Create test/ structure: {unit,widget,integration}/{services,providers,models} | | |
 | TASK-057 | Set up test fixtures: mock NMEA sentences, sample weather data, test coordinates | | |
 | TASK-058 | Configure flutter_test and mockito with build_runner for mock generation | | |
@@ -184,7 +187,7 @@ This plan outlines Phase 0 (Foundation) for the Marine Navigation App, establish
 **GOAL-009**: Complete all Phase 0 documentation
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-063 | Update CODEBASE_MAP.md with new services, models, providers | | |
 | TASK-064 | Document ProjectionService, CacheService, NMEAParser APIs with examples | | |
 | TASK-065 | Generate dartdoc: run `dart doc .` | | |

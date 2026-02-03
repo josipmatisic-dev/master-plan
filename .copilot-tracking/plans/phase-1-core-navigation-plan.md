@@ -18,7 +18,9 @@ tags: [navigation, map, gps, overlays, tracking]
 
 ## Introduction
 
-Phase 1 implements the core navigation features: interactive map display, GPS tracking, boat position marker, track history, and basic weather overlays. This phase brings together the foundational architecture from Phase 0 with user-facing navigation features.
+Phase 1 implements the core navigation features: interactive map display, GPS tracking, boat position marker, track
+history, and basic weather overlays. This phase brings together the foundational architecture from Phase 0 with
+user-facing navigation features.
 
 **Key Objectives:**
 - Implement MapTiler WebView integration with Flutter
@@ -78,7 +80,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-101**: Integrate MapTiler SDK in WebView with Flutter communication bridge
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-101 | Create MapWebView widget with webview_flutter | | |
 | TASK-102 | Load MapTiler HTML with JavaScript bridge | | |
 | TASK-103 | Implement viewport state message passing | | |
@@ -93,7 +95,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-102**: Synchronize map viewport state between WebView and Flutter overlays (Prevent ISS-001)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-109 | Create Viewport model with zoom/center/rotation/bounds | | |
 | TASK-110 | Create MapProvider to manage viewport state (<300 lines) | | |
 | TASK-111 | Implement viewport update from WebView events | | |
@@ -107,7 +109,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-103**: Integrate GPS location provider with permission handling (Avoid ISS-018)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-116 | Add location package dependency | | |
 | TASK-117 | Create LocationService wrapper | | |
 | TASK-118 | Implement permission request flow | | |
@@ -122,7 +124,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-104**: Display real-time boat position with heading indicator
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-124 | Create BoatProvider for position state (<300 lines) | | |
 | TASK-125 | Create BoatPosition model with GPS data | | |
 | TASK-126 | Implement position update from LocationService | | |
@@ -137,7 +139,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-105**: Record and persist boat track history
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-132 | Add sqflite dependency | | |
 | TASK-133 | Create TrackPoint model | | |
 | TASK-134 | Create TrackDatabase service | | |
@@ -152,7 +154,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-106**: Render track history polyline on map with proper disposal (Avoid ISS-006)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-140 | Create TrackOverlay widget | | |
 | TASK-141 | Implement polyline rendering with CustomPaint | | |
 | TASK-142 | Add speed-based color coding | | |
@@ -167,7 +169,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-107**: Display wind vectors on map (Avoid ISS-001 and ISS-012)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-148 | Create WindData model | | |
 | TASK-149 | Create WindOverlay widget with CustomPaint | | |
 | TASK-150 | Implement wind arrow rendering using ProjectionService | | |
@@ -183,7 +185,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-108**: Display wave height and direction indicators (Avoid ISS-001)
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-157 | Create WaveData model | | |
 | TASK-158 | Create WaveOverlay widget with CustomPaint | | |
 | TASK-159 | Implement wave rendering using ProjectionService | | |
@@ -199,7 +201,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-109**: Add user controls for map interaction
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-166 | Create ZoomControls widget (+/- buttons) | | |
 | TASK-167 | Create CompassWidget showing north direction | | |
 | TASK-168 | Create LayerToggle widget for overlays | | |
@@ -213,7 +215,7 @@ Phase 1 implements the core navigation features: interactive map display, GPS tr
 **GOAL-110**: Comprehensive testing and documentation updates
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-173 | Write unit tests for all services (≥80% coverage) | | |
 | TASK-174 | Write widget tests for all widgets (≥80% coverage) | | |
 | TASK-175 | Create integration test for full navigation flow | | |

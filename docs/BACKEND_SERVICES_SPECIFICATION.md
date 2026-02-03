@@ -22,7 +22,8 @@
 
 ## Overview
 
-This document provides complete implementation specifications for all Phase 0 backend services. Each service is designed to remain under 300 lines (CON-001) and follows all architecture rules from `MASTER_DEVELOPMENT_BIBLE.md`.
+This document provides complete implementation specifications for all Phase 0 backend services. Each service is
+designed to remain under 300 lines (CON-001) and follows all architecture rules from `MASTER_DEVELOPMENT_BIBLE.md`.
 
 ### Architecture Principles
 
@@ -38,6 +39,7 @@ This document provides complete implementation specifications for all Phase 0 ba
 ## CacheService
 
 ### Purpose
+
 LRU disk cache with TTL for weather data, map tiles, and API responses.
 
 ### File: `lib/services/cache_service.dart`
@@ -67,12 +69,12 @@ class CacheService {
   /// Cleanup resources
   Future<void> dispose();
 }
-```
+```text
 
 ### Requirements
 
 | ID | Requirement | Validation |
-|----|-------------|------------|
+| ---- | ------------- | ------------ |
 | REQ-CS-001 | Maximum cache size 500MB | Test with 600MB data, verify eviction |
 | REQ-CS-002 | LRU eviction when limit reached | Add 6 items with 5 item limit, verify oldest removed |
 | REQ-CS-003 | TTL support with automatic expiry | Put with 1s TTL, wait 2s, verify null returned |
@@ -85,16 +87,17 @@ class CacheService {
 
 #### Data Structure
 
-```
+```text
 cache_dir/
 ├── entries/
 │   ├── key1.json
 │   ├── key2.json
 │   └── key3.json
 └── metadata.json  // LRU order, sizes, TTLs
-```
+```text
 
 **Metadata Format:**
+
 ```json
 {
   "entries": {
@@ -108,7 +111,7 @@ cache_dir/
   "totalSize": 15234,
   "maxSize": 524288000
 }
-```
+```text
 
 #### LRU Eviction Algorithm
 
@@ -137,7 +140,7 @@ String? _findLRUKey() {
   
   return oldestKey;
 }
-```
+```text
 
 #### TTL Expiry Check
 
@@ -150,12 +153,12 @@ bool _isExpired(CacheEntry entry) {
   
   return now > expiry;
 }
-```
+```text
 
 ### Error Handling Matrix
 
 | Error | Cause | Response | User Impact |
-|-------|-------|----------|-------------|
+| ------- | ------- | ---------- | ------------- |
 | DiskFullException | Storage exhausted | Log error, skip put(), return null on get() | Data not cached, slower performance |
 | PermissionDeniedException | No write access | Fallback to memory-only mode | Cache lost on app restart |
 | JsonParseException | Corrupt cache file | Delete corrupt entry, return null | Single cache miss |
@@ -174,6 +177,7 @@ bool _isExpired(CacheEntry entry) {
 ## HttpClient
 
 ### Purpose
+
 Wrapper for HTTP requests with retry logic, timeout, and error handling.
 
 ### File: `lib/services/http_client.dart`
@@ -200,12 +204,12 @@ class HttpClient {
   /// Cleanup resources
   void dispose();
 }
-```
+```text
 
 ### Requirements
 
 | ID | Requirement | Validation |
-|----|-------------|------------|
+| ---- | ------------- | ------------ |
 | REQ-HC-001 | 3 retry attempts with exponential backoff | Mock 2 failures + 1 success, verify timing |
 | REQ-HC-002 | 30 second timeout per request | Mock slow server, verify timeout |
 | REQ-HC-003 | Validate response status codes | Test 200, 404, 500 responses |
@@ -250,7 +254,7 @@ Future<Response> _requestWithRetry(
   
   throw Exception('Max retry attempts reached');
 }
-```
+```text
 
 #### Request Logging (Sanitized)
 
@@ -267,19 +271,19 @@ Map<String, String> _sanitizeHeaders(Map<String, String>? headers) {
   
   return headers.map((key, value) {
     // Redact sensitive headers
-    if (key.toLowerCase() == 'authorization' || 
+ if (key.toLowerCase() == 'authorization' | | 
         key.toLowerCase() == 'api-key') {
       return MapEntry(key, '***REDACTED***');
     }
     return MapEntry(key, value);
   });
 }
-```
+```text
 
 ### Error Handling Matrix
 
 | Error Type | HTTP Code | Retry? | Exception Thrown |
-|------------|-----------|--------|------------------|
+| ------------ | ----------- | -------- | ------------------ |
 | Network timeout | N/A | Yes (3x) | TimeoutException |
 | Connection refused | N/A | Yes (3x) | SocketException |
 | 400 Bad Request | 400 | No | ClientException |
@@ -292,27 +296,30 @@ Map<String, String> _sanitizeHeaders(Map<String, String>? headers) {
 ### Security Measures
 
 1. **HTTPS Only (Production)**
+
 ```dart
 void _validateUrl(String url) {
   if (!url.startsWith('https://') && !_isDevelopment) {
     throw ArgumentError('Only HTTPS URLs allowed in production');
   }
 }
-```
+```text
 
-2. **Sanitize Error Messages**
+1. **Sanitize Error Messages**
+
 ```dart
 String _sanitizeErrorMessage(String message) {
   // Remove internal URLs and paths
   return message.replaceAll(RegExp(r'https?://[^\s]+'), '[URL]');
 }
-```
+```text
 
 ---
 
 ## ProjectionService
 
 ### Purpose
+
 Coordinate transformations between WGS84 (EPSG:4326) and Web Mercator (EPSG:3857).
 
 ### File: `lib/services/projection_service.dart`
@@ -333,12 +340,12 @@ class ProjectionService {
   /// Convert screen pixel to lat/lng coordinates
   LatLng screenToLatLng(Offset screenPoint, Viewport viewport, Size screenSize);
 }
-```
+```text
 
 ### Requirements
 
 | ID | Requirement | Validation |
-|----|-------------|------------|
+| ---- | ------------- | ------------ |
 | REQ-PS-001 | Accurate transformations (error < 0.0001°) | Test known coordinates |
 | REQ-PS-002 | Handle edge cases (poles, dateline) | Test lat=90, lng=180 |
 | REQ-PS-003 | Account for viewport rotation and tilt | Test rotated viewport |
@@ -371,7 +378,7 @@ Point wgs84ToWebMercator(double lat, double lng) {
   
   return Point(x, y);
 }
-```
+```text
 
 #### Web Mercator to WGS84
 
@@ -387,7 +394,7 @@ LatLng webMercatorToWgs84(double x, double y) {
   
   return LatLng(lat, lng);
 }
-```
+```text
 
 #### Lat/Lng to Screen Coordinates
 
@@ -422,7 +429,7 @@ Point latLngToScreen(LatLng latLng, Viewport viewport, Size screenSize) {
   
   return Point(screenX, screenY);
 }
-```
+```text
 
 ### Test Cases
 
@@ -449,13 +456,14 @@ testRoundTrip() {
   expect(back.latitude, closeTo(original.latitude, 0.0001));
   expect(back.longitude, closeTo(original.longitude, 0.0001));
 }
-```
+```text
 
 ---
 
 ## NMEAParser
 
 ### Purpose
+
 Parse NMEA 0183 sentences for GPS and sensor data.
 
 ### File: `lib/services/nmea_parser.dart`
@@ -475,12 +483,12 @@ class NMEAParser {
   static GPRMCMessage? parseGPRMC(String sentence);
   static GPVTGMessage? parseGPVTG(String sentence);
 }
-```
+```text
 
 ### Requirements
 
 | ID | Requirement | Validation |
-|----|-------------|------------|
+| ---- | ------------- | ------------ |
 | REQ-NP-001 | Support GPGGA, GPRMC, GPVTG | Test each sentence type |
 | REQ-NP-002 | Validate checksums | Test valid/invalid checksums |
 | REQ-NP-003 | Handle malformed sentences | Test missing fields, bad format |
@@ -490,12 +498,12 @@ class NMEAParser {
 
 ### NMEA Sentence Format
 
-```
+```bash
 $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47
   │     │       │        │ │         │ │ │   │   │     │ │    │  └─ Checksum
   └─ Type      └─ Lat    │ └─ Lon    │ └─ Quality indicators
                └─ Time   └─ N/S       └─ E/W
-```
+```text
 
 ### Implementation Algorithm
 
@@ -504,7 +512,7 @@ $GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47
 ```dart
 bool validateChecksum(String sentence) {
   // NMEA format: $....*XX where XX is hex checksum
-  if (!sentence.startsWith('\$') || !sentence.contains('*')) {
+ if (!sentence.startsWith('\$') | | !sentence.contains('*')) {
     return false;
   }
   
@@ -522,7 +530,7 @@ bool validateChecksum(String sentence) {
   int provided = int.parse(checksumHex, radix: 16);
   return calculated == provided;
 }
-```
+```text
 
 #### Parse GPGGA (Position + Fix Quality)
 
@@ -577,19 +585,20 @@ static double _parseCoordinate(String value, String direction) {
   double decimal = degrees + (minutes / 60);
   
   // Apply direction (N/S, E/W)
-  if (direction == 'S' || direction == 'W') {
+ if (direction == 'S' | | direction == 'W') {
     decimal = -decimal;
   }
   
   return decimal;
 }
-```
+```text
 
 ### Supported Sentence Types
 
 #### GPGGA - Global Positioning System Fix Data
 
 **Fields:**
+
 - Time (UTC)
 - Latitude (DDMM.MMMM)
 - N/S Indicator
@@ -604,6 +613,7 @@ static double _parseCoordinate(String value, String direction) {
 #### GPRMC - Recommended Minimum Specific GPS/Transit Data
 
 **Fields:**
+
 - Time (UTC)
 - Status (A=active, V=void)
 - Latitude
@@ -618,6 +628,7 @@ static double _parseCoordinate(String value, String direction) {
 #### GPVTG - Track Made Good and Ground Speed
 
 **Fields:**
+
 - True track (degrees)
 - Magnetic track (degrees)
 - Speed (knots)
@@ -628,6 +639,7 @@ static double _parseCoordinate(String value, String direction) {
 ## DatabaseService
 
 ### Purpose
+
 SQLite wrapper for local data persistence.
 
 ### File: `lib/services/database_service.dart`
@@ -661,7 +673,7 @@ class DatabaseService {
   /// Close database
   Future<void> close();
 }
-```
+```text
 
 ### Schema Design
 
@@ -692,7 +704,7 @@ CREATE TABLE track_points (
   heading REAL,
   altitude REAL
 );
-```
+```text
 
 ---
 
@@ -713,7 +725,7 @@ class LatLng {
   
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
+ identical(this, other) | |
       other is LatLng &&
           runtimeType == other.runtimeType &&
           latitude == other.latitude &&
@@ -735,7 +747,7 @@ class LatLng {
         json['longitude'] as double,
       );
 }
-```
+```text
 
 ### Bounds
 
@@ -756,9 +768,9 @@ class Bounds {
   }
   
   bool intersects(Bounds other) {
-    return !(other.southwest.latitude > northeast.latitude ||
-             other.northeast.latitude < southwest.latitude ||
-             other.southwest.longitude > northeast.longitude ||
+ return !(other.southwest.latitude > northeast.latitude | |
+ other.northeast.latitude < southwest.latitude | |
+ other.southwest.longitude > northeast.longitude | |
              other.northeast.longitude < southwest.longitude);
   }
   
@@ -769,7 +781,7 @@ class Bounds {
         (southwest.longitude + northeast.longitude) / 2,
       );
 }
-```
+```text
 
 ### Viewport
 
@@ -805,7 +817,7 @@ class Viewport {
     );
   }
 }
-```
+```text
 
 ### BoatPosition
 
@@ -841,7 +853,7 @@ class BoatPosition {
     );
   }
 }
-```
+```text
 
 ### CacheEntry
 
@@ -895,7 +907,7 @@ class CacheEntry {
         ttl: json['ttl'] as int?,
       );
 }
-```
+```text
 
 ### NMEAMessage
 
@@ -971,7 +983,7 @@ class GPVTGMessage extends NMEAMessage {
     required DateTime parsedAt,
   }) : super(rawSentence: rawSentence, parsedAt: parsedAt);
 }
-```
+```text
 
 ---
 
@@ -979,7 +991,7 @@ class GPVTGMessage extends NMEAMessage {
 
 ### Test Structure
 
-```
+```text
 test/
 ├── unit/
 │   ├── services/
@@ -996,12 +1008,12 @@ test/
 │   │   ├── cache_entry_test.dart
 │   │   └── nmea_message_test.dart
 └── test_helpers.dart
-```
+```text
 
 ### Test Coverage Requirements
 
 | Component | Minimum Coverage | Priority |
-|-----------|-----------------|----------|
+| ----------- | ----------------- | ---------- |
 | CacheService | 85% | Critical |
 | HttpClient | 85% | Critical |
 | ProjectionService | 90% | Critical |
@@ -1040,7 +1052,7 @@ Future<void> deleteTempDir(Directory dir) async {
     await dir.delete(recursive: true);
   }
 }
-```
+```text
 
 ### Sample Test Cases
 
@@ -1092,7 +1104,7 @@ void main() {
     });
   });
 }
-```
+```text
 
 #### ProjectionService Tests
 
@@ -1130,7 +1142,7 @@ void main() {
     });
   });
 }
-```
+```text
 
 #### NMEAParser Tests
 
@@ -1170,19 +1182,21 @@ void main() {
     });
   });
 }
-```
+```text
 
 ---
 
 ## Implementation Checklist
 
 ### Before Implementation
+
 - [x] Read and understand all architecture rules
 - [x] Review failure analysis from previous attempts
 - [x] Understand provider dependency constraints
 - [x] Identify performance benchmarks
 
 ### CacheService
+
 - [ ] Create `lib/services/cache_service.dart`
 - [ ] Implement LRU eviction algorithm
 - [ ] Add TTL expiry checking
@@ -1192,6 +1206,7 @@ void main() {
 - [ ] Verify <300 lines
 
 ### HttpClient
+
 - [ ] Create `lib/services/http_client.dart`
 - [ ] Implement retry with exponential backoff
 - [ ] Add timeout handling
@@ -1201,6 +1216,7 @@ void main() {
 - [ ] Verify <300 lines
 
 ### ProjectionService
+
 - [ ] Create `lib/services/projection_service.dart`
 - [ ] Implement WGS84 ↔ Web Mercator
 - [ ] Add screen coordinate transformations
@@ -1210,6 +1226,7 @@ void main() {
 - [ ] Verify <300 lines
 
 ### NMEAParser
+
 - [ ] Create `lib/services/nmea_parser.dart`
 - [ ] Implement checksum validation
 - [ ] Add GPGGA parser
@@ -1220,6 +1237,7 @@ void main() {
 - [ ] Verify <300 lines
 
 ### DatabaseService
+
 - [ ] Create `lib/services/database_service.dart`
 - [ ] Implement SQLite wrapper
 - [ ] Create schema
@@ -1228,6 +1246,7 @@ void main() {
 - [ ] Verify <300 lines
 
 ### Data Models
+
 - [ ] Create `lib/models/lat_lng.dart`
 - [ ] Create `lib/models/bounds.dart`
 - [ ] Create `lib/models/viewport.dart`
@@ -1238,6 +1257,7 @@ void main() {
 - [ ] Verify immutability
 
 ### Testing
+
 - [ ] Create `test/test_helpers.dart`
 - [ ] Write all unit tests
 - [ ] Achieve 80%+ overall coverage

@@ -45,7 +45,7 @@ Widget buildWindArrow(double lat, double lng) {
     child: WindArrowWidget(),
   );
 }
-```
+```text
 
 **What Went Wrong:**
 
@@ -86,7 +86,7 @@ class MapController extends ChangeNotifier {
   // MapController needs WeatherService for overlays
   // CIRCULAR DEPENDENCY HELL
 }
-```
+```text
 
 **What Went Wrong:**
 
@@ -125,7 +125,7 @@ class MapScreen extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 **What Went Wrong:**
 
@@ -168,7 +168,7 @@ Future<WeatherData> getWeather(Bounds bounds) async {
   // WebView still showing old overlay
   return data;
 }
-```
+```text
 
 **What Went Wrong:**
 
@@ -201,7 +201,7 @@ Column(
     // Total: 570px, but screen is only 667px with status bar
   ],
 )
-```
+```text
 
 **What Went Wrong:**
 
@@ -244,7 +244,7 @@ class _WindArrowWidgetState extends State<WindArrowWidget>
   
   // Missing dispose() method
 }
-```
+```text
 
 **What Went Wrong:**
 
@@ -575,7 +575,7 @@ GlassCard(
   padding: GlassCardPadding.medium,
   child: YourContent(),
 )
-```
+```text
 
 #### G.3.2 Data Orb Widget
 

@@ -126,7 +126,7 @@
 ### SailStream UI Components Documented:
 
 | Component | Copilot Instructions | AI Agent Instructions | UI Design System | Codebase Map |
-|-----------|---------------------|----------------------|------------------|--------------|
+| ----------- | --------------------- | ---------------------- | ------------------ | -------------- |
 | GlassCard | ✅ Complete | ✅ With patterns | ✅ Full spec | ✅ Listed |
 | DataOrb | ✅ Complete | ✅ With example | ✅ Full spec | ✅ Listed |
 | TrueWindWidget | ✅ Complete | ✅ With example | ✅ Full spec | ✅ Listed |
@@ -137,7 +137,7 @@
 ### Architecture Patterns Documented:
 
 | Pattern | Copilot Instructions | AI Agent Instructions | Bible | Known Issues |
-|---------|---------------------|----------------------|-------|--------------|
+| --------- | --------------------- | ---------------------- | ------- | -------------- |
 | Provider Hierarchy | ✅ Acyclic layers | ✅ Rules | ✅ C.3 | ✅ ISS-003 |
 | Projection Service | ✅ Mandatory | ✅ Anti-patterns | ✅ C.2 | ✅ ISS-001 |
 | Network/Cache | ✅ Triple-layer | ✅ Patterns | ✅ C.4 | ✅ ISS-004 |

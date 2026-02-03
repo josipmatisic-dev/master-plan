@@ -23,7 +23,7 @@
 
 ### System Context
 
-```
+```text
 ┌─────────────────────────────────────────────────────────┐
 │                    Marine Nav App                       │
 │  ┌──────────────────────────────────────────────────┐  │
@@ -46,11 +46,11 @@
               │ NMEA Device │
               │  (TCP/UDP)  │
               └─────────────┘
-```
+```text
 
 ### Provider Hierarchy Integration
 
-```
+```text
 Layer 0: SettingsProvider (connection config)
          │
 Layer 1: CacheProvider (connection history)
@@ -59,7 +59,7 @@ Layer 2: NMEAProvider ◄─── NEW
          │
          ├─► BoatProvider (consumes GPS/speed/heading)
          └─► WeatherProvider (consumes position)
-```
+```text
 
 ---
 
@@ -72,6 +72,7 @@ Layer 2: NMEAProvider ◄─── NEW
 **File:** `lib/providers/nmea_provider.dart`
 
 **Public API:**
+
 ```dart
 class NMEAProvider extends ChangeNotifier {
   // State
@@ -90,9 +91,10 @@ class NMEAProvider extends ChangeNotifier {
   @override
   void dispose();
 }
-```
+```text
 
 **Dependencies:**
+
 - `SettingsProvider` - for connection configuration
 - `CacheProvider` - for caching last known position
 - `NMEAService` - for actual parsing (via isolate)
@@ -108,6 +110,7 @@ class NMEAProvider extends ChangeNotifier {
 **File:** `lib/services/nmea_service.dart`
 
 **Public API:**
+
 ```dart
 class NMEAService {
   static Future<void> startIsolate(SendPort sendPort);
@@ -118,9 +121,10 @@ class NMEAService {
   static NMEASentence? parseSentence(String raw);
   static bool validateChecksum(String sentence);
 }
-```
+```text
 
 **Isolate Communication:**
+
 - **Main → Isolate:** Connection commands (connect, disconnect)
 - **Isolate → Main:** Parsed data, errors, status updates
 
@@ -135,6 +139,7 @@ class NMEAService {
 **File:** `lib/services/nmea_parser.dart`
 
 **Parsers:**
+
 ```dart
 class NMEAParser {
   static GPGGAData? parseGPGGA(List<String> fields);
@@ -149,7 +154,7 @@ class NMEAParser {
   static double parseLatitude(String value, String hemisphere);
   static double parseLongitude(String value, String hemisphere);
 }
-```
+```text
 
 **Line Count Target:** <250 lines
 
@@ -185,7 +190,7 @@ class ConnectionConfig {
     this.autoReconnect = true,
   });
 }
-```
+```text
 
 ### NMEA Data Models
 
@@ -290,7 +295,7 @@ class DPTData {
     this.maxRangeMeters,
   });
 }
-```
+```text
 
 ### Error Model
 
@@ -317,7 +322,7 @@ enum NMEAErrorType {
   buffer,
   unknown,
 }
-```
+```text
 
 ---
 
@@ -325,7 +330,7 @@ enum NMEAErrorType {
 
 ### Connection Flow
 
-```
+```text
 [User] → [SettingsProvider] → [NMEAProvider.connect()]
                                       ↓
                               [Spawn Isolate]
@@ -339,11 +344,11 @@ enum NMEAErrorType {
                               [NMEAProvider.notifyListeners()]
                                       ↓
                               [UI: Connection indicator]
-```
+```text
 
 ### Data Processing Flow
 
-```
+```text
 [NMEA Device] → [Socket Stream]
                       ↓
               [Isolate Buffer]
@@ -369,11 +374,11 @@ enum NMEAErrorType {
         [Consumer<NMEAProvider>]
               ↓
         [Update DataOrbs]
-```
+```text
 
 ### Error Flow
 
-```
+```text
 [Parse Error] → [Log to Console]
                       ↓
               [Create NMEAError]
@@ -383,7 +388,7 @@ enum NMEAErrorType {
               [Provider.errors.add()]
                       ↓
               [UI: Error Snackbar]
-```
+```text
 
 ---
 
@@ -447,7 +452,7 @@ Future<void> reconnect() async {
   _status = ConnectionStatus.error;
   notifyListeners();
 }
-```
+```text
 
 #### Data Access
 
@@ -463,33 +468,38 @@ Stream<NMEAError> get errors => _errorController.stream;
 
 // Connection status
 ConnectionStatus get status => _status;
-```
+```text
 
 ---
 
 ## Error Handling Strategy
 
 ### Checksum Errors
+
 - **Action:** Log warning, skip sentence, continue processing
 - **User Impact:** None (silent)
 - **Logging:** Debug level
 
 ### Malformed Sentences
+
 - **Action:** Log error, skip sentence, continue processing
 - **User Impact:** None (silent)
 - **Logging:** Warning level
 
 ### Connection Timeout
+
 - **Action:** Auto-reconnect with exponential backoff
 - **User Impact:** "Reconnecting..." indicator
 - **Logging:** Info level
 
 ### Buffer Overflow
+
 - **Action:** Clear buffer, log error
 - **User Impact:** Data loss for that cycle
 - **Logging:** Error level
 
 ### Unknown Sentence Types
+
 - **Action:** Log info, skip sentence
 - **User Impact:** None
 - **Logging:** Debug level
@@ -499,11 +509,13 @@ ConnectionStatus get status => _status;
 ## Performance Considerations
 
 ### Isolate Strategy
+
 - **Main thread:** UI updates, provider state
 - **Background isolate:** Socket I/O, parsing, checksum validation
 - **Communication:** SendPort/ReceivePort with batched messages
 
 ### Batching Strategy
+
 ```dart
 // Accumulate parsed data for 200ms before sending to main
 Timer.periodic(Duration(milliseconds: 200), (timer) {
@@ -512,14 +524,16 @@ Timer.periodic(Duration(milliseconds: 200), (timer) {
     _batchedData.clear();
   }
 });
-```
+```text
 
 ### Memory Management
+
 - **Buffer limit:** 10KB (clear if exceeded)
 - **Parsed data cache:** Last 10 sentences per type
 - **Error log:** Last 100 errors (circular buffer)
 
 ### Throttling
+
 ```dart
 // If data rate > 200 msg/s, sample every Nth message
 if (_messageRate > 200) {
@@ -528,7 +542,7 @@ if (_messageRate > 200) {
     return; // Skip this message
   }
 }
-```
+```text
 
 ---
 
@@ -537,6 +551,7 @@ if (_messageRate > 200) {
 ### Unit Tests
 
 **nmea_parser_test.dart:**
+
 - ✅ Checksum calculation
 - ✅ Checksum validation
 - ✅ Latitude/longitude parsing
@@ -549,6 +564,7 @@ if (_messageRate > 200) {
 - ✅ Unknown sentence type handling
 
 **nmea_provider_test.dart:**
+
 - ✅ Connection state transitions
 - ✅ Auto-reconnect logic
 - ✅ Data aggregation
@@ -558,6 +574,7 @@ if (_messageRate > 200) {
 ### Integration Tests
 
 **nmea_integration_test.dart:**
+
 - ✅ End-to-end: Mock NMEA stream → UI update
 - ✅ TCP connection establishment
 - ✅ UDP connection establishment
@@ -574,13 +591,13 @@ const mockNMEASentences = [
   r'$MWV,045,R,10.5,N,A*2F',
   r'$DPT,8.5,0.0,*4D',
 ];
-```
+```text
 
 ---
 
 ## File Structure
 
-```
+```text
 lib/
 ├── models/
 │   ├── nmea_data.dart           # All NMEA data models
@@ -599,20 +616,21 @@ test/
 │   └── nmea_provider_test.dart
 └── integration/
     └── nmea_integration_test.dart
-```
+```text
 
 ---
 
 ## Dependencies
 
 **pubspec.yaml additions:**
+
 ```yaml
 dependencies:
   # Already have flutter, provider
   
 dev_dependencies:
   # Already have flutter_test, mockito
-```
+```text
 
 **No new dependencies needed!** ✅ All functionality uses Dart core libraries.
 

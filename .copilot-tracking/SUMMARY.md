@@ -10,7 +10,7 @@ This implementation created a complete set of execution planning artifacts cover
 
 ### 📁 Directory Structure
 
-```
+```text
 .copilot-tracking/
 ├── README.md                    # Directory overview and usage guide
 ├── INDEX.md                     # Master index of all artifacts
@@ -34,7 +34,7 @@ This implementation created a complete set of execution planning artifacts cover
     ├── implement-phase-2-weather-intelligence.prompt.md
     ├── implement-phase-3-polish-features.prompt.md
     └── implement-phase-4-social-community.prompt.md
-```
+```text
 
 ## Statistics
 

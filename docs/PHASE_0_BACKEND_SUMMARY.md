@@ -9,9 +9,11 @@
 
 ## Executive Summary
 
-The Backend Services Agent has completed all design, specification, and architecture work for Phase 0 Foundation backend services. Implementation is blocked by firewall restrictions preventing Flutter SDK installation.
+The Backend Services Agent has completed all design, specification, and architecture work for Phase 0 Foundation
+backend services. Implementation is blocked by firewall restrictions preventing Flutter SDK installation.
 
 **What's Complete:**
+
 - ✅ Detailed service specifications (all 5 services)
 - ✅ Data model designs (all 6 models)
 - ✅ Provider architecture documented
@@ -21,6 +23,7 @@ The Backend Services Agent has completed all design, specification, and architec
 - ✅ Architecture compliance verified
 
 **What's Blocked:**
+
 - ❌ Flutter project initialization
 - ❌ Actual Dart/Flutter code implementation
 - ❌ Unit test execution
@@ -32,9 +35,11 @@ The Backend Services Agent has completed all design, specification, and architec
 ## Deliverables Created
 
 ### 1. Backend Services Specification
+
 **File:** `docs/BACKEND_SERVICES_SPECIFICATION.md` (32,835 bytes)
 
 Complete implementation guide covering:
+
 - **CacheService**: LRU eviction, TTL, 500MB limit, thread-safe operations
 - **HttpClient**: Retry logic (3 attempts), exponential backoff, 30s timeout
 - **ProjectionService**: WGS84 ↔ Web Mercator transforms, viewport calculations
@@ -43,6 +48,7 @@ Complete implementation guide covering:
 - **All 6 Data Models**: LatLng, Bounds, Viewport, BoatPosition, CacheEntry, NMEAMessage
 
 **Key Features:**
+
 - Complete API signatures for all services
 - Mathematical formulas for projections
 - NMEA parsing algorithms with format specs
@@ -51,9 +57,11 @@ Complete implementation guide covering:
 - Test specifications with example code
 
 ### 2. Phase 0 Architecture Document
+
 **File:** `docs/PHASE_0_ARCHITECTURE.md` (27,787 bytes)
 
 Comprehensive architecture covering:
+
 - **Provider Dependency Graph**: 3-layer acyclic hierarchy (documented per CON-004)
 - **Data Flow Architecture**: Single source of truth pattern
 - **Service Layer Design**: Stateless services pattern
@@ -63,6 +71,7 @@ Comprehensive architecture covering:
 - **Testing Strategy**: Unit test pyramid (70% unit, 20% widget, 10% integration)
 
 **Architecture Compliance:**
+
 - ✅ CON-001: All services designed to stay under 300 lines
 - ✅ CON-002: Single Source of Truth documented
 - ✅ CON-003: ProjectionService as sole coordinate transformer
@@ -71,9 +80,11 @@ Comprehensive architecture covering:
 - ✅ CON-006: All resources have dispose() methods
 
 ### 3. Status Report
+
 **File:** `/tmp/backend_services_status.md`
 
 Documents:
+
 - Current blocker (firewall preventing Flutter SDK)
 - Resolution options (allowlist domains or actions-setup.yml)
 - What can be done without Flutter (documentation ✅)
@@ -86,7 +97,7 @@ Documents:
 
 ### Provider Hierarchy (Prevents Circular Dependencies)
 
-```
+```text
 Layer 2 (Future):
 ├── MapProvider (depends on CacheProvider, SettingsProvider)
 └── WeatherProvider (depends on CacheProvider, SettingsProvider)
@@ -97,9 +108,10 @@ Layer 1:
 
 Layer 0:
 └── SettingsProvider (no dependencies)
-```
+```text
 
 **Key Rules:**
+
 - Dependencies only flow downward
 - Maximum 3 layers
 - No circular dependencies
@@ -108,13 +120,15 @@ Layer 0:
 ### Service Design (Stateless)
 
 All services are stateless and provided as values:
+
 ```dart
 Provider<CacheService>.value(value: cacheService)
 Provider<HttpClient>.value(value: httpClient)
 Provider<ProjectionService>.value(value: projectionService)
-```
+```text
 
 **Rationale:**
+
 - Services don't need ChangeNotifier (no state changes)
 - Providers coordinate services and notify UI
 - Cleaner separation of concerns
@@ -125,14 +139,16 @@ Provider<ProjectionService>.value(value: projectionService)
 **Problem Solved:** Overlay projection mismatches from Attempts 2 & 4
 
 **Solution:** ALL coordinate transforms go through ProjectionService:
-```
+
+```text
 Data (WGS84) 
   → ProjectionService.wgs84ToWebMercator() 
   → ProjectionService.latLngToScreen(viewport) 
   → Canvas rendering
-```
+```text
 
 **Never:**
+
 - ❌ Manual lat/lng to pixel calculations
 - ❌ Separate projection logic in widgets
 - ❌ Assuming linear screen coordinates
@@ -142,18 +158,20 @@ Data (WGS84)
 **Problem Solved:** Cache invalidation races from Attempt 3
 
 **Solution:** Single CacheService with coordinated invalidation:
+
 - LRU eviction when size limit reached
 - TTL expiry checked on every get()
 - Metadata persisted to survive app restart
 - Atomic operations (thread-safe)
 
 **Cache-first pattern:**
+
 ```dart
 1. Check cache → if hit, return immediately
 2. Fetch from network
 3. Update cache
 4. Return data
-```
+```text
 
 **On network error:** Return stale cache if available
 
@@ -164,6 +182,7 @@ Data (WGS84)
 ### Target Coverage: 80%+ Overall
 
 **Services (85% coverage target):**
+
 - CacheService: 15 test cases (LRU, TTL, size limits, thread safety)
 - HttpClient: 12 test cases (retry, timeout, error handling)
 - ProjectionService: 18 test cases (accuracy, edge cases, round-trip)
@@ -171,6 +190,7 @@ Data (WGS84)
 - DatabaseService: 10 test cases (CRUD operations)
 
 **Models (80% coverage target):**
+
 - LatLng: Validation, equality, JSON serialization
 - Bounds: Contains, intersects, getters
 - Viewport: Validation, copyWith
@@ -179,11 +199,13 @@ Data (WGS84)
 - NMEAMessage: Subclass integrity
 
 **Providers (70% coverage target):**
+
 - SettingsProvider: Load/save, updates
 - ThemeProvider: Theme switching
 - CacheProvider: Stats, clearing
 
 **Test Infrastructure:**
+
 - Mock services (MockCacheService, MockHttpClient)
 - Test helpers (test coordinates, NMEA sentences)
 - Temporary directories for cache tests
@@ -196,7 +218,7 @@ Data (WGS84)
 All services designed with performance targets:
 
 | Service | Operation | Target | Validation |
-|---------|-----------|--------|------------|
+| --------- | ----------- | -------- | ------------ |
 | CacheService | init() | < 500ms | 1000 entries |
 | CacheService | get() | < 10ms | Single entry |
 | CacheService | put() | < 50ms | With disk write |
@@ -206,6 +228,7 @@ All services designed with performance targets:
 | NMEAParser | throughput | 100+ sentences/s | Batch test |
 
 **Memory Limits:**
+
 - CacheService: 500MB maximum (configurable)
 - App idle: < 100MB RAM
 - No memory leaks (verified with DevTools)
@@ -215,18 +238,21 @@ All services designed with performance targets:
 ## Security Measures
 
 ### Secrets Management
+
 - ❌ No hardcoded API keys
 - ✅ Use .env file (not committed)
 - ✅ Load with flutter_dotenv
 - ✅ Validate on startup
 
 ### Input Validation
+
 - ✅ All coordinates validated (lat: -90 to 90, lng: -180 to 180)
 - ✅ NMEA checksums validated
 - ✅ API responses validated before use
 - ✅ SQL injection prevented (parameterized queries)
 
 ### Network Security
+
 - ✅ HTTPS only in production
 - ✅ 30 second timeouts
 - ✅ Sanitized error messages (no internal URLs)
@@ -237,17 +263,19 @@ All services designed with performance targets:
 ## Files Ready for Implementation
 
 ### Services (5 files)
-```
+
+```text
 lib/services/
 ├── cache_service.dart       (~280 lines, LRU + TTL)
 ├── http_client.dart         (~250 lines, retry + timeout)
 ├── projection_service.dart  (~220 lines, coordinate transforms)
 ├── nmea_parser.dart         (~290 lines, GPGGA/GPRMC/GPVTG)
 └── database_service.dart    (~180 lines, SQLite wrapper)
-```
+```text
 
 ### Models (6 files)
-```
+
+```text
 lib/models/
 ├── lat_lng.dart             (~60 lines, immutable coordinate)
 ├── bounds.dart              (~80 lines, geographic bounds)
@@ -255,18 +283,20 @@ lib/models/
 ├── boat_position.dart       (~90 lines, GPS data)
 ├── cache_entry.dart         (~80 lines, cache metadata)
 └── nmea_message.dart        (~150 lines, base + 3 subtypes)
-```
+```text
 
 ### Providers (3 files)
-```
+
+```text
 lib/providers/
 ├── settings_provider.dart   (~120 lines, user preferences)
 ├── theme_provider.dart      (~100 lines, theme management)
 └── cache_provider.dart      (~90 lines, cache coordination)
-```
+```text
 
 ### Tests (14 files)
-```
+
+```text
 test/
 ├── unit/services/
 │   ├── cache_service_test.dart      (~200 lines, 15 tests)
@@ -285,7 +315,7 @@ test/
 │   ├── settings_provider_test.dart  (~100 lines)
 │   └── theme_provider_test.dart     (~90 lines)
 └── test_helpers.dart                (~150 lines)
-```
+```text
 
 **Total:** 28 implementation files + comprehensive specs
 
@@ -294,6 +324,7 @@ test/
 ## Implementation Roadmap (Post Flutter SDK)
 
 ### Phase 1: Services (Est. 1-2 days)
+
 1. Implement CacheService
 2. Implement HttpClient
 3. Implement ProjectionService
@@ -301,23 +332,27 @@ test/
 5. Implement DatabaseService
 
 ### Phase 2: Models (Est. 0.5 days)
+
 1. Implement all 6 data models
 2. Add validation logic
 3. Add JSON serialization
 
 ### Phase 3: Providers (Est. 1 day)
+
 1. Implement SettingsProvider
 2. Implement ThemeProvider
 3. Implement CacheProvider
 4. Wire up in main.dart
 
 ### Phase 4: Testing (Est. 2 days)
+
 1. Write all unit tests
 2. Write widget tests for providers
 3. Achieve 80%+ coverage
 4. Fix any bugs found
 
 ### Phase 5: CI/CD (Est. 0.5 days)
+
 1. Create GitHub Actions workflows
 2. Set up coverage reporting
 3. Add automated checks
@@ -329,23 +364,29 @@ test/
 ## Risks and Mitigation
 
 ### HIGH RISK: Firewall Not Resolved Quickly
+
 **Impact:** Entire Phase 0 blocked  
-**Mitigation:** 
+**Mitigation:**
+
 - Escalate to repository administrator immediately
 - Provide both resolution options (allowlist or actions-setup.yml)
 - Document everything for rapid implementation when unblocked
 
 ### MEDIUM RISK: Specifications Drift from Implementation
+
 **Impact:** Implementation doesn't match specs  
 **Mitigation:**
+
 - Extremely detailed specs with code examples
 - Mathematical formulas documented
 - Test cases with expected inputs/outputs
 - All algorithms pseudocoded
 
 ### LOW RISK: Performance Benchmarks Not Met
+
 **Impact:** Services slower than expected  
 **Mitigation:**
+
 - Benchmarks are realistic based on research
 - Profiling built into test suite
 - Optimization strategies documented
@@ -376,6 +417,7 @@ test/
 ## Next Actions
 
 ### Immediate (Agent Can Do Now)
+
 - ✅ Complete all documentation
 - ✅ Create detailed specifications
 - ✅ Document architecture decisions
@@ -383,6 +425,7 @@ test/
 - ✅ Update CODEBASE_MAP.md
 
 ### Waiting (Requires Flutter SDK)
+
 - ⏳ Initialize Flutter project
 - ⏳ Implement all services
 - ⏳ Implement all models
@@ -390,6 +433,7 @@ test/
 - ⏳ Set up CI/CD
 
 ### Repository Administrator (Urgent)
+
 - 🔥 Add domains to firewall allowlist OR
 - 🔥 Create actions-setup.yml for Flutter
 
@@ -397,7 +441,9 @@ test/
 
 ## Conclusion
 
-The Backend Services Agent has completed 100% of the design and specification work for Phase 0 backend infrastructure. All services, models, and providers are fully specified with complete implementation details, test cases, and architecture compliance verification.
+The Backend Services Agent has completed 100% of the design and specification work for Phase 0 backend infrastructure.
+All services, models, and providers are fully specified with complete implementation details, test cases, and
+architecture compliance verification.
 
 **The codebase is ready to implement immediately once Flutter SDK becomes available.**
 

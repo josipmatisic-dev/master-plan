@@ -60,7 +60,7 @@ All UI elements use frosted glass effects with subtle translucency, creating dep
 ### Primary Palette
 
 | Color Name | Hex Code | RGB | Usage |
-|------------|----------|-----|-------|
+| ------------ | ---------- | ----- | ------- |
 | Deep Navy | `#0A1F3F` | rgb(10, 31, 63) | Primary background, night mode |
 | Teal | `#1D566E` | rgb(29, 86, 110) | Secondary accents, depth |
 | Seafoam Green | `#00C9A7` | rgb(0, 201, 167) | Primary accent, active states |
@@ -100,7 +100,7 @@ class OceanColors {
   static final glassBackgroundLight = pureWhite.withOpacity(0.85);
   static final glassBorder = pureWhite.withOpacity(0.2);
 }
-```
+```text
 
 ### Color Usage Guidelines
 
@@ -122,7 +122,7 @@ class OceanColors {
 ### Type Scale
 
 | Style Name | Size | Weight | Line Height | Letter Spacing | Usage |
-|------------|------|--------|-------------|----------------|-------|
+| ------------ | ------ | -------- | ------------- | ---------------- | ------- |
 | Data Value | 56pt | Bold (700) | 1.2 | 0 | Large numeric displays (SOG, COG) |
 | Heading 1 | 32pt | Semibold (600) | 1.3 | -0.5px | Screen titles |
 | Heading 2 | 24pt | Semibold (600) | 1.4 | -0.3px | Section headers |
@@ -179,7 +179,7 @@ class OceanTextStyles {
     fontFamily: fontFamily,
   );
 }
-```
+```text
 
 ---
 
@@ -222,7 +222,7 @@ Container(
     ),
   ),
 )
-```
+```text
 
 #### Light Glass (Daytime)
 
@@ -330,7 +330,7 @@ class GlassCard extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 #### Usage
 
@@ -339,7 +339,7 @@ GlassCard(
   padding: GlassCardPadding.medium,
   child: Text('Your content here'),
 )
-```
+```text
 
 ---
 
@@ -350,14 +350,14 @@ GlassCard(
 #### Size Variants
 
 | Variant | Diameter | Value Font | Label Font | Usage |
-|---------|----------|------------|------------|-------|
+| --------- | ---------- | ------------ | ------------ | ------- |
 | Small | 80px | 32pt bold | 10pt medium | Compact displays |
 | Medium | 140px | 48pt bold | 12pt medium | Standard (default) |
 | Large | 200px | 64pt bold | 14pt medium | Prominent displays |
 
 #### Anatomy
 
-```
+```text
 ┌─────────────────┐
 │   ╭───────╮    │  ← Outer ring (seafoam green accent)
 │  ╱         ╲   │
@@ -366,7 +366,7 @@ GlassCard(
 │  ╲         ╱   │
 │   ╰───────╯    │
 └─────────────────┘
-```
+```text
 
 #### States
 
@@ -442,14 +442,14 @@ GlassCard(
 
 #### Anatomy
 
-```
+```text
 ┌──────────────┐
 │  ╭────────╮  │  ← Circular progress ring (seafoam)
 │ │ 14.2 kts │  │  ← Wind speed (32pt bold)
 │ │   NNE    │  │  ← Wind direction (16pt medium)
 │  ╰────────╯  │
 └──────────────┘
-```
+```text
 
 #### Features
 
@@ -528,7 +528,7 @@ class Breakpoints {
   static const tablet = 1200.0;  // 600-1200px
   static const desktop = 1200.0; // > 1200px
 }
-```
+```text
 
 ### Layout Helper
 
@@ -560,7 +560,7 @@ class ResponsiveLayout extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 ### Spacing Scale
 
@@ -574,7 +574,7 @@ class OceanSpacing {
   static const xl = 32.0;
   static const xxl = 48.0;
 }
-```
+```text
 
 ---
 
@@ -603,7 +603,7 @@ class OceanCurves {
   static const easeInOut = Curves.easeInOut;
   static const decelerate = Curves.decelerate;
 }
-```
+```text
 
 ### Common Animations
 
@@ -616,7 +616,7 @@ AnimatedOpacity(
   curve: Curves.easeInOut,
   child: child,
 )
-```
+```text
 
 **Slide Transition:**
 
@@ -631,7 +631,7 @@ SlideTransition(
   )),
   child: child,
 )
-```
+```text
 
 ---
 
@@ -674,7 +674,7 @@ double getOrbSize(BuildContext context) {
     return 200.0; // Large orb on desktop
   }
 }
-```
+```text
 
 ---
 

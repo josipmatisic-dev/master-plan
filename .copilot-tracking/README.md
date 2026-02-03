@@ -11,7 +11,7 @@ This directory contains planning documents, detailed specifications, and executi
 
 ## Directory Structure
 
-```
+```text
 .copilot-tracking/
 ├── README.md                    # This file - directory overview
 ├── INDEX.md                     # Master index of all planning artifacts
@@ -36,7 +36,7 @@ This directory contains planning documents, detailed specifications, and executi
 └── research/                    # Research and analysis documents
     └── 20260201-ui-architecture-adaptation-research.md
 
-```
+```text
 
 ---
 
@@ -55,19 +55,19 @@ This directory contains comprehensive execution planning artifacts for the Marin
 
 ### For AI Agents
 
-**Before implementing a feature:**
+#### Before implementing a feature
 1. Read `/plans/phase-N-*.md` to understand objectives and dependencies
 2. Review `/details/phase-N-*.md` for detailed specifications
 3. Check `/prompts/implement-phase-N-*.prompt.md` for step-by-step instructions
 4. Reference the main docs (MASTER_DEVELOPMENT_BIBLE, KNOWN_ISSUES_DATABASE, etc.)
 
-**During implementation:**
+#### During implementation
 1. Follow the prompt instructions systematically
 2. Validate against success criteria in the plan
 3. Check known issues to avoid repeating past mistakes
 4. Update documentation as specified in the plan
 
-**After implementation:**
+#### After implementation
 1. Verify all acceptance criteria are met
 2. Run tests as specified in the plan
 3. Update the plan file with completion status
@@ -75,19 +75,19 @@ This directory contains comprehensive execution planning artifacts for the Marin
 
 ### For Human Developers
 
-**Planning a new phase:**
+#### Planning a new phase
 1. Review the phase plan to understand scope and effort
 2. Check dependencies on previous phases
 3. Review risks and assumptions
 4. Understand testing requirements
 
-**During development:**
+#### During development
 1. Use the detail files for component specifications
 2. Reference the prompts for suggested implementation approach
 3. Check known issues database for common pitfalls
 4. Update plans with progress and discoveries
 
-**Code review:**
+#### Code review
 1. Verify implementation matches specifications
 2. Check that known issues are avoided
 3. Ensure documentation is updated
@@ -101,7 +101,7 @@ This directory contains comprehensive execution planning artifacts for the Marin
 
 Each phase plan follows the mandatory template structure defined in the implementation-plan agent instructions:
 
-**Required Sections:**
+#### Required Sections
 1. **Introduction** - Overview and goals
 2. **Requirements & Constraints** - What must be followed
 3. **Implementation Steps** - Phase-by-phase task breakdown
@@ -152,7 +152,7 @@ AI agent implementation instructions:
 All plans and prompts reference these core documents:
 
 | Document | Location | Purpose |
-|----------|----------|---------|
+| ---------- | ---------- | --------- |
 | MASTER_DEVELOPMENT_BIBLE | `/docs/MASTER_DEVELOPMENT_BIBLE.md` | Complete failure analysis, architecture rules, development phases |
 | AI_AGENT_INSTRUCTIONS | `/docs/AI_AGENT_INSTRUCTIONS.md` | Mandatory behaviors, forbidden actions, code patterns |
 | CODEBASE_MAP | `/docs/CODEBASE_MAP.md` | Project structure, dependencies, data flow |
@@ -194,7 +194,7 @@ All plans and prompts reference these core documents:
 ├── details/          # Detailed task specifications
 ├── prompts/          # Implementation prompts for AI agents
 └── changes/          # Change tracking files
-```
+```text
 
 ## File Naming Conventions
 
@@ -265,7 +265,7 @@ See individual files in subdirectories for active planning work.
 ├── details/              # Detailed technical specifications
 ├── prompts/              # Execution prompts for AI agents
 └── research/             # Research and analysis documents
-```
+```text
 
 ## Purpose
 
@@ -380,7 +380,7 @@ Examples:
 
 ## Document Relationships
 
-```
+```text
 ┌─────────────────────────┐
 │   Implementation Plan   │  High-level checklist, requirements, constraints
 │   (plans/)              │  References: docs/*, .github/instructions/*
@@ -404,7 +404,7 @@ Examples:
 │   (future: separate     │  References: all above docs
 │    app repository)      │
 └─────────────────────────┘
-```
+```text
 
 ## Quality Standards Integration
 
@@ -513,7 +513,7 @@ flutter test --coverage
 flutter analyze
 flutter test --coverage
 # Verify all tasks checked off
-```
+```text
 
 ## Benefits of This Approach
 
@@ -539,7 +539,7 @@ flutter test --coverage
 ## Phase Progress Tracking
 
 | Phase | Plan | Details | Prompt | Status |
-|-------|------|---------|--------|--------|
+| ------- | ------ | --------- | -------- | -------- |
 | Phase 0: Foundation | ✅ | ✅ | ✅ | Planned |
 | Phase 1: Core Navigation | 🔜 | 🔜 | 🔜 | Not Started |
 | Phase 2: Weather Intelligence | 🔜 | 🔜 | 🔜 | Not Started |

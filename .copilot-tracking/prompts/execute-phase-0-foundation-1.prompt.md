@@ -7,9 +7,12 @@ instructions: "Follow this prompt to implement the Phase 0 foundation work with 
 
 ## Context
 
-You are implementing Phase 0 Foundation for the Marine Navigation App, a Flutter/Dart application for yacht navigation. This phase establishes the core architecture, services, and testing infrastructure that all subsequent phases will build upon.
+You are implementing Phase 0 Foundation for the Marine Navigation App, a Flutter/Dart application for yacht navigation.
+This phase establishes the core architecture, services, and testing infrastructure that all subsequent phases will build
+upon.
 
-**Critical:** This project has failed 4 times previously due to god objects, circular dependencies, and projection mismatches. The architecture rules in `docs/MASTER_DEVELOPMENT_BIBLE.md` are MANDATORY.
+**Critical:** This project has failed 4 times previously due to god objects, circular dependencies, and projection
+mismatches. The architecture rules in `docs/MASTER_DEVELOPMENT_BIBLE.md` are MANDATORY.
 
 ## Your Mission
 
@@ -79,7 +82,7 @@ These rules from `docs/MASTER_DEVELOPMENT_BIBLE.md` Section C are NON-NEGOTIABLE
 ```bash
 flutter create marine_nav_app --org com.marinenavc --platforms ios,android
 cd marine_nav_app
-```
+```text
 
 **Step 1.2**: Configure pubspec.yaml
 
@@ -100,7 +103,7 @@ dev_dependencies:
   flutter_lints: ^3.0.0
   mockito: ^5.4.0
   build_runner: ^2.4.0
-```
+```text
 
 **Step 1.3**: Create Directory Structure
 
@@ -108,7 +111,7 @@ dev_dependencies:
 mkdir -p lib/{models,providers,services,screens,widgets,utils,theme}
 mkdir -p test/{unit/{services,models,utils},widget,integration}
 mkdir -p assets/{images,fonts}
-```
+```text
 
 **Step 1.4**: Create analysis_options.yaml
 
@@ -123,18 +126,18 @@ linter:
     - avoid_print
     - prefer_single_quotes
     - sort_child_properties_last
-```
+```text
 
 **Step 1.5**: Create .gitignore
 
 Include Flutter defaults plus:
-```
+```text
 /coverage
 /.env
 /build
 *.iml
 .DS_Store
-```
+```text
 
 **Step 1.6**: Initialize Git
 
@@ -142,7 +145,7 @@ Include Flutter defaults plus:
 git init
 git add .
 git commit -m "Initial Flutter project setup"
-```
+```text
 
 ### Phase 2: Core Services Layer (TASK-007 to TASK-011)
 
@@ -270,10 +273,10 @@ See detailed specs in `.copilot-tracking/details/phase-0-foundation-details-1.md
 
 **Provider Dependency Layers:**
 
-```
+```text
 Layer 0: SettingsProvider (no dependencies)
 Layer 1: ThemeProvider, CacheProvider (depend on SettingsProvider)
-```
+```text
 
 **Step 4.1**: Implement SettingsProvider (TASK-018)
 
@@ -325,7 +328,7 @@ void main() async {
     ),
   );
 }
-```
+```text
 
 ### Phase 5: Theme System (TASK-023 to TASK-027)
 
@@ -350,7 +353,7 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-```
+```text
 
 ### Phase 6: Testing Infrastructure (TASK-028 to TASK-033)
 
@@ -366,7 +369,7 @@ Mock providers and services for testing
 flutter test --coverage
 genhtml coverage/lcov.info -o coverage/html
 open coverage/html/index.html
-```
+```text
 
 Verify 80%+ coverage for services and models
 
@@ -386,7 +389,7 @@ jobs:
       - run: flutter pub get
       - run: flutter test --coverage
       - uses: codecov/codecov-action@v3
-```
+```text
 
 **Step 7.2**: Create lint workflow (TASK-035)
 
