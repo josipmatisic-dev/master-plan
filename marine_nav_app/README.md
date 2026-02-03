@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD022 MD032 MD036 MD040 MD058 MD060 -->
 # Marine Navigation App - SailStream UI
 
 **Ocean Glass Design System**  
@@ -34,6 +35,7 @@ Marine navigation application with Ocean Glass design language - a fluid, marine
 #### UI Components
 - [x] `lib/widgets/glass/glass_card.dart` - Base frosted glass component
 - [x] `lib/utils/responsive_utils.dart` - Responsive design utilities
+- [x] `lib/widgets/map/map_webview.dart` - WebView map scaffold
 
 #### App Structure
 - [x] `lib/main.dart` - Provider hierarchy and app initialization
@@ -197,7 +199,7 @@ See `PROVIDER_HIERARCHY.md` for complete documentation.
 
 2. **Map Integration**
    - MapProvider (Layer 2 scaffold)
-   - MapTiler WebView integration (pending)
+   - MapTiler WebView integration (scaffolded via `webview_flutter`)
    - ProjectionService coordination (scaffolded)
    - Overlay management
 

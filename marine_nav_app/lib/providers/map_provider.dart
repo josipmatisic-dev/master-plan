@@ -83,12 +83,18 @@ class MapProvider extends ChangeNotifier {
 
   /// Update the full viewport state.
   void updateViewport(Viewport next) {
+    if (_isSameViewport(next, _viewport)) {
+      return;
+    }
     _viewport = next;
     notifyListeners();
   }
 
   /// Update viewport center.
   void setCenter(LatLng center) {
+    if (center == _viewport.center) {
+      return;
+    }
     _viewport = _viewport.copyWith(center: center);
     notifyListeners();
   }
@@ -96,18 +102,30 @@ class MapProvider extends ChangeNotifier {
   /// Update viewport zoom (clamped 1-20).
   void setZoom(double zoom) {
     final clampedZoom = zoom.clamp(1.0, 20.0);
+    if (clampedZoom == _viewport.zoom) {
+      return;
+    }
     _viewport = _viewport.copyWith(zoom: clampedZoom);
     notifyListeners();
   }
 
   /// Update viewport rotation.
   void setRotation(double rotation) {
+    if (rotation == _viewport.rotation) {
+      return;
+    }
     _viewport = _viewport.copyWith(rotation: rotation);
     notifyListeners();
   }
 
   /// Update viewport size.
   void setSize(Size size) {
+    if (size.isEmpty) {
+      return;
+    }
+    if (size == _viewport.size) {
+      return;
+    }
     _viewport = _viewport.copyWith(size: size);
     notifyListeners();
   }
@@ -115,6 +133,13 @@ class MapProvider extends ChangeNotifier {
   /// Emit a map error.
   void reportError(MapError error) {
     _errorController.add(error);
+  }
+
+  bool _isSameViewport(Viewport next, Viewport current) {
+    return next.center == current.center &&
+        next.zoom == current.zoom &&
+        next.size == current.size &&
+        next.rotation == current.rotation;
   }
 
   @override
