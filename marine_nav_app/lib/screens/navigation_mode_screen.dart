@@ -12,6 +12,7 @@ import '../widgets/data_displays/data_orb.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/map/map_webview.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
+import '../widgets/navigation/nmea_connection_widget.dart';
 
 /// Navigation mode screen displaying route info and actions.
 class NavigationModeScreen extends StatelessWidget {
@@ -73,148 +74,10 @@ class NavigationModeScreen extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          _buildConnectionIndicator(context),
+          const NMEAConnectionIndicator(),
         ],
       ),
     );
-  }
-
-  Widget _buildConnectionIndicator(BuildContext context) {
-    return Consumer<NMEAProvider>(
-      builder: (context, nmea, child) {
-        final isConnected = nmea.isConnected;
-        final isActive = nmea.isActive;
-        final lastError = nmea.lastError;
-        
-        // Determine indicator color and icon
-        Color indicatorColor;
-        IconData indicatorIcon;
-        String statusText;
-        
-        if (isConnected) {
-          indicatorColor = OceanColors.seafoamGreen;
-          indicatorIcon = Icons.link;
-          statusText = 'NMEA Connected';
-        } else if (isActive) {
-          indicatorColor = OceanColors.safetyOrange;
-          indicatorIcon = Icons.sync;
-          statusText = 'Connecting...';
-        } else if (lastError != null) {
-          indicatorColor = OceanColors.coralRed;
-          indicatorIcon = Icons.link_off;
-          statusText = 'Connection Error';
-        } else {
-          indicatorColor = OceanColors.textDisabled;
-          indicatorIcon = Icons.link_off;
-          statusText = 'NMEA Disconnected';
-        }
-        
-        return GlassCard(
-          padding: GlassCardPadding.small,
-          child: InkWell(
-            onTap: () => _showConnectionDialog(context),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  indicatorIcon,
-                  color: indicatorColor,
-                  size: 20,
-                ),
-                const SizedBox(width: OceanDimensions.spacingS),
-                Text(
-                  statusText,
-                  style: OceanTextStyles.label.copyWith(color: indicatorColor),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showConnectionDialog(BuildContext context) {
-    final nmea = context.read<NMEAProvider>();
-    
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: OceanColors.surface,
-        title: const Text('NMEA Connection', style: OceanTextStyles.heading2),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Status: ${_getStatusText(nmea.status)}',
-              style: OceanTextStyles.body,
-            ),
-            if (nmea.lastError != null) ...[
-              const SizedBox(height: OceanDimensions.spacingS),
-              Text(
-                'Error: ${nmea.lastError!.message}',
-                style: OceanTextStyles.body.copyWith(color: OceanColors.coralRed),
-              ),
-            ],
-            if (nmea.lastUpdateTime != null) ...[
-              const SizedBox(height: OceanDimensions.spacingS),
-              Text(
-                'Last Update: ${_formatTime(nmea.lastUpdateTime!)}',
-                style: OceanTextStyles.bodySmall,
-              ),
-            ],
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              if (nmea.lastError != null) {
-                nmea.clearError();
-              }
-              Navigator.of(context).pop();
-            },
-            child: const Text('Close'),
-          ),
-          if (!nmea.isConnected)
-            ElevatedButton(
-              onPressed: () {
-                nmea.connect();
-                Navigator.of(context).pop();
-              },
-              child: const Text('Connect'),
-            )
-          else
-            ElevatedButton(
-              onPressed: () {
-                nmea.disconnect();
-                Navigator.of(context).pop();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: OceanColors.coralRed,
-              ),
-              child: const Text('Disconnect'),
-            ),
-        ],
-      ),
-    );
-  }
-
-  String _getStatusText(dynamic status) {
-    return status.toString().split('.').last;
-  }
-
-  String _formatTime(DateTime time) {
-    final now = DateTime.now();
-    final diff = now.difference(time);
-    
-    if (diff.inSeconds < 60) {
-      return '${diff.inSeconds}s ago';
-    } else if (diff.inMinutes < 60) {
-      return '${diff.inMinutes}m ago';
-    } else {
-      return '${diff.inHours}h ago';
-    }
   }
 
   void _handleNavSelection(BuildContext context, int index) {
@@ -224,6 +87,9 @@ class NavigationModeScreen extends StatelessWidget {
         break;
       case 2:
         // Current screen
+        break;
+      case 3:
+        Navigator.of(context).pushNamed('/settings');
         break;
       default:
         break;
@@ -334,7 +200,7 @@ class NavigationModeScreen extends StatelessWidget {
   Widget _actionButton(String label) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: OceanColors.seafoamGreen.withOpacity(0.15),
+        backgroundColor: OceanColors.seafoamGreen.withValues(alpha: 0.15),
         foregroundColor: OceanColors.pureWhite,
         padding: const EdgeInsets.symmetric(
           vertical: OceanDimensions.spacingS,

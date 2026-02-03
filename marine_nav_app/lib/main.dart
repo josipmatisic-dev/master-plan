@@ -15,6 +15,7 @@ import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/navigation_mode_screen.dart';
+import 'screens/settings_screen.dart';
 
 void main() async {
   // Ensure Flutter is initialized
@@ -137,6 +138,7 @@ class MarineNavigationApp extends StatelessWidget {
             routes: {
               '/map': (_) => const MapScreen(),
               '/navigation': (_) => const NavigationModeScreen(),
+              '/settings': (_) => const SettingsScreen(),
             },
           );
         },
