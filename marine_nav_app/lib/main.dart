@@ -12,6 +12,8 @@ import 'providers/map_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
+import 'screens/map_screen.dart';
+import 'screens/navigation_mode_screen.dart';
 
 void main() async {
   // Ensure Flutter is initialized
@@ -117,6 +119,12 @@ class MarineNavigationApp extends StatelessWidget {
 
             // Home screen
             home: const HomeScreen(),
+
+            // Named routes for primary surfaces
+            routes: {
+              '/map': (_) => const MapScreen(),
+              '/navigation': (_) => const NavigationModeScreen(),
+            },
           );
         },
       ),

@@ -50,6 +50,7 @@ class DataOrb extends StatelessWidget {
     this.size = DataOrbSize.medium,
     this.state = DataOrbState.normal,
     this.progress,
+    this.heroTag,
   });
 
   /// Primary label (e.g., SOG, COG, DEPTH).
@@ -73,13 +74,16 @@ class DataOrb extends StatelessWidget {
   /// Optional progress (0-1) for ring fill; null = full ring.
   final double? progress;
 
+  /// Optional hero tag for cross-screen hero animations.
+  final Object? heroTag;
+
   @override
   Widget build(BuildContext context) {
     final dimension = _dimensionForSize(size);
     final ringColor = _ringColorForState(state);
     final inactive = state == DataOrbState.inactive;
 
-    return RepaintBoundary(
+    final orb = RepaintBoundary(
       child: SizedBox(
         width: dimension,
         height: dimension,
@@ -115,6 +119,9 @@ class DataOrb extends StatelessWidget {
         ),
       ),
     );
+
+    if (heroTag == null) return orb;
+    return Hero(tag: heroTag!, child: orb);
   }
 
   Color _ringColorForState(DataOrbState state) {

@@ -29,6 +29,7 @@ class NavigationModeScreen extends StatelessWidget {
         child: Stack(
           children: [
             const MapWebView(),
+            _buildTopBar(context),
             _buildDataOrbsRow(context),
             _buildRouteInfoCard(context),
             _buildActionBar(context),
@@ -39,13 +40,47 @@ class NavigationModeScreen extends StatelessWidget {
               child: NavigationSidebar(
                 items: items,
                 activeIndex: 2,
-                onSelected: (_) {},
+                onSelected: (index) => _handleNavSelection(context, index),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildTopBar(BuildContext context) {
+    return Positioned(
+      top: OceanDimensions.spacing,
+      left: OceanDimensions.spacing,
+      child: GlassCard(
+        padding: GlassCardPadding.small,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.arrow_back, color: OceanColors.pureWhite),
+              onPressed: () => Navigator.of(context).pushNamed('/map'),
+            ),
+            const SizedBox(width: OceanDimensions.spacingS),
+            const Text('Navigation Mode', style: OceanTextStyles.heading2),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleNavSelection(BuildContext context, int index) {
+    switch (index) {
+      case 1:
+        Navigator.of(context).pushNamed('/map');
+        break;
+      case 2:
+        // Current screen
+        break;
+      default:
+        break;
+    }
   }
 
   Widget _buildDataOrbsRow(BuildContext context) {
@@ -61,6 +96,7 @@ class NavigationModeScreen extends StatelessWidget {
             value: '13.1',
             unit: 'kts',
             size: DataOrbSize.large,
+            heroTag: 'orb-sog',
           ),
           SizedBox(width: OceanDimensions.spacingL),
           DataOrb(
@@ -68,6 +104,7 @@ class NavigationModeScreen extends StatelessWidget {
             value: '078',
             unit: '°',
             size: DataOrbSize.large,
+            heroTag: 'orb-cog',
           ),
           SizedBox(width: OceanDimensions.spacingL),
           DataOrb(
@@ -76,6 +113,7 @@ class NavigationModeScreen extends StatelessWidget {
             unit: 'm',
             size: DataOrbSize.large,
             state: DataOrbState.alert,
+            heroTag: 'orb-depth',
           ),
         ],
       ),

@@ -27,6 +27,19 @@ class _MapScreenState extends State<MapScreen> {
   bool isVr = false;
   final List<Offset> _windOffsets = [const Offset(40, 200)];
 
+  void _handleNavSelection(BuildContext context, int index) {
+    switch (index) {
+      case 1:
+        // Map (current)
+        break;
+      case 2:
+        Navigator.of(context).pushNamed('/navigation');
+        break;
+      default:
+        break;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,6 +90,7 @@ class _MapScreenState extends State<MapScreen> {
             value: '12.4',
             unit: 'kts',
             size: DataOrbSize.medium,
+            heroTag: 'orb-sog',
           ),
           SizedBox(width: OceanDimensions.spacingL),
           DataOrb(
@@ -85,6 +99,7 @@ class _MapScreenState extends State<MapScreen> {
             unit: '°',
             size: DataOrbSize.medium,
             subtitle: 'E',
+            heroTag: 'orb-cog',
           ),
           SizedBox(width: OceanDimensions.spacingL),
           DataOrb(
@@ -93,6 +108,7 @@ class _MapScreenState extends State<MapScreen> {
             unit: 'm',
             size: DataOrbSize.medium,
             state: DataOrbState.normal,
+            heroTag: 'orb-depth',
           ),
         ],
       ),
@@ -121,6 +137,7 @@ class _MapScreenState extends State<MapScreen> {
     final items = const [
       NavItem(icon: Icons.dashboard_outlined, label: 'Dashboard'),
       NavItem(icon: Icons.map_outlined, label: 'Map'),
+      NavItem(icon: Icons.alt_route, label: 'Nav Mode'),
       NavItem(icon: Icons.cloud_outlined, label: 'Weather'),
       NavItem(icon: Icons.settings_outlined, label: 'Settings'),
       NavItem(icon: Icons.person_outline, label: 'Profile'),
@@ -134,7 +151,7 @@ class _MapScreenState extends State<MapScreen> {
       child: NavigationSidebar(
         items: items,
         activeIndex: 1,
-        onSelected: (_) {},
+        onSelected: (index) => _handleNavSelection(context, index),
       ),
     );
   }

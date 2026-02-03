@@ -9,6 +9,8 @@ import 'package:provider/provider.dart';
 import '../providers/cache_provider.dart';
 import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
+import '../screens/map_screen.dart';
+import '../screens/navigation_mode_screen.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
@@ -45,6 +47,8 @@ class HomeScreen extends StatelessWidget {
                   delegate: SliverChildListDelegate([
                     _buildWelcomeCard(context),
                     OceanDimensions.spacingL.verticalSpace,
+                    _buildNavigationShortcuts(context),
+                    OceanDimensions.spacingL.verticalSpace,
                     _buildMapPreview(context),
                     OceanDimensions.spacingL.verticalSpace,
                     _buildThemeControls(context),
@@ -58,6 +62,46 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildNavigationShortcuts(BuildContext context) {
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Navigate to Screens', style: OceanTextStyles.heading2),
+          OceanDimensions.spacingS.verticalSpace,
+          Wrap(
+            spacing: OceanDimensions.spacing,
+            runSpacing: OceanDimensions.spacingS,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const MapScreen()),
+                ),
+                icon: const Icon(Icons.map_outlined),
+                label: const Text('Map View'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: OceanColors.seafoamGreen,
+                  foregroundColor: OceanColors.pureWhite,
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const NavigationModeScreen()),
+                ),
+                icon: const Icon(Icons.alt_route),
+                label: const Text('Navigation Mode'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: OceanColors.surface,
+                  foregroundColor: OceanColors.pureWhite,
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
