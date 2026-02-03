@@ -2,8 +2,8 @@
 # Feature Requirements
 ## Marine Navigation App - Detailed Feature Specifications
 
-**Version:** 4.0  
-**Last Updated:** 2026-02-01  
+**Version:** 4.1  
+**Last Updated:** 2026-02-03  
 **Purpose:** Comprehensive requirements for all planned features (includes SailStream UI)
 
 ---

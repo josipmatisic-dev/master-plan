@@ -3,8 +3,8 @@
 
 ## Marine Navigation App - Flutter Project Structure
 
-**Version:** 3.0  
-**Last Updated:** 2026-02-01  
+**Version:** 3.1  
+**Last Updated:** 2026-02-03  
 **Purpose:** Complete map of codebase structure, dependencies, and data flow (includes SailStream UI)
 
 ---
