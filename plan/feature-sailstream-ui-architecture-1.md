@@ -16,7 +16,7 @@ This implementation plan defines the complete SailStream UI architecture based o
 
 ## 1. Requirements & Constraints
 
-**Requirements**
+### Requirements
 
 - **REQ-001**: Document complete "Ocean Glass" design system with color palette, typography, and glass effects
 - **REQ-002**: Specify 5 core UI components: Navigation Sidebar, Data Orbs, Compass Widget, True Wind Widget, and Glass Card
@@ -24,26 +24,26 @@ This implementation plan defines the complete SailStream UI architecture based o
 - **REQ-004**: Define strict architecture rules preventing past failures (god objects, projection mismatches, provider chaos)
 - **REQ-005**: Create implementation-ready component specifications with exact measurements
 
-**Security Requirements**
+### Security Requirements
 
 - **SEC-001**: Ensure no hardcoded credentials or API keys in documentation examples
 - **SEC-002**: Document secure data handling patterns for user location and vessel data
 
-**Constraints**
+### Constraints
 
 - **CON-001**: All documentation must be in Markdown format
 - **CON-002**: Maximum file size for any single documentation file is 30KB
 - **CON-003**: All UI components must support responsive design (mobile, tablet, desktop)
 - **CON-004**: Glass effects must maintain 60 FPS performance requirement
 
-**Guidelines**
+### Guidelines
 
 - **GUD-001**: Follow Effective Dart coding standards for all code examples
 - **GUD-002**: Use Flutter best practices for widget composition
 - **GUD-003**: Maintain consistency with existing documentation structure in `docs/`
 - **GUD-004**: Include visual ASCII diagrams where helpful for component anatomy
 
-**Patterns**
+### Patterns
 
 - **PAT-001**: Use Provider pattern for state management (already established in project)
 - **PAT-002**: Single source of truth pattern for MapViewportService
@@ -56,45 +56,45 @@ This implementation plan defines the complete SailStream UI architecture based o
 
 - GOAL-001: Update existing master plan documentation files to include SailStream UI architecture specifications
 
-| Task     | Description                                                                 | Completed | Date |
-| -------- | ------------------------------------------------------------------------------------ | --------- | ---- |
-| TASK-001 | Add Section G: SailStream UI Architecture to MASTER_DEVELOPMENT_BIBLE.md            | ✅        | 2026-02-03 |
-| TASK-002 | Update CODEBASE_MAP.md with new widget structure (glass/, navigation/, data_displays/) | ✅        | 2026-02-03 |
-| TASK-003 | Add FEAT-015 (Glass UI Library), FEAT-016 (Navigation Mode), FEAT-017 (Wind Widgets) to FEATURE_REQUIREMENTS.md | ✅        | 2026-02-03 |
-| TASK-004 | Create new UI_DESIGN_SYSTEM.md with comprehensive design system documentation       | ✅        | 2026-02-03 |
+| Task | Description | Completed | Date |
+| --- | --- | --- | --- |
+| TASK-001 | Add Section G: SailStream UI Architecture to MASTER_DEVELOPMENT_BIBLE.md | ✅ | 2026-02-03 |
+| TASK-002 | Update CODEBASE_MAP.md with new widget structure (glass/, navigation/, data_displays/) | ✅ | 2026-02-03 |
+| TASK-003 | Add FEAT-015 (Glass UI Library), FEAT-016 (Navigation Mode), FEAT-017 (Wind Widgets) to FEATURE_REQUIREMENTS.md | ✅ | 2026-02-03 |
+| TASK-004 | Create new UI_DESIGN_SYSTEM.md with comprehensive design system documentation | ✅ | 2026-02-03 |
 
 ### Implementation Phase 2: UI Component Specifications
 
 - GOAL-002: Define detailed specifications for all SailStream glass UI components
 
-| Task     | Description                                                                 | Completed | Date |
-| -------- | ------------------------------------------------------------------------------------ | --------- | ---- |
-| TASK-005 | Specify Data Orb Widget with three size variants (80px, 140px, 200px)              | ✅        | 2026-02-03 |
-| TASK-006 | Specify Compass Widget with VR toggle, speed indicators, and rotating compass rose | ✅        | 2026-02-03 |
-| TASK-007 | Specify True Wind Widget with draggable behavior and circular progress indicator   | ✅        | 2026-02-03 |
-| TASK-008 | Specify Navigation Sidebar with vertical icon menu and active state styling        | ✅        | 2026-02-03 |
-| TASK-009 | Specify Glass Card base component with frosted glass effects (blur, opacity, radius)| ✅        | 2026-02-03 |
+| Task | Description | Completed | Date |
+| --- | --- | --- | --- |
+| TASK-005 | Specify Data Orb Widget with three size variants (80px, 140px, 200px) | ✅ | 2026-02-03 |
+| TASK-006 | Specify Compass Widget with VR toggle, speed indicators, and rotating compass rose | ✅ | 2026-02-03 |
+| TASK-007 | Specify True Wind Widget with draggable behavior and circular progress indicator | ✅ | 2026-02-03 |
+| TASK-008 | Specify Navigation Sidebar with vertical icon menu and active state styling | ✅ | 2026-02-03 |
+| TASK-009 | Specify Glass Card base component with frosted glass effects (blur, opacity, radius) | ✅ | 2026-02-03 |
 
 ### Implementation Phase 3: Architecture Documentation
 
 - GOAL-003: Document architecture patterns and rules to prevent past project failures
 
-| Task     | Description                                                                 | Completed | Date |
-| -------- | ------------------------------------------------------------------------------------ | --------- | ---- |
-| TASK-010 | Document provider dependency graph with Layer 0-3 hierarchy in CODEBASE_MAP.md     | ✅        | 2026-02-03 |
-| TASK-011 | Define complete widget hierarchy for MapScreen with z-index ordering                | ✅        | 2026-02-03 |
-| TASK-012 | Document ViewportProjector as single source of truth for projections               | ✅        | 2026-02-03 |
-| TASK-013 | Create screen flow documentation showing all navigation transitions                 | ✅        | 2026-02-03 |
+| Task | Description | Completed | Date |
+| --- | --- | --- | --- |
+| TASK-010 | Document provider dependency graph with Layer 0-3 hierarchy in CODEBASE_MAP.md | ✅ | 2026-02-03 |
+| TASK-011 | Define complete widget hierarchy for MapScreen with z-index ordering | ✅ | 2026-02-03 |
+| TASK-012 | Document ViewportProjector as single source of truth for projections | ✅ | 2026-02-03 |
+| TASK-013 | Create screen flow documentation showing all navigation transitions | ✅ | 2026-02-03 |
 
 ### Implementation Phase 4: Implementation Guidelines
 
 - GOAL-004: Provide implementation-ready guidelines, checklists, and testing requirements
 
-| Task     | Description                                                                 | Completed | Date |
-| -------- | ------------------------------------------------------------------------------------ | --------- | ---- |
-| TASK-014 | Add 7 critical architecture rules to AI_AGENT_INSTRUCTIONS.md with code examples    | ✅        | 2026-02-03 |
-| TASK-015 | Create component implementation checklists for all 5 UI components                  | ✅        | 2026-02-03 |
-| TASK-016 | Document testing requirements including widget tests, golden tests, and performance tests | ✅        | 2026-02-03 |
+| Task | Description | Completed | Date |
+| --- | --- | --- | --- |
+| TASK-014 | Add 7 critical architecture rules to AI_AGENT_INSTRUCTIONS.md with code examples | ✅ | 2026-02-03 |
+| TASK-015 | Create component implementation checklists for all 5 UI components | ✅ | 2026-02-03 |
+| TASK-016 | Document testing requirements including widget tests, golden tests, and performance tests | ✅ | 2026-02-03 |
 
 ## 3. Alternatives
 

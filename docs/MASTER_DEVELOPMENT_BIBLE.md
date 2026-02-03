@@ -788,4 +788,4 @@ ALL animations MUST use curves (easeInOut, decelerate) and complete in 200-400ms
 
 ---
 
-**Document End**
+<!-- Document End -->

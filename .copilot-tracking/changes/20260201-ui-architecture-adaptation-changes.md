@@ -1,4 +1,5 @@
 # Changes: SailStream UI Architecture Adaptation
+<!-- markdownlint-disable MD022 MD031 MD032 MD036 -->
 
 **Date:** 2026-02-03  
 **Status:** Documentation refresh; component implementation pending

@@ -1,4 +1,5 @@
 # Codebase Map
+<!-- markdownlint-disable MD022 MD031 MD032 MD036 MD040 MD046 MD051 MD060 -->
 
 ## Marine Navigation App - Flutter Project Structure
 
@@ -21,7 +22,7 @@
 
 ## Directory Structure
 
-```
+```text
 lib/
 ├── main.dart                     # App entry, provider setup
 ├── models/                       # Data models
@@ -118,6 +119,7 @@ lib/
 │   └── dimensions.dart          # Spacing/sizing
 │
 └── l10n/                         # Localization
+```
     ├── app_en.arb               # English strings
     ├── app_es.arb               # Spanish strings
     └── app_fr.arb               # French strings

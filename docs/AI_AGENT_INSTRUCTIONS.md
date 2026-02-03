@@ -1,4 +1,5 @@
 # AI Agent Instructions
+<!-- markdownlint-disable MD022 MD031 MD032 MD036 MD051 -->
 ## Marine Navigation App Development Guidelines
 
 **Version:** 2.0  
