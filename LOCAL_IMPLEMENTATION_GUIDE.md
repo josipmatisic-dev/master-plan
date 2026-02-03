@@ -77,7 +77,9 @@ flutter pub get
 cd ios
 pod install
 cd ..
-flutter run -d ios
+flutter devices
+# After choosing an iOS simulator/device ID from the list above:
+flutter run
 ```
 
 You can also open `ios/Runner.xcworkspace` in Xcode to build and run the Runner target.
