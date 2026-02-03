@@ -1,4 +1,5 @@
 # Codebase Map
+
 ## Marine Navigation App - Flutter Project Structure
 
 **Version:** 3.0  
@@ -151,6 +152,7 @@ test/
 ## Provider Dependency Graph
 
 ```
+
 Layer 0 (No Dependencies):
 ┌─────────────────────┐
 │ SettingsProvider    │  ← User preferences, units, language
@@ -180,10 +182,12 @@ Layer 3 (Depends on Layer 0-2):
 └─────────────────────────────────────────────────┘
 
 RULES:
+
 - Maximum 3 layers
 - No circular dependencies
 - All created in main.dart
 - Dependencies documented in code
+
 ```
 
 ---
@@ -193,12 +197,14 @@ RULES:
 ### Weather Data Flow
 
 ```
+
 User Pans Map
       ↓
 MapProvider.updateViewport()
       ↓
 WeatherProvider.fetchWeatherForBounds()
       ↓
+
 1. Check CacheService (cache-first)
       ↓
 2. If cached & valid → Return immediately
@@ -212,14 +218,17 @@ WeatherProvider.fetchWeatherForBounds()
 6. WeatherProvider.notifyListeners()
       ↓
 Widget Rebuild:
-  - MapScreen updates overlays
-  - WeatherCard shows new data
-  - ForecastScreen updates timeline
+
+- MapScreen updates overlays
+- WeatherCard shows new data
+- ForecastScreen updates timeline
+
 ```
 
 ### NMEA Data Flow
 
 ```
+
 GPS Device
       ↓
 Socket Connection (TCP/UDP)
@@ -243,14 +252,17 @@ Update BoatProvider with position
 BoatProvider.notifyListeners()
       ↓
 Widget Rebuild:
-  - BoatMarker moves on map
-  - BoatInfoCard updates speed/heading
-  - TrackOverlay adds breadcrumb
+
+- BoatMarker moves on map
+- BoatInfoCard updates speed/heading
+- TrackOverlay adds breadcrumb
+
 ```
 
 ### Overlay Rendering Flow
 
 ```
+
 WeatherProvider has new data
       ↓
 MapScreen receives notification
@@ -260,6 +272,7 @@ CustomPaint widget rebuilds
 WindOverlayPainter.paint() called
       ↓
 For each wind data point:
+
   1. Get lat/lng (WGS84)
   2. ProjectionService.latLngToMeters() → Web Mercator
   3. ProjectionService.metersToPixels() → Screen coords
@@ -269,6 +282,7 @@ For each wind data point:
 Canvas rendered to screen
       ↓
 60 FPS smooth animation
+
 ```
 
 ---
@@ -317,18 +331,21 @@ void main() async {
 ---
 
 ### providers/weather_provider.dart
+
 **Purpose:** Manages weather data fetching and caching  
 **Lines:** ~250  
 **Dependencies:** CacheService, WeatherApi, SettingsProvider  
 **Used By:** MapScreen, ForecastScreen, TimelineScreen  
 
 **Key Methods:**
+
 - `fetchWeather(Bounds bounds)` - Get weather for map area
 - `getForecast(LatLng location, int days)` - Get forecast
 - `refreshWeather()` - Force refresh from network
 - `_updateCache()` - Update cache with new data
 
 **State:**
+
 - `WeatherData? currentWeather` - Current conditions
 - `List<ForecastData> forecast` - 7-day forecast
 - `bool isLoading` - Network request in progress
@@ -337,36 +354,42 @@ void main() async {
 ---
 
 ### services/projection_service.dart
+
 **Purpose:** Coordinate system transformations  
 **Lines:** ~180  
 **Dependencies:** None (pure math)  
 **Used By:** All overlay painters, MapProvider  
 
 **Critical Methods:**
+
 - `latLngToMeters(lat, lng)` - WGS84 → Web Mercator
 - `metersToLatLng(x, y)` - Web Mercator → WGS84
 - `latLngToPixels(lat, lng, viewport)` - WGS84 → Screen
 - `pixelsToLatLng(offset, viewport)` - Screen → WGS84
 
 **Constants:**
+
 - `EARTH_RADIUS = 6378137.0` meters
 - `MAX_LATITUDE = 85.05112878` degrees
 
 ---
 
 ### widgets/map_webview.dart
+
 **Purpose:** WebView container for MapTiler GL JS  
 **Lines:** ~200  
 **Dependencies:** InAppWebView, MapProvider  
 **Used By:** MapScreen  
 
 **Key Features:**
+
 - JavaScript bridge for bi-directional communication
 - Debounced viewport sync (200ms)
 - Map control methods (setCenter, setZoom, flyTo)
 - Layer visibility toggles
 
 **JavaScript Handlers:**
+
 - `onMapMove` - Called when map viewport changes
 - `onMapClick` - Called when user taps map
 - `onMapLoad` - Called when map finishes loading
@@ -374,12 +397,14 @@ void main() async {
 ---
 
 ### widgets/overlays/wind_overlay.dart
+
 **Purpose:** Renders wind arrows on map  
 **Lines:** ~180  
 **Dependencies:** ProjectionService, WeatherProvider, Viewport  
 **Used By:** MapScreen  
 
 **Rendering Pipeline:**
+
 1. Receive WeatherData with wind points
 2. For each point: WGS84 → Screen coordinates
 3. Cull points outside viewport
@@ -393,6 +418,7 @@ void main() async {
 ### Core Services
 
 **CacheService**
+
 - **Type:** Singleton
 - **Storage:** Disk (application documents directory)
 - **Strategy:** LRU eviction, TTL-based expiry
@@ -400,6 +426,7 @@ void main() async {
 - **Index:** In-memory Map for fast lookups
 
 **WeatherApi**
+
 - **Provider:** Open-Meteo
 - **Endpoints:** `/v1/marine`, `/v1/forecast`
 - **Rate Limit:** None (free tier)
@@ -407,12 +434,14 @@ void main() async {
 - **Timeout:** 10 seconds
 
 **NMEAParser**
+
 - **Format:** NMEA 0183
 - **Sentences:** GGA, RMC, AIVDM, VTG, DPT, MWV
 - **Validation:** Checksum required
 - **Performance:** Runs in isolate
 
 **DatabaseService**
+
 - **Engine:** SQLite (sqflite package)
 - **Tables:** trips, waypoints, tracks, settings_backup
 - **Migrations:** Version-based schema updates
@@ -542,18 +571,22 @@ NavigationModeScreen (StatefulWidget)
 ## Communication Patterns
 
 ### Provider → Provider
+
 **FORBIDDEN:** Direct method calls between providers  
 **ALLOWED:** ProxyProvider with update() method
 
 ### Provider → Service
+
 **PATTERN:** Provider owns service instance, calls methods, handles async
 
 ### Widget → Provider
+
 **READ:** `context.read<Provider>()` for one-time access  
 **WATCH:** `context.watch<Provider>()` for reactive updates  
 **CONSUMER:** `Consumer<Provider>` widget for scoped rebuilds
 
 ### Service → Service
+
 **PATTERN:** Dependency injection in constructor, no singletons except Cache/Database
 
 ---

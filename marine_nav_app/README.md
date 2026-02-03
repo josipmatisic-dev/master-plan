@@ -1,3 +1,4 @@
+<!-- markdownlint-disable MD022 MD032 MD036 MD040 MD058 MD060 -->
 # Marine Navigation App - SailStream UI
 
 **Ocean Glass Design System**  
@@ -29,10 +30,12 @@ Marine navigation application with Ocean Glass design language - a fluid, marine
 - [x] `lib/providers/settings_provider.dart` - Layer 0 (no dependencies)
 - [x] `lib/providers/theme_provider.dart` - Layer 1
 - [x] `lib/providers/cache_provider.dart` - Layer 1
+- [x] `lib/providers/map_provider.dart` - Layer 2 (viewport scaffold)
 
 #### UI Components
 - [x] `lib/widgets/glass/glass_card.dart` - Base frosted glass component
 - [x] `lib/utils/responsive_utils.dart` - Responsive design utilities
+- [x] `lib/widgets/map/map_webview.dart` - WebView map scaffold
 
 #### App Structure
 - [x] `lib/main.dart` - Provider hierarchy and app initialization
@@ -86,7 +89,13 @@ lib/
 ├── providers/                 # State management (Layer 0-2)
 │   ├── settings_provider.dart # User preferences
 │   ├── theme_provider.dart    # Theme management
-│   └── cache_provider.dart    # Cache coordination
+│   ├── cache_provider.dart    # Cache coordination
+│   └── map_provider.dart      # Map viewport state
+├── models/                    # Data models
+│   ├── lat_lng.dart           # WGS84 coordinate pair
+│   └── viewport.dart          # Viewport state
+├── services/                  # Service layer
+│   └── projection_service.dart # Coordinate transforms
 ├── theme/                     # Ocean Glass design system
 │   ├── colors.dart           # Color palette
 │   ├── text_styles.dart      # Typography
@@ -95,6 +104,8 @@ lib/
 ├── widgets/                   # Reusable UI components
 │   └── glass/
 │       └── glass_card.dart   # Frosted glass container
+│   └── map/
+│       └── map_webview.dart   # Map WebView placeholder
 ├── screens/                   # App screens
 │   └── home_screen.dart      # Main navigation screen
 └── utils/                     # Utilities
@@ -147,8 +158,8 @@ lib/
 - ThemeProvider
 - CacheProvider
 
-**Layer 2** (Future - Can use Layer 0-1)
-- MapProvider
+**Layer 2** (Can use Layer 0-1)
+- MapProvider (scaffold)
 - WeatherProvider
 
 See `PROVIDER_HIERARCHY.md` for complete documentation.
@@ -182,14 +193,14 @@ See `PROVIDER_HIERARCHY.md` for complete documentation.
 1. **Backend Services** (when Flutter SDK available)
    - CacheService implementation
    - HttpClient with retry logic
-   - ProjectionService for coordinates
+   - ProjectionService for coordinates (scaffolded)
    - NMEAParser for GPS data
    - DatabaseService for persistence
 
 2. **Map Integration**
-   - MapProvider (Layer 2)
-   - MapTiler WebView integration
-   - ProjectionService coordination
+   - MapProvider (Layer 2 scaffold)
+   - MapTiler WebView integration (scaffolded via `webview_flutter`)
+   - ProjectionService coordination (scaffolded)
    - Overlay management
 
 3. **Weather Data**
