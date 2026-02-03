@@ -73,7 +73,7 @@ class AppTheme {
 
       // Divider
       dividerTheme: DividerThemeData(
-        color: OceanColors.textDisabled.withOpacity(0.2),
+        color: OceanColors.textDisabled.withValues(alpha: 0.2),
         thickness: 1,
         space: OceanDimensions.spacingM,
       ),
@@ -138,7 +138,7 @@ class AppTheme {
 
       // Divider
       dividerTheme: DividerThemeData(
-        color: OceanColors.textSecondaryLight.withOpacity(0.2),
+        color: OceanColors.textSecondaryLight.withValues(alpha: 0.2),
         thickness: 1,
         space: OceanDimensions.spacingM,
       ),

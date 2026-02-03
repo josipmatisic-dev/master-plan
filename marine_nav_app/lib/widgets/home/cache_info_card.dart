@@ -29,7 +29,7 @@ class CacheInfoCard extends StatelessWidget {
                 'Cache Status',
                 style: OceanTextStyles.heading2,
               ),
-              OceanDimensions.spacing.verticalSpace,
+              const SizedBox(height: OceanDimensions.spacing),
               SettingRow(
                 label: 'Status',
                 value: cache.isInitialized ? 'Initialized' : 'Not Ready',

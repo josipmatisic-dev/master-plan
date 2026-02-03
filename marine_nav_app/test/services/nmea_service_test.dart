@@ -27,7 +27,7 @@ void main() {
       // Note: This test would require a mock NMEA server
       // For now, we test the state management logic
       
-      final config = ConnectionConfig(
+      const config = ConnectionConfig(
         type: ConnectionType.tcp,
         host: 'localhost',
         port: 10110,
@@ -67,11 +67,11 @@ void main() {
       final statuses = <ConnectionStatus>[];
       final subscription = service.statusStream.listen(statuses.add);
 
-      final config = ConnectionConfig(
+      const config = ConnectionConfig(
         type: ConnectionType.tcp,
         host: 'invalid.host.test',
         port: 99999,
-        timeout: const Duration(milliseconds: 100),
+        timeout: Duration(milliseconds: 100),
       );
 
       try {
@@ -92,11 +92,11 @@ void main() {
       final errors = <NMEAError>[];
       final subscription = service.errorStream.listen(errors.add);
 
-      final config = ConnectionConfig(
+      const config = ConnectionConfig(
         type: ConnectionType.tcp,
         host: 'invalid.host.that.does.not.exist.test',
         port: 10110,
-        timeout: const Duration(milliseconds: 500),
+        timeout: Duration(milliseconds: 500),
       );
 
       try {
@@ -118,7 +118,7 @@ void main() {
     });
 
     test('UDP throws UnimplementedError', () async {
-      final config = ConnectionConfig(
+      const config = ConnectionConfig(
         type: ConnectionType.udp,
         host: 'localhost',
         port: 10110,
@@ -154,7 +154,7 @@ void main() {
 
   group('ConnectionConfig', () {
     test('has sensible defaults', () {
-      final config = ConnectionConfig(
+      const config = ConnectionConfig(
         type: ConnectionType.tcp,
         host: 'localhost',
         port: 10110,
@@ -165,7 +165,7 @@ void main() {
     });
 
     test('copyWith creates new instance with updated fields', () {
-      final config = ConnectionConfig(
+      const config = ConnectionConfig(
         type: ConnectionType.tcp,
         host: 'localhost',
         port: 10110,
@@ -179,7 +179,7 @@ void main() {
     });
 
     test('copyWith preserves original when no changes', () {
-      final config = ConnectionConfig(
+      const config = ConnectionConfig(
         type: ConnectionType.tcp,
         host: 'localhost',
         port: 10110,

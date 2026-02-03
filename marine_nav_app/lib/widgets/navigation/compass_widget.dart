@@ -79,7 +79,7 @@ class CompassWidget extends StatelessWidget {
         strokeWidth: 2,
         valueColor:
             const AlwaysStoppedAnimation<Color>(OceanColors.textSecondary),
-        backgroundColor: OceanColors.textSecondary.withOpacity(0.2),
+        backgroundColor: OceanColors.textSecondary.withValues(alpha: 0.2),
       ),
     );
   }

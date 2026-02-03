@@ -1,26 +1,46 @@
 import 'package:latlong2/latlong.dart';
 
-/// Aggregate model containing all parsed NMEA data from various sentence types.
-/// Updated whenever new sentences are received and parsed.
+/// Aggregate model containing all parsed NMEA 0183 sentence data.
+///
+/// This immutable model consolidates navigation data from multiple NMEA sentence types,
+/// providing a single source of truth for all vessel tracking information.
+/// Fields are nullable as not all sentence types are always available.
+/// Updated whenever new sentences are received and successfully parsed.
+///
+/// Typical usage:
+/// ```dart
+/// final nmea = NMEAData(
+///   gpgga: gpsFixData,
+///   gprmc: minNavData,
+///   timestamp: DateTime.now(),
+/// );
+/// final position = nmea.position; // Prefers GPRMC, falls back to GPGGA
+/// ```
 class NMEAData {
-  /// GPS position fix data (from GPGGA)
+  /// GPS position fix data parsed from GPGGA sentence (null if not received)
   final GPGGAData? gpgga;
 
-  /// Recommended minimum position data (from GPRMC)
+  /// Recommended minimum position data parsed from GPRMC sentence (null if not received)
   final GPRMCData? gprmc;
 
-  /// Track and ground speed data (from GPVTG)
+  /// Track and ground speed data parsed from GPVTG sentence (null if not received)
   final GPVTGData? gpvtg;
 
-  /// Wind data (from MWV)
+  /// Wind data parsed from MWV sentence (null if not received)
   final MWVData? mwv;
 
-  /// Depth data (from DPT)
+  /// Depth data parsed from DPT sentence (null if not received)
   final DPTData? dpt;
 
-  /// Timestamp when this data was last updated
+  /// Timestamp when this aggregated data was last updated
+  /// Used to track data staleness and synchronize UI updates
   final DateTime timestamp;
 
+  /// Creates an immutable instance of [NMEAData] with optional NMEA sentence data.
+  ///
+  /// [timestamp] is required to track when this data was created/updated.
+  /// All sentence data ([gpgga], [gprmc], [gpvtg], [mwv], [dpt]) is optional
+  /// as sentences may arrive asynchronously or not at all.
   const NMEAData({
     this.gpgga,
     this.gprmc,
@@ -30,26 +50,47 @@ class NMEAData {
     required this.timestamp,
   });
 
-  /// Convenience getter for current position
-  /// Prefers GPRMC (includes COG/SOG) over GPGGA
+  /// Returns the current vessel position (latitude/longitude).
+  ///
+  /// Prefers GPRMC position (includes COG/SOG) over GPGGA position for accuracy.
+  /// Falls back to GPGGA if GPRMC is not available.
+  /// Returns null if neither sentence type has been received.
   LatLng? get position => gprmc?.position ?? gpgga?.position;
 
-  /// Convenience getter for speed over ground (knots)
+  /// Returns the speed over ground in knots.
+  ///
+  /// Prioritizes GPVTG for dedicated speed data, falls back to GPRMC if available.
+  /// Returns null if no speed data is available from either sentence type.
   double? get speedOverGroundKnots => gpvtg?.speedKnots ?? gprmc?.speedKnots;
 
-  /// Convenience getter for course over ground (degrees true)
+  /// Returns the course over ground (true heading) in degrees (0-359).
+  ///
+  /// Prioritizes GPVTG data over GPRMC data.
+  /// Returns null if neither sentence provides track data.
   double? get courseOverGroundDegrees => gpvtg?.trackTrue ?? gprmc?.trackTrue;
 
-  /// Convenience getter for depth (meters)
+  /// Returns the water depth below transducer in meters.
+  ///
+  /// Returns null if DPT sentence has not been received.
   double? get depthMeters => dpt?.depthMeters;
 
-  /// Convenience getter for wind speed (knots)
+  /// Returns the wind speed in knots.
+  ///
+  /// Returns null if MWV sentence has not been received.
   double? get windSpeedKnots => mwv?.speedKnots;
 
-  /// Convenience getter for wind direction (degrees)
+  /// Returns the wind direction in degrees (0-359).
+  ///
+  /// Direction interpretation depends on [MWVData.isRelative]:
+  /// - true: angle relative to vessel bow
+  /// - false: absolute true wind direction
+  /// Returns null if MWV sentence has not been received.
   double? get windDirectionDegrees => mwv?.angleDegrees;
 
-  /// Create a copy with updated fields
+  /// Returns a copy of this [NMEAData] with specified fields replaced.
+  ///
+  /// Null arguments are not replaced, allowing selective updates.
+  /// Example: `data.copyWith(gpgga: newGpsData)` updates only the GPS data.
   NMEAData copyWith({
     GPGGAData? gpgga,
     GPRMCData? gprmc,
@@ -69,16 +110,28 @@ class NMEAData {
   }
 }
 
-/// GPGGA - Global Positioning System Fix Data
-/// Provides position, fix quality, and satellite information
+/// GPGGA - Global Positioning System Fix Data (NMEA 0183 sentence).
+///
+/// Provides absolute position, fix quality indicator, satellite count, and altitude.
+/// This sentence is typically emitted by GPS receivers every 1-2 seconds.
+/// Used for accurate positioning and fix quality assessment.
+///
+/// Reference: https://en.wikipedia.org/wiki/NMEA_0183#GGA
 class GPGGAData {
+  /// Geographic position in WGS84 format (latitude/longitude)
   final LatLng position;
+  /// UTC time of the fix
   final DateTime time;
-  final int fixQuality; // 0=invalid, 1=GPS, 2=DGPS
+  /// Fix quality indicator (0=invalid, 1=GPS fix, 2=DGPS fix, higher=RTK modes)
+  final int fixQuality;
+  /// Number of satellites currently used in the fix (0-12+)
   final int satellites;
-  final double? hdop; // Horizontal dilution of precision
+  /// Horizontal dilution of precision - lower values indicate better accuracy
+  final double? hdop;
+  /// Altitude above mean sea level (meters)
   final double? altitudeMeters;
 
+  /// Creates an immutable instance of [GPGGAData] from GPS fix information.
   const GPGGAData({
     required this.position,
     required this.time,
@@ -89,15 +142,26 @@ class GPGGAData {
   });
 }
 
-/// GPRMC - Recommended Minimum Navigation Information
-/// Provides position, speed, and course
+/// GPRMC - Recommended Minimum Navigation Information (NMEA 0183 sentence).
+///
+/// Provides position, speed over ground (SOG), and course over ground (COG).
+/// This is one of the most commonly transmitted sentences and provides
+/// essential navigation data for course and speed calculations.
+///
+/// Reference: https://en.wikipedia.org/wiki/NMEA_0183#RMC
 class GPRMCData {
+  /// Geographic position in WGS84 format (latitude/longitude)
   final LatLng position;
+  /// UTC time of the position fix
   final DateTime time;
-  final bool valid; // A=valid, V=warning
+  /// Fix validity indicator (true=valid fix, false=warning/invalid)
+  final bool valid;
+  /// Speed over ground (knots), null if not available
   final double? speedKnots;
-  final double? trackTrue; // Course over ground (degrees true)
+  /// Course over ground (true heading, degrees 0-359), null if not available
+  final double? trackTrue;
 
+  /// Creates an immutable instance of [GPRMCData] with navigation information.
   const GPRMCData({
     required this.position,
     required this.time,
@@ -107,14 +171,23 @@ class GPRMCData {
   });
 }
 
-/// GPVTG - Track and Ground Speed
-/// Provides detailed speed and track information
+/// GPVTG - Track and Ground Speed (NMEA 0183 sentence).
+///
+/// Provides detailed velocity information including true and magnetic track,
+/// and speed in both knots and km/h. More specific than GPRMC for speed/track data.
+///
+/// Reference: https://en.wikipedia.org/wiki/NMEA_0183#VTG
 class GPVTGData {
-  final double? trackTrue; // Course over ground (degrees true)
-  final double? trackMagnetic; // Course over ground (degrees magnetic)
-  final double? speedKnots; // Speed over ground (knots)
-  final double? speedKmh; // Speed over ground (km/h)
+  /// Course over ground (true heading, degrees 0-359), null if unavailable
+  final double? trackTrue;
+  /// Course over ground (magnetic heading, degrees 0-359), null if unavailable
+  final double? trackMagnetic;
+  /// Speed over ground (knots), null if unavailable
+  final double? speedKnots;
+  /// Speed over ground (kilometers per hour), null if unavailable
+  final double? speedKmh;
 
+  /// Creates an immutable instance of [GPVTGData] with track and speed information.
   const GPVTGData({
     this.trackTrue,
     this.trackMagnetic,
@@ -123,14 +196,25 @@ class GPVTGData {
   });
 }
 
-/// MWV - Wind Speed and Angle
-/// Provides wind direction and speed (relative or true)
+/// MWV - Wind Speed and Angle (NMEA 0183 sentence).
+///
+/// Provides wind direction and speed information. Wind can be relative to the vessel
+/// or absolute (true wind). Relative wind is calculated from the vessel's speed and
+/// heading; true wind must be calculated from multiple sources (speed, course, relative wind).
+///
+/// Reference: https://en.wikipedia.org/wiki/NMEA_0183#MWV
 class MWVData {
-  final double angleDegrees; // Wind angle (0-359)
-  final bool isRelative; // true=relative to bow, false=true wind
+  /// Wind angle (degrees 0-359 from reference direction)
+  /// Reference depends on [isRelative]: vessel bow if relative, true north if absolute
+  final double angleDegrees;
+  /// Wind reference frame (true=relative to vessel bow, false=true/absolute wind)
+  final bool isRelative;
+  /// Wind speed (knots)
   final double speedKnots;
-  final bool valid; // A=valid, V=invalid
+  /// Data validity (true=valid, false=invalid/error)
+  final bool valid;
 
+  /// Creates an immutable instance of [MWVData] with wind information.
   const MWVData({
     required this.angleDegrees,
     required this.isRelative,
@@ -139,12 +223,21 @@ class MWVData {
   });
 }
 
-/// DPT - Depth of Water
-/// Provides depth below transducer
+/// DPT - Depth of Water (NMEA 0183 sentence).
+///
+/// Provides water depth measurement from a sounder/transducer. The transducer is typically
+/// located at the lowest point of the hull. Offset can be used to calculate depth from
+/// a different reference point (e.g., surface, waterline).
+///
+/// Reference: https://en.wikipedia.org/wiki/NMEA_0183#DBT,_DBK,_DPT
 class DPTData {
-  final double depthMeters; // Depth below transducer
-  final double? offsetMeters; // Offset from transducer (+ = down)
+  /// Water depth below transducer (meters)
+  final double depthMeters;
+  /// Transducer offset from reference point (positive=below waterline, negative=above)
+  /// Used to calculate depth from different reference points (e.g., keel, waterline)
+  final double? offsetMeters;
 
+  /// Creates an immutable instance of [DPTData] with depth information.
   const DPTData({
     required this.depthMeters,
     this.offsetMeters,

@@ -9,6 +9,9 @@ import '../models/nmea_error.dart';
 /// - GPVTG: Track and Ground Speed
 /// - MWV: Wind Speed and Angle
 /// - DPT: Depth of Water
+///
+/// This utility class uses only static members to group NMEA parsing functionality.
+// ignore_for_file: avoid_classes_with_only_static_members
 class NMEAParser {
   /// Calculate NMEA checksum for a sentence (excluding $ and *)
   /// XOR of all characters between $ and *

@@ -17,22 +17,22 @@ class WelcomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return const GlassCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.sailing,
             size: OceanDimensions.iconXL,
             color: OceanColors.seafoamGreen,
           ),
-          OceanDimensions.spacingM.verticalSpace,
-          const Text(
+          SizedBox(height: OceanDimensions.spacingM),
+          Text(
             'Ocean Glass Design',
             style: OceanTextStyles.heading2,
           ),
-          OceanDimensions.spacingS.verticalSpace,
-          const Text(
+          SizedBox(height: OceanDimensions.spacingS),
+          Text(
             'Phase 0 Foundation Complete ✅',
             style: OceanTextStyles.body,
           ),

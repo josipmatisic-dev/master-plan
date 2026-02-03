@@ -1,11 +1,17 @@
 /// NMEA connection configuration
 class ConnectionConfig {
+  /// Connection type (TCP/UDP)
   final ConnectionType type;
+  /// Server hostname or IP address
   final String host;
+  /// Server port number
   final int port;
+  /// Connection timeout duration
   final Duration timeout;
+  /// Delay between reconnection attempts
   final Duration reconnectDelay;
 
+  /// Creates an instance of [ConnectionConfig] with connection settings
   const ConnectionConfig({
     required this.type,
     required this.host,
@@ -14,6 +20,7 @@ class ConnectionConfig {
     this.reconnectDelay = const Duration(seconds: 5),
   });
 
+  /// Returns a copy of this configuration with specified fields replaced
   ConnectionConfig copyWith({
     ConnectionType? type,
     String? host,
@@ -33,9 +40,12 @@ class ConnectionConfig {
 
 /// Connection type (TCP or UDP)
 enum ConnectionType {
+  /// TCP connection (reliable, ordered)
   tcp,
+  /// UDP connection (fast, unreliable)
   udp;
 
+  /// Returns the string representation of this connection type
   @override
   String toString() {
     switch (this) {
@@ -49,13 +59,21 @@ enum ConnectionType {
 
 /// Connection status
 enum ConnectionStatus {
+  /// Not connected to NMEA device
   disconnected,
+  /// Attempting to connect
   connecting,
+  /// Successfully connected
   connected,
+  /// Attempting to reconnect after disconnection
   reconnecting,
+  /// Error state
+
   error;
 
+  /// Whether currently connected
   bool get isConnected => this == ConnectionStatus.connected;
+  /// Whether connection is active (connected, connecting, or reconnecting)
   bool get isActive =>
       this == ConnectionStatus.connected ||
       this == ConnectionStatus.connecting ||
@@ -64,11 +82,16 @@ enum ConnectionStatus {
 
 /// NMEA parsing or connection error
 class NMEAError {
+  /// Error category/type
   final NMEAErrorType type;
+  /// Error description message
   final String message;
-  final String? sentence; // Original sentence that caused error
+  /// Original sentence that caused the error
+  final String? sentence;
+  /// When the error occurred
   final DateTime timestamp;
 
+  /// Creates an instance of [NMEAError] with error details
   NMEAError({
     required this.type,
     required this.message,

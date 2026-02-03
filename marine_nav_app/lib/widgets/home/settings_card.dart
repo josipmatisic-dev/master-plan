@@ -29,7 +29,7 @@ class SettingsCard extends StatelessWidget {
                 'Settings',
                 style: OceanTextStyles.heading2,
               ),
-              OceanDimensions.spacing.verticalSpace,
+              const SizedBox(height: OceanDimensions.spacing),
               SettingRow(
                 label: 'Speed Unit',
                 value: settings.speedUnit.name.toUpperCase(),

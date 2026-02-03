@@ -241,9 +241,9 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (context) => const AlertDialog(
         backgroundColor: OceanColors.surface,
-        content: const Column(
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             CircularProgressIndicator(

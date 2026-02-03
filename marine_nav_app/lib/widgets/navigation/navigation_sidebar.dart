@@ -96,7 +96,7 @@ class _NavButton extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isActive
-              ? OceanColors.seafoamGreen.withOpacity(0.15)
+              ? OceanColors.seafoamGreen.withValues(alpha: 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(OceanDimensions.radiusM),
         ),

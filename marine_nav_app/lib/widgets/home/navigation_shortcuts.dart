@@ -24,7 +24,7 @@ class NavigationShortcuts extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Navigate to Screens', style: OceanTextStyles.heading2),
-          OceanDimensions.spacingS.verticalSpace,
+          const SizedBox(height: OceanDimensions.spacingS),
           Wrap(
             spacing: OceanDimensions.spacing,
             runSpacing: OceanDimensions.spacingS,
