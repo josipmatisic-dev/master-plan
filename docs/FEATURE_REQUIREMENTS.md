@@ -807,6 +807,7 @@ Dedicated navigation mode screen with large data orbs for SOG, COG, and DEPTH, r
 - Update route visualization when viewport changes
 - Store user-created routes in local database
 - Validate waypoint coordinates
+- Implementation status: Layout scaffold in `navigation_mode_screen.dart` with placeholder values; navigation entry wiring and data plumbing pending.
 
 **UI Layout:**
 - Top section: 120px for data orbs

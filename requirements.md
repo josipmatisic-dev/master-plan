@@ -24,3 +24,32 @@ As a navigator, I want an interactive nautical map with smooth pan/zoom/rotate a
 ## Out of scope (this increment)
 
 - Weather overlays, NMEA input, boat tracking, timeline playback.
+
+---
+
+## FEAT-016 Navigation Mode Screen
+
+### User story (FEAT-016)
+
+As a navigator, I want a dedicated navigation mode with oversized data orbs and route controls so that I can monitor critical metrics and manage routes quickly while underway.
+
+### Acceptance criteria (FEAT-016, EARS)
+
+- WHEN navigation mode opens, THE SYSTEM SHALL display three large data orbs for SOG, COG, and DEPTH with fallback placeholders when data is missing.
+- WHEN a route is active, THE SYSTEM SHALL render the current route line and show the next waypoint name, distance, and ETA in a bottom info card.
+- WHEN the user taps `+ Route`, THE SYSTEM SHALL initiate route creation and surface feedback within the navigation mode UI.
+- WHEN the user taps `Mark Position`, THE SYSTEM SHALL capture the current location as a waypoint and confirm visually.
+- WHEN the user taps `Track`, THE SYSTEM SHALL toggle tracking state and reflect the active state in the action bar.
+- WHEN the user taps `Alerts`, THE SYSTEM SHALL present navigation warnings without blocking map interaction.
+- WHEN navigation mode is exited, THE SYSTEM SHALL return to the main map without losing active route context.
+
+### Constraints (FEAT-016)
+
+- Must reuse `MapWebView` for the background map with overlays driven by provider state.
+- UI must respect responsive breakpoints (mobile/tablet/desktop) via `ResponsiveUtils`.
+- Keep files under 300 lines and dispose any controllers if added.
+
+### Out of scope (FEAT-016)
+
+- Persisting user-created routes to storage.
+- Real-time NMEA data plumbing; uses placeholder values until FEAT-002 integration.
