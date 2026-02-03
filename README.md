@@ -54,6 +54,8 @@ flutter analyze
 flutter run
 ```
 
+**iOS parallel development:** The iOS scaffold is already present in `marine_nav_app/ios`. Use a macOS machine with Xcode and CocoaPods installed, then either run `flutter run` with an iOS simulator or device selected, or list devices with `flutter devices` and pass the specific id to `flutter run -d <device-id>`, or open `ios/Runner.xcworkspace` in Xcode.
+
 ## 📊 Statistics
 
 - **Documentation Stats:** See [DOCUMENTATION_SUMMARY.md](docs/DOCUMENTATION_SUMMARY.md) for the current file and line counts

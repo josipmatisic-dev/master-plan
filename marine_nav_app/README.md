@@ -81,6 +81,29 @@ flutter run
 flutter test
 ```
 
+### iOS Development (Parallel)
+
+The iOS project scaffold already exists under `marine_nav_app/ios`. To develop iOS in parallel with Android, use a macOS machine with Xcode and CocoaPods installed.
+
+```bash
+# From marine_nav_app/
+flutter pub get
+
+# Normally flutter run handles CocoaPods; run this only if you hit pod issues
+# or after changing native iOS dependencies/Podfile.
+cd ios
+pod install
+cd ..
+
+# Launch on an iOS simulator or device (with the simulator/device running)
+flutter run
+# Or, list devices and pass the desired device id:
+# flutter devices
+# flutter run -d <device_id>
+```
+
+For Xcode workflows, open `ios/Runner.xcworkspace` and run the Runner target.
+
 ### Project Structure
 
 ```
