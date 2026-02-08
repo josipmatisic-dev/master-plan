@@ -98,7 +98,8 @@ class Route {
   ///
   /// Calculates great-circle distance using Haversine formula.
   /// Returns 0 if no next waypoint exists.
-  double distanceToNextWaypoint(LatLng currentPosition, int currentWaypointIndex) {
+  double distanceToNextWaypoint(
+      LatLng currentPosition, int currentWaypointIndex) {
     return GeoUtils.getDistanceToNextWaypoint(
       this,
       currentPosition,
@@ -110,7 +111,8 @@ class Route {
   ///
   /// Calculates bearing in degrees (0-360) where 0° is north, 90° is east, etc.
   /// Returns 0 if no next waypoint exists.
-  double bearingToNextWaypoint(LatLng currentPosition, int currentWaypointIndex) {
+  double bearingToNextWaypoint(
+      LatLng currentPosition, int currentWaypointIndex) {
     return GeoUtils.getBearingToNextWaypoint(
       this,
       currentPosition,

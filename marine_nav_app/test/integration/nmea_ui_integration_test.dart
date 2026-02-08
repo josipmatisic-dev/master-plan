@@ -94,8 +94,7 @@ void main() {
       expect(settingsProvider.speedUnit, SpeedUnit.kph);
     });
 
-    testWidgets('D: Theme mode can be switched',
-        (WidgetTester tester) async {
+    testWidgets('D: Theme mode can be switched', (WidgetTester tester) async {
       // Verify initial dark theme
       expect(themeProvider.themeMode, AppThemeMode.dark);
 

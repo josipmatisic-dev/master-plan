@@ -56,14 +56,19 @@ class SettingsScreen extends StatelessWidget {
                 dropdownColor: OceanColors.surface,
                 decoration: InputDecoration(
                   labelText: 'Speed Unit',
-                  labelStyle: OceanTextStyles.label.copyWith(color: OceanColors.textDisabled),
+                  labelStyle: OceanTextStyles.label
+                      .copyWith(color: OceanColors.textDisabled),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-                    borderSide: BorderSide(color: OceanColors.textDisabled.withValues(alpha: 0.3)),
+                    borderRadius:
+                        BorderRadius.circular(OceanDimensions.radiusS),
+                    borderSide: BorderSide(
+                        color: OceanColors.textDisabled.withValues(alpha: 0.3)),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-                    borderSide: const BorderSide(color: OceanColors.seafoamGreen, width: 2),
+                    borderRadius:
+                        BorderRadius.circular(OceanDimensions.radiusS),
+                    borderSide: const BorderSide(
+                        color: OceanColors.seafoamGreen, width: 2),
                   ),
                 ),
                 items: const [
@@ -93,4 +98,3 @@ class SettingsScreen extends StatelessWidget {
     );
   }
 }
-

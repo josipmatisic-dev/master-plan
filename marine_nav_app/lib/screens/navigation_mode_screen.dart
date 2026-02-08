@@ -65,7 +65,8 @@ class NavigationModeScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.arrow_back, color: OceanColors.pureWhite),
+                  icon: const Icon(Icons.arrow_back,
+                      color: OceanColors.pureWhite),
                   onPressed: () => Navigator.of(context).pushNamed('/map'),
                 ),
                 const SizedBox(width: OceanDimensions.spacingS),
@@ -105,23 +106,25 @@ class NavigationModeScreen extends StatelessWidget {
         builder: (context, nmea, child) {
           final data = nmea.currentData;
           final isConnected = nmea.isConnected;
-          
+
           // Extract values from NMEA data or use fallback
           final sog = data?.gpvtg?.speedKnots?.toStringAsFixed(1) ?? '--';
           final cog = data?.gprmc?.trackTrue?.toStringAsFixed(0) ?? '--';
           final depth = data?.dpt?.depthMeters.toStringAsFixed(1) ?? '--';
-          
+
           // Determine states based on connection and data
-          final sogState = isConnected ? DataOrbState.normal : DataOrbState.inactive;
-          final cogState = isConnected ? DataOrbState.normal : DataOrbState.inactive;
-          
+          final sogState =
+              isConnected ? DataOrbState.normal : DataOrbState.inactive;
+          final cogState =
+              isConnected ? DataOrbState.normal : DataOrbState.inactive;
+
           // Depth alert if shallow (< 5m) or unknown
-          final depthState = !isConnected 
+          final depthState = !isConnected
               ? DataOrbState.inactive
               : (data?.dpt != null && data!.dpt!.depthMeters < 5.0)
                   ? DataOrbState.alert
                   : DataOrbState.normal;
-          
+
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

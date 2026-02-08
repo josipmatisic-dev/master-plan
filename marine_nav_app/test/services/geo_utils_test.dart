@@ -149,7 +149,8 @@ void main() {
         );
 
         const currentPosition = LatLng(0.5, 0.0);
-        final distance = GeoUtils.getDistanceToNextWaypoint(route, currentPosition, 0);
+        final distance =
+            GeoUtils.getDistanceToNextWaypoint(route, currentPosition, 0);
 
         // Should be approximately 30 nm (half of 1 degree)
         expect(distance, greaterThan(25.0));
@@ -174,7 +175,8 @@ void main() {
           updatedAt: DateTime.now(),
         );
 
-        final distance = GeoUtils.getDistanceToNextWaypoint(route, const LatLng(0.0, 0.0), 0);
+        final distance = GeoUtils.getDistanceToNextWaypoint(
+            route, const LatLng(0.0, 0.0), 0);
 
         expect(distance, equals(0.0));
       });

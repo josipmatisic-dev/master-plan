@@ -44,7 +44,7 @@ class SettingsProvider extends ChangeNotifier {
   DistanceUnit _distanceUnit = DistanceUnit.nauticalMiles;
   String _language = 'en';
   int _mapRefreshRate = 5000; // milliseconds
-  
+
   // NMEA Configuration
   String _nmeaHost = 'localhost';
   int _nmeaPort = 10110;
@@ -114,12 +114,12 @@ class SettingsProvider extends ChangeNotifier {
       // NMEA settings
       _nmeaHost = _prefs!.getString('nmeaHost') ?? 'localhost';
       _nmeaPort = _prefs!.getInt('nmeaPort') ?? 10110;
-      
+
       final nmeaConnectionTypeIndex = _prefs!.getInt('nmeaConnectionType');
       if (nmeaConnectionTypeIndex != null) {
         _nmeaConnectionType = ConnectionType.values[nmeaConnectionTypeIndex];
       }
-      
+
       _autoConnectNMEA = _prefs!.getBool('autoConnectNMEA') ?? false;
 
       notifyListeners();

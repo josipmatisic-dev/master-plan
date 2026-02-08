@@ -26,7 +26,7 @@ void main() {
     test('throws StateError when connecting while already running', () async {
       // Note: This test would require a mock NMEA server
       // For now, we test the state management logic
-      
+
       const config = ConnectionConfig(
         type: ConnectionType.tcp,
         host: 'localhost',

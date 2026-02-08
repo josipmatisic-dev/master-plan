@@ -35,12 +35,12 @@ class NMEAConnectionIndicator extends StatelessWidget {
         final isConnected = nmea.isConnected;
         final isActive = nmea.isActive;
         final lastError = nmea.lastError;
-        
+
         // Determine indicator color and icon based on connection state
         Color indicatorColor;
         IconData indicatorIcon;
         String statusText;
-        
+
         if (isConnected) {
           indicatorColor = OceanColors.seafoamGreen;
           indicatorIcon = Icons.link;
@@ -58,7 +58,7 @@ class NMEAConnectionIndicator extends StatelessWidget {
           indicatorIcon = Icons.link_off;
           statusText = 'NMEA Disconnected';
         }
-        
+
         return GlassCard(
           padding: GlassCardPadding.small,
           child: InkWell(
@@ -87,7 +87,7 @@ class NMEAConnectionIndicator extends StatelessWidget {
   /// Show connection management dialog
   void _showConnectionDialog(BuildContext context) {
     final nmea = context.read<NMEAProvider>();
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -105,7 +105,8 @@ class NMEAConnectionIndicator extends StatelessWidget {
               const SizedBox(height: OceanDimensions.spacingS),
               Text(
                 'Error: ${nmea.lastError!.message}',
-                style: OceanTextStyles.body.copyWith(color: OceanColors.coralRed),
+                style:
+                    OceanTextStyles.body.copyWith(color: OceanColors.coralRed),
               ),
             ],
             if (nmea.lastUpdateTime != null) ...[
@@ -160,7 +161,7 @@ class NMEAConnectionIndicator extends StatelessWidget {
   String _formatTime(DateTime time) {
     final now = DateTime.now();
     final diff = now.difference(time);
-    
+
     if (diff.inSeconds < 60) {
       return '${diff.inSeconds}s ago';
     } else if (diff.inMinutes < 60) {

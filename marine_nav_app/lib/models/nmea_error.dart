@@ -2,12 +2,16 @@
 class ConnectionConfig {
   /// Connection type (TCP/UDP)
   final ConnectionType type;
+
   /// Server hostname or IP address
   final String host;
+
   /// Server port number
   final int port;
+
   /// Connection timeout duration
   final Duration timeout;
+
   /// Delay between reconnection attempts
   final Duration reconnectDelay;
 
@@ -42,6 +46,7 @@ class ConnectionConfig {
 enum ConnectionType {
   /// TCP connection (reliable, ordered)
   tcp,
+
   /// UDP connection (fast, unreliable)
   udp;
 
@@ -61,18 +66,23 @@ enum ConnectionType {
 enum ConnectionStatus {
   /// Not connected to NMEA device
   disconnected,
+
   /// Attempting to connect
   connecting,
+
   /// Successfully connected
   connected,
+
   /// Attempting to reconnect after disconnection
   reconnecting,
+
   /// Error state
 
   error;
 
   /// Whether currently connected
   bool get isConnected => this == ConnectionStatus.connected;
+
   /// Whether connection is active (connected, connecting, or reconnecting)
   bool get isActive =>
       this == ConnectionStatus.connected ||
@@ -84,10 +94,13 @@ enum ConnectionStatus {
 class NMEAError {
   /// Error category/type
   final NMEAErrorType type;
+
   /// Error description message
   final String message;
+
   /// Original sentence that caused the error
   final String? sentence;
+
   /// When the error occurred
   final DateTime timestamp;
 
