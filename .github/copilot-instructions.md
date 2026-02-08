@@ -1,10 +1,16 @@
 # GitHub Copilot Instructions - Marine Navigation App
 
-## Quick context
+## ⚡ Start Here: Essential Reading Order
+**Before ANY code change, read in this order (15 min):**
+1. **Failure lessons** → `docs/MASTER_DEVELOPMENT_BIBLE.md` Section A (why 4 attempts failed)
+2. **This architecture** → `docs/MASTER_DEVELOPMENT_BIBLE.md` Section C (mandatory rules C.1-C.10)
+3. **Known gotchas** → `docs/KNOWN_ISSUES_DATABASE.md` (18 issues + solutions)
+4. **Code inventory** → `docs/MASTER_DEVELOPMENT_BIBLE.md` Section B (copy working code)
+
+## Quick Context
 - **Repo structure:** Master planning docs at root; runnable Flutter app in `marine_nav_app/`
-- **Read first, code second:** `docs/MASTER_DEVELOPMENT_BIBLE.md` (Sections A: failure analysis, C: architecture rules), then `docs/AI_AGENT_INSTRUCTIONS.md`, `docs/KNOWN_ISSUES_DATABASE.md` (18 documented issues), and `docs/CODEBASE_MAP.md`
-- **Why this matters:** 4 previous failed attempts documented—avoid repeating god objects, projection mismatches, circular dependencies, and cache race conditions
-- **Pattern reuse:** Section B of Bible contains battle-tested code; copy don't reinvent
+- **Why this matters:** 4 previous failed attempts documented—avoid repeating: god objects (ISS-002), projection mismatches (ISS-001), circular dependencies (ISS-003), cache race conditions (ISS-004), memory leaks (ISS-006), RenderFlex overflow (ISS-005)
+- **Pattern reuse:** Section B of Bible contains battle-tested code; copy don't reinvent—don't rewrite working patterns
 
 ## Architecture & data flow
 ### Provider hierarchy (strict acyclic)
@@ -13,6 +19,41 @@
 - **Layer 2 (domain):** `MapProvider` depends on Layers 0+1 (future: `WeatherProvider`)
 - **Declaration:** All providers initialized in `marine_nav_app/lib/main.dart` with `MultiProvider`—never create providers inside widget `build()` methods (see ISS-003)
 - **Dependency graph:** Documented in `marine_nav_app/PROVIDER_HIERARCHY.md`; update when adding providers
+
+**Provider Wiring Pattern (from `main.dart`):**
+```dart
+// CORRECT: Initialize dependencies bottom-up (Layer 0 → 1 → 2)
+final settingsProvider = SettingsProvider();
+final themeProvider = ThemeProvider();
+final cacheProvider = CacheProvider();
+final mapProvider = MapProvider(
+  settingsProvider: settingsProvider,  // Inject Layer 0 dependency
+  cacheProvider: cacheProvider,         // Inject Layer 1 dependency
+);
+final nmeaProvider = NMEAProvider(
+  settingsProvider: settingsProvider,
+  cacheProvider: cacheProvider,
+);
+// Initialize in order (fastest first)
+await Future.wait([
+  settingsProvider.init(),
+  themeProvider.init(),
+  cacheProvider.init(),
+  mapProvider.init(),
+]);
+// Pass to MultiProvider
+MultiProvider(
+  providers: [
+    ChangeNotifierProvider.value(value: settingsProvider),
+    ChangeNotifierProvider.value(value: themeProvider),
+    ChangeNotifierProvider.value(value: cacheProvider),
+    ChangeNotifierProvider.value(value: mapProvider),
+    ChangeNotifierProvider.value(value: nmeaProvider),
+    ChangeNotifierProvider.value(value: routeProvider),
+  ],
+  child: MyApp(),
+)
+```
 
 ### Coordinate projection (critical)
 - **ProjectionService is mandatory:** ALL lat/lng ↔ screen transforms go through `lib/services/projection_service.dart`
@@ -36,6 +77,49 @@
 ### File organization
 - **Size limit:** Max 300 lines per Dart file/provider (hard limit from ISS-002 god object lesson)
 - **Dispose discipline:** All `AnimationController`, `StreamSubscription`, `TextEditingController` must have `dispose()` (see ISS-006 memory leaks)
+
+## Critical Service Layer Patterns
+
+### NMEA Data Stream (Real-time Boat Position & Telemetry)
+**Key Files:** `lib/services/nmea_service.dart`, `lib/providers/nmea_provider.dart`, `lib/models/nmea_data.dart`
+
+**Pattern:**
+- `NMEAService` runs in background isolate (separate thread) to avoid blocking UI
+- Batches NMEA sentences every 200ms before notifying listeners
+- Handles TCP/UDP connections with auto-reconnect
+- **Use:** `NMEAProvider.nmeaStream` (Stream<NMEAData>) for real-time updates
+- **Integration:** Called from `NMEAProvider` which is in Layer 2 (domain)
+- **Example:**
+  ```dart
+  context.watch<NMEAProvider>().nmeaStream.listen((data) {
+    print('${data.latitude}, ${data.longitude}, SOG: ${data.sog}');
+  });
+  ```
+
+### Projection Service (All Coordinate Transforms)
+**Key File:** `lib/services/projection_service.dart`
+**Rule (ISS-001):** NEVER do manual lat/lng→screen math. ALWAYS use `ProjectionService`.
+
+**Methods:**
+```dart
+// WGS84 (EPSG:4326) ← → Web Mercator (EPSG:3857)
+Offset latLngToScreen(LatLng, Viewport) → screen position
+LatLng screenToLatLng(Offset, Viewport) → geographic coordinate
+Point webMercatorToWgs84(x, y) → conversion for map tiles
+```
+**Pattern:**
+- `Viewport` contains map center, zoom, rotation, tilt
+- Updated by `MapProvider` when user pans/zooms
+- All wind arrows, wave overlays, AIS targets use this service
+- **Anti-pattern:** `left: (lng + 180) * width / 360` → causes ISS-001
+
+### Geo Utilities (Distance/Bearing Calculations)
+**Key File:** `lib/services/geo_utils.dart`
+**Use for:**
+- Distance between two points: `GeoUtils.distance(from, to)` → meters
+- Bearing/heading: `GeoUtils.bearing(from, to)` → degrees (0-360)
+- Destination point: `GeoUtils.destination(from, distance, bearing)`
+- **Coordinate format:** All methods accept `LatLng` model
 
 ## UI system (SailStream / Ocean Glass)
 ### Design tokens (all in `lib/theme/`)
@@ -119,6 +203,146 @@ flutter run -d <device>  # or flutter devices to list
 - iOS scaffold ready in `marine_nav_app/ios/`
 - Requires: macOS + Xcode + CocoaPods
 - Open `ios/Runner.xcworkspace` in Xcode or use `flutter run -d <ios-device-id>`
+
+### Testing Strategy
+**Test Organization:**
+- **Unit tests** (`test/providers/`, `test/services/`, `test/models/`): Test business logic in isolation
+- **Widget tests** (`test/widget_test.dart`): Test UI components and screen rendering
+- **Integration tests** (`test/integration/`): Test real workflows (e.g., NMEA → UI update → map render)
+
+**Writing Tests:**
+1. Mock external dependencies: `SharedPreferences`, `http.Client`, streams
+2. Test provider initialization: `setUp()` initializes all dependencies
+3. Verify state changes: Use `notifyListeners()` and `tester.pump()`
+4. Always test `dispose()` cleanup
+
+**Example (Provider Test):**
+```dart
+void main() {
+  test('MapProvider updates viewport on pan', () async {
+    final settingsProvider = SettingsProvider();
+    final cacheProvider = CacheProvider();
+    final mapProvider = MapProvider(
+      settingsProvider: settingsProvider,
+      cacheProvider: cacheProvider,
+    );
+    
+    // Test state change
+    mapProvider.pan(lat: 10.5, lng: 20.3);
+    expect(mapProvider.viewport.center.latitude, 10.5);
+    
+    // Clean up
+    mapProvider.dispose();
+  });
+}
+```
+
+**Coverage Requirements:**
+- Minimum 80% coverage for new code
+- Run: `flutter test --coverage`
+- Check: `coverage/lcov.info`
+
+## Project-Specific Code Patterns
+
+### Provider Initialization Pattern
+**ALL providers must:**
+1. Accept dependencies via constructor (no global state)
+2. Have `Future<void> init()` method that loads persisted state
+3. Override `dispose()` to clean up controllers/subscriptions
+4. Extend `ChangeNotifier` for `notifyListeners()` support
+
+**Pattern:**
+```dart
+class ExampleProvider extends ChangeNotifier {
+  final SettingsProvider _settings;
+  final CacheProvider _cache;
+  late StreamSubscription _sub;
+  
+  ExampleProvider({
+    required SettingsProvider settingsProvider,
+    required CacheProvider cacheProvider,
+  })  : _settings = settingsProvider,
+        _cache = cacheProvider;
+  
+  Future<void> init() async {
+    // Load from cache, start listeners, etc.
+    _sub = _stream.listen((_) => notifyListeners());
+  }
+  
+  @override
+  void dispose() {
+    _sub.cancel();
+    super.dispose();
+  }
+}
+```
+
+### Error Handling Pattern
+**Network requests use triple-layer protection:**
+```dart
+// Retry (3x exponential backoff) + timeout (15s) + cache fallback
+Future<T> _retryWithBackoff<T>(
+  Future<T> Function() request,
+  {int maxRetries = 3}
+) async {
+  Duration delay = Duration(milliseconds: 100);
+  for (int i = 0; i < maxRetries; i++) {
+    try {
+      return await request().timeout(Duration(seconds: 15));
+    } on TimeoutException {
+      if (i == maxRetries - 1) rethrow;
+      await Future.delayed(delay);
+      delay *= 2; // Exponential backoff
+    }
+  }
+  throw Exception('Failed after retries');
+}
+```
+
+### Stream Usage Pattern
+**Always clean up streams in `dispose()`:**
+```dart
+class DataProvider extends ChangeNotifier {
+  final List<StreamSubscription> _subscriptions = [];
+  
+  void startListening(Stream<Data> stream) {
+    _subscriptions.add(
+      stream.listen((_) => notifyListeners())
+    );
+  }
+  
+  @override
+  void dispose() {
+    for (final sub in _subscriptions) {
+      sub.cancel();
+    }
+    super.dispose();
+  }
+}
+```
+
+### Widget Tree Pattern
+**Never use `context.read()` in build—use `Consumer` or `watch()`:**
+```dart
+// WRONG - data won't update
+Widget build(BuildContext context) {
+  final data = context.read<DataProvider>().data;
+  return Text(data);
+}
+
+// CORRECT - Rebuilds when data changes
+Widget build(BuildContext context) {
+  final data = context.watch<DataProvider>().data;
+  return Text(data);
+}
+
+// CORRECT - Fine-grained rebuilds
+Widget build(BuildContext context) {
+  return Consumer<DataProvider>(
+    builder: (_, provider, __) => Text(provider.data),
+  );
+}
+```
 
 ## Documentation sync (mandatory)
 When you change:
