@@ -21,10 +21,10 @@ void main() {
       providerDisposed = false;
       settingsProvider = SettingsProvider();
       await settingsProvider.init();
-      
+
       cacheProvider = CacheProvider();
       await cacheProvider.init();
-      
+
       nmeaProvider = NMEAProvider(
         settingsProvider: settingsProvider,
         cacheProvider: cacheProvider,
@@ -116,10 +116,10 @@ void main() {
     setUp(() async {
       final settings = SettingsProvider();
       await settings.init();
-      
+
       final cache = CacheProvider();
       await cache.init();
-      
+
       provider = NMEAProvider(
         settingsProvider: settings,
         cacheProvider: cache,

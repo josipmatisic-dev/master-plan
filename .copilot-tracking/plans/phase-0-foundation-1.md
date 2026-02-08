@@ -12,7 +12,9 @@ tags: [foundation, architecture, phase-0, setup, infrastructure]
 
 ![Status: Planned](https://img.shields.io/badge/status-Planned-blue)
 
-This implementation plan defines the complete Phase 0 foundation work for the Marine Navigation App, establishing the base architecture, core services, testing infrastructure, and development standards that will support all subsequent phases.
+This implementation plan defines the complete Phase 0 foundation work for the Marine Navigation App, establishing the
+base architecture, core services, testing infrastructure, and development standards that will support all subsequent
+phases.
 
 ## 1. Requirements & Constraints
 
@@ -68,99 +70,99 @@ This implementation plan defines the complete Phase 0 foundation work for the Ma
 **GOAL-001**: Set up Flutter project with proper structure and dependencies
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-001 | Initialize Flutter project with `flutter create marine_nav_app` using proper package name |  |  |
-| TASK-002 | Configure pubspec.yaml with core dependencies: provider (^6.1.0), http (^1.0.0), shared_preferences (^2.2.0), path_provider (^2.1.0) |  |  |
-| TASK-003 | Set up project directory structure per docs/CODEBASE_MAP.md (lib/models, lib/providers, lib/services, lib/screens, lib/widgets, lib/utils, lib/theme) |  |  |
-| TASK-004 | Create .gitignore with Flutter defaults plus /coverage, /.env, /build |  |  |
-| TASK-005 | Create analysis_options.yaml with strict linting rules from Effective Dart |  |  |
-| TASK-006 | Initialize git repository and create initial commit |  |  |
+| ------ | ------------- | ----------- | ------ |
+| TASK-001 | Initialize Flutter project with `flutter create marine_nav_app` using proper package name | | |
+| TASK-002 | Configure pubspec.yaml with core dependencies: provider (^6.1.0), http (^1.0.0), shared_preferences (^2.2.0), path_provider (^2.1.0) | | |
+| TASK-003 | Set up project directory structure per docs/CODEBASE_MAP.md (lib/models, lib/providers, lib/services, lib/screens, lib/widgets, lib/utils, lib/theme) | | |
+| TASK-004 | Create .gitignore with Flutter defaults plus /coverage, /.env, /build | | |
+| TASK-005 | Create analysis_options.yaml with strict linting rules from Effective Dart | | |
+| TASK-006 | Initialize git repository and create initial commit | | |
 
 ### Implementation Phase 2: Core Services Layer
 
 **GOAL-002**: Implement foundational services following architecture rules
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-007 | Implement lib/services/cache_service.dart with LRU eviction, TTL support, and 500MB size limit (max 300 lines, follows CON-001) |  |  |
-| TASK-008 | Implement lib/services/http_client.dart with retry logic (3 attempts), exponential backoff, timeout (30s), follows CON-005 |  |  |
-| TASK-009 | Implement lib/services/projection_service.dart for coordinate transformations between WGS84 (EPSG:4326) and Web Mercator (EPSG:3857), follows CON-003 |  |  |
-| TASK-010 | Implement lib/services/nmea_parser.dart for NMEA 0183 sentence parsing (GPGGA, GPRMC, GPVTG initially) with checksum validation |  |  |
-| TASK-011 | Create lib/services/database_service.dart wrapper for SQLite using sqflite package for local data persistence |  |  |
+| ------ | ------------- | ----------- | ------ |
+| TASK-007 | Implement lib/services/cache_service.dart with LRU eviction, TTL support, and 500MB size limit (max 300 lines, follows CON-001) | | |
+| TASK-008 | Implement lib/services/http_client.dart with retry logic (3 attempts), exponential backoff, timeout (30s), follows CON-005 | | |
+| TASK-009 | Implement lib/services/projection_service.dart for coordinate transformations between WGS84 (EPSG:4326) and Web Mercator (EPSG:3857), follows CON-003 | | |
+| TASK-010 | Implement lib/services/nmea_parser.dart for NMEA 0183 sentence parsing (GPGGA, GPRMC, GPVTG initially) with checksum validation | | |
+| TASK-011 | Create lib/services/database_service.dart wrapper for SQLite using sqflite package for local data persistence | | |
 
 ### Implementation Phase 3: Data Models
 
 **GOAL-003**: Create immutable data models with proper validation
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-012 | Implement lib/models/lat_lng.dart - immutable coordinate pair with validation (-90 to 90 lat, -180 to 180 lng) |  |  |
-| TASK-013 | Implement lib/models/bounds.dart - geographic bounds with SW/NE corners, includes contains() and intersects() methods |  |  |
-| TASK-014 | Implement lib/models/viewport.dart - map viewport state (center, zoom, bearing, pitch) |  |  |
-| TASK-015 | Implement lib/models/boat_position.dart - GPS position with heading, speed, timestamp |  |  |
-| TASK-016 | Implement lib/models/cache_entry.dart - cache metadata with TTL, LRU timestamp, size |  |  |
-| TASK-017 | Implement lib/models/nmea_message.dart - parsed NMEA sentence base class and specific types (GGA, RMC, VTG) |  |  |
+| ------ | ------------- | ----------- | ------ |
+| TASK-012 | Implement lib/models/lat_lng.dart - immutable coordinate pair with validation (-90 to 90 lat, -180 to 180 lng) | | |
+| TASK-013 | Implement lib/models/bounds.dart - geographic bounds with SW/NE corners, includes contains() and intersects() methods | | |
+| TASK-014 | Implement lib/models/viewport.dart - map viewport state (center, zoom, bearing, pitch) | | |
+| TASK-015 | Implement lib/models/boat_position.dart - GPS position with heading, speed, timestamp | | |
+| TASK-016 | Implement lib/models/cache_entry.dart - cache metadata with TTL, LRU timestamp, size | | |
+| TASK-017 | Implement lib/models/nmea_message.dart - parsed NMEA sentence base class and specific types (GGA, RMC, VTG) | | |
 
 ### Implementation Phase 4: Provider Setup
 
 **GOAL-004**: Establish provider hierarchy with documented dependencies
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-018 | Create lib/providers/settings_provider.dart (Layer 0 - no dependencies) for user preferences, units, language |  |  |
-| TASK-019 | Create lib/providers/theme_provider.dart (Layer 1 - depends on SettingsProvider) for light/dark mode |  |  |
-| TASK-020 | Create lib/providers/cache_provider.dart (Layer 1 - depends on SettingsProvider) coordinating CacheService |  |  |
-| TASK-021 | Document provider dependency graph in docs/CODEBASE_MAP.md following CON-004 |  |  |
-| TASK-022 | Set up all providers in lib/main.dart using MultiProvider with correct hierarchy |  |  |
+| ------ | ------------- | ----------- | ------ |
+| TASK-018 | Create lib/providers/settings_provider.dart (Layer 0 - no dependencies) for user preferences, units, language | | |
+| TASK-019 | Create lib/providers/theme_provider.dart (Layer 1 - depends on SettingsProvider) for light/dark mode | | |
+| TASK-020 | Create lib/providers/cache_provider.dart (Layer 1 - depends on SettingsProvider) coordinating CacheService | | |
+| TASK-021 | Document provider dependency graph in docs/CODEBASE_MAP.md following CON-004 | | |
+| TASK-022 | Set up all providers in lib/main.dart using MultiProvider with correct hierarchy | | |
 
 ### Implementation Phase 5: Theme System
 
 **GOAL-005**: Implement Marine color palette and responsive theme
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-023 | Create lib/theme/colors.dart with Marine palette (ocean blues, coral accents, neutral grays) |  |  |
-| TASK-024 | Create lib/theme/text_styles.dart with Roboto font family, scale from 12sp to 32sp |  |  |
-| TASK-025 | Create lib/theme/dimensions.dart with spacing scale (4, 8, 16, 24, 32, 48) |  |  |
-| TASK-026 | Implement lib/theme/app_theme.dart with light and dark ThemeData configurations |  |  |
-| TASK-027 | Wire theme to ThemeProvider in main.dart with MaterialApp |  |  |
+| ------ | ------------- | ----------- | ------ |
+| TASK-023 | Create lib/theme/colors.dart with Marine palette (ocean blues, coral accents, neutral grays) | | |
+| TASK-024 | Create lib/theme/text_styles.dart with Roboto font family, scale from 12sp to 32sp | | |
+| TASK-025 | Create lib/theme/dimensions.dart with spacing scale (4, 8, 16, 24, 32, 48) | | |
+| TASK-026 | Implement lib/theme/app_theme.dart with light and dark ThemeData configurations | | |
+| TASK-027 | Wire theme to ThemeProvider in main.dart with MaterialApp | | |
 
 ### Implementation Phase 6: Testing Infrastructure
 
 **GOAL-006**: Set up comprehensive testing framework
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-028 | Configure test/test_helpers.dart with common test utilities and mocks |  |  |
-| TASK-029 | Write test/unit/services/cache_service_test.dart covering LRU eviction, TTL expiry, size limits |  |  |
-| TASK-030 | Write test/unit/services/http_client_test.dart covering retry logic, timeouts, error handling |  |  |
-| TASK-031 | Write test/unit/services/projection_service_test.dart covering coordinate transformations accuracy |  |  |
-| TASK-032 | Write test/unit/services/nmea_parser_test.dart covering valid/invalid sentences, checksum validation |  |  |
-| TASK-033 | Set up flutter_test integration and configure coverage reporting with lcov |  |  |
+| ------ | ------------- | ----------- | ------ |
+| TASK-028 | Configure test/test_helpers.dart with common test utilities and mocks | | |
+| TASK-029 | Write test/unit/services/cache_service_test.dart covering LRU eviction, TTL expiry, size limits | | |
+| TASK-030 | Write test/unit/services/http_client_test.dart covering retry logic, timeouts, error handling | | |
+| TASK-031 | Write test/unit/services/projection_service_test.dart covering coordinate transformations accuracy | | |
+| TASK-032 | Write test/unit/services/nmea_parser_test.dart covering valid/invalid sentences, checksum validation | | |
+| TASK-033 | Set up flutter_test integration and configure coverage reporting with lcov | | |
 
 ### Implementation Phase 7: CI/CD Pipeline
 
 **GOAL-007**: Automate testing, linting, and builds
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-034 | Create .github/workflows/test.yml for automated testing on push/PR |  |  |
-| TASK-035 | Create .github/workflows/lint.yml for dart analyze and flutter format checks |  |  |
-| TASK-036 | Create .github/workflows/build.yml for Android and iOS build verification |  |  |
-| TASK-037 | Configure codecov or similar for coverage reporting |  |  |
-| TASK-038 | Add status badges to README.md |  |  |
+| ------ | ------------- | ----------- | ------ |
+| TASK-034 | Create .github/workflows/test.yml for automated testing on push/PR | | |
+| TASK-035 | Create .github/workflows/lint.yml for dart analyze and flutter format checks | | |
+| TASK-036 | Create .github/workflows/build.yml for Android and iOS build verification | | |
+| TASK-037 | Configure codecov or similar for coverage reporting | | |
+| TASK-038 | Add status badges to README.md | | |
 
 ### Implementation Phase 8: Documentation
 
 **GOAL-008**: Complete Phase 0 documentation
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
-| TASK-039 | Update docs/CODEBASE_MAP.md with all implemented services, models, providers |  |  |
-| TASK-040 | Document setup instructions in project README.md |  |  |
-| TASK-041 | Create docs/SETUP_GUIDE.md with detailed environment setup steps |  |  |
-| TASK-042 | Update docs/AI_AGENT_INSTRUCTIONS.md if new patterns established |  |  |
-| TASK-043 | Add dartdoc comments to all public APIs (minimum requirement per DOC-001) |  |  |
+| ------ | ------------- | ----------- | ------ |
+| TASK-039 | Update docs/CODEBASE_MAP.md with all implemented services, models, providers | | |
+| TASK-040 | Document setup instructions in project README.md | | |
+| TASK-041 | Create docs/SETUP_GUIDE.md with detailed environment setup steps | | |
+| TASK-042 | Update docs/AI_AGENT_INSTRUCTIONS.md if new patterns established | | |
+| TASK-043 | Add dartdoc comments to all public APIs (minimum requirement per DOC-001) | | |
 
 ## 3. Alternatives
 
@@ -228,10 +230,12 @@ See full file list in detailed specification document: `.copilot-tracking/detail
 
 ### Risks
 
-- **RISK-001**: Coordinate projection accuracy - Projection transformations may have precision errors at extreme zoom levels. Mitigation: Extensive unit testing with known coordinates, compare against reference implementations
+- **RISK-001**: Coordinate projection accuracy - Projection transformations may have precision errors at extreme zoom
+levels. Mitigation: Extensive unit testing with known coordinates, compare against reference implementations
 - **RISK-002**: NMEA parser compatibility - Different NMEA devices may have non-standard sentence formats. Mitigation: Defensive parsing, extensive logging, graceful handling of unknown sentences
 - **RISK-003**: Cache eviction edge cases - LRU eviction during concurrent access may cause race conditions. Mitigation: Mutex/lock protection for cache operations, thorough concurrent testing
-- **RISK-004**: Provider dependency cycles - Complex provider dependencies could create circular references. Mitigation: Document and enforce strict layered architecture, automated dependency graph validation
+- **RISK-004**: Provider dependency cycles - Complex provider dependencies could create circular references.
+Mitigation: Document and enforce strict layered architecture, automated dependency graph validation
 - **RISK-005**: Memory leaks - Improper disposal of resources could cause memory growth. Mitigation: Mandatory dispose() implementation, memory profiling in CI
 
 ### Assumptions

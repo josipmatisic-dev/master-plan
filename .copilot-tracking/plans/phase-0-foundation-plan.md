@@ -18,7 +18,9 @@ tags: [foundation, architecture, setup, infrastructure]
 
 ## Introduction
 
-Phase 0 establishes the foundational architecture, core services, and development infrastructure for the Marine Navigation App. This phase is critical for preventing the architectural failures documented in MASTER_DEVELOPMENT_BIBLE Section A (god objects, circular dependencies, projection mismatches, provider chaos).
+Phase 0 establishes the foundational architecture, core services, and development infrastructure for the Marine
+Navigation App. This phase is critical for preventing the architectural failures documented in MASTER_DEVELOPMENT_BIBLE
+Section A (god objects, circular dependencies, projection mismatches, provider chaos).
 
 **Key Objectives:**
 - Initialize Flutter project with proper structure
@@ -84,7 +86,7 @@ Phase 0 establishes the foundational architecture, core services, and developmen
 **GOAL-001**: Setup Flutter project with proper structure and dependencies
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-001 | Create Flutter project with `flutter create marine_nav_app --org dev.sailstream` | | |
 | TASK-002 | Configure pubspec.yaml with required dependencies (provider, freezed, etc.) | | |
 | TASK-003 | Setup project directory structure as per CODEBASE_MAP.md | | |
@@ -110,7 +112,7 @@ Phase 0 establishes the foundational architecture, core services, and developmen
 **GOAL-002**: Implement immutable data models for core domain objects
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-009 | Create LatLng model with WGS84 coordinates | | |
 | TASK-010 | Create Bounds model for geographic rectangles | | |
 | TASK-011 | Create Viewport model with zoom/center/rotation | | |
@@ -137,7 +139,7 @@ Phase 0 establishes the foundational architecture, core services, and developmen
 **GOAL-003**: Implement ProjectionService for all coordinate transformations
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-017 | Create ProjectionService class skeleton | | |
 | TASK-018 | Implement WGS84 to Web Mercator projection | | |
 | TASK-019 | Implement Web Mercator to WGS84 inverse projection | | |
@@ -178,7 +180,7 @@ static Offset latLngToPixels(double lat, double lng, Viewport viewport) {
   
   return Offset(screenX, screenY);
 }
-```
+```text
 
 **Validation:**
 - Known coordinate pairs transform correctly
@@ -194,7 +196,7 @@ static Offset latLngToPixels(double lat, double lng, Viewport viewport) {
 **GOAL-004**: Implement LRU cache with TTL and coordinated invalidation
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-025 | Create CacheService class with LRU eviction | | |
 | TASK-026 | Implement TTL-based expiry | | |
 | TASK-027 | Add cache size limit (500MB default) | | |
@@ -229,7 +231,7 @@ static Offset latLngToPixels(double lat, double lng, Viewport viewport) {
 **GOAL-005**: Implement RetryableHttpClient with exponential backoff
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-033 | Create RetryableHttpClient wrapper class | | |
 | TASK-034 | Implement exponential backoff algorithm | | |
 | TASK-035 | Add timeout support (10s default) | | |
@@ -281,7 +283,7 @@ Future<http.Response> getWithRetry(String url, {int maxRetries = 3}) async {
   
   throw MaxRetriesException();
 }
-```
+```text
 
 **Validation:**
 - Retries on server errors (5xx)
@@ -298,7 +300,7 @@ Future<http.Response> getWithRetry(String url, {int maxRetries = 3}) async {
 **GOAL-006**: Setup provider dependency hierarchy in main.dart
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-041 | Create SettingsProvider for user preferences | | |
 | TASK-042 | Create ThemeProvider for dark mode | | |
 | TASK-043 | Create CacheProvider for cache coordination | | |
@@ -348,7 +350,7 @@ void main() async {
     ),
   );
 }
-```
+```text
 
 **Validation:**
 - All providers created in main.dart
@@ -365,7 +367,7 @@ void main() async {
 **GOAL-007**: Setup comprehensive testing infrastructure
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-049 | Configure test directory structure | | |
 | TASK-050 | Create test utilities and helpers | | |
 | TASK-051 | Setup widget test infrastructure | | |
@@ -396,7 +398,7 @@ void main() async {
 **GOAL-008**: Setup automated build, test, and deployment pipeline
 
 | Task | Description | Completed | Date |
-|------|-------------|-----------|------|
+| ------ | ------------- | ----------- | ------ |
 | TASK-057 | Create GitHub Actions workflow for tests | | |
 | TASK-058 | Add workflow for linting and formatting | | |
 | TASK-059 | Add workflow for code coverage | | |

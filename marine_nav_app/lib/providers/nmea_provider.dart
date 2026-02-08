@@ -10,11 +10,11 @@ import 'settings_provider.dart';
 
 /// NMEA Provider - Layer 2 Provider
 /// Manages NMEA data stream connection and provides parsed navigation data to UI.
-/// 
+///
 /// Dependencies:
 /// - Layer 0: SettingsProvider (for future connection config)
 /// - Layer 1: CacheProvider (for future cached NMEA data)
-/// 
+///
 /// Usage:
 /// ```dart
 /// final nmea = Provider.of<NMEAProvider>(context);
@@ -33,11 +33,11 @@ class NMEAProvider extends ChangeNotifier {
   ConnectionStatus _status = ConnectionStatus.disconnected;
   NMEAError? _lastError;
   DateTime? _lastUpdateTime;
-  
+
   StreamSubscription<NMEAData>? _dataSubscription;
   StreamSubscription<NMEAError>? _errorSubscription;
   StreamSubscription<ConnectionStatus>? _statusSubscription;
-  
+
   Timer? _reconnectTimer;
   int _reconnectAttempts = 0;
   static const int _maxReconnectAttempts = 10;
@@ -128,7 +128,7 @@ class NMEAProvider extends ChangeNotifier {
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
     _reconnectAttempts = 0;
-    
+
     await _service.disconnect();
   }
 
@@ -169,8 +169,7 @@ class NMEAProvider extends ChangeNotifier {
 
     // Handle disconnection - attempt reconnect
     // TODO: Make auto-reconnect configurable in settings
-    if (oldStatus.isConnected && 
-        newStatus == ConnectionStatus.disconnected) {
+    if (oldStatus.isConnected && newStatus == ConnectionStatus.disconnected) {
       _scheduleReconnect();
     }
 
@@ -197,13 +196,14 @@ class NMEAProvider extends ChangeNotifier {
     }
 
     _reconnectAttempts++;
-    
+
     // Exponential backoff: 5s, 10s, 20s, 40s, ... max 2 minutes
     final delay = Duration(
       seconds: (5 * (1 << (_reconnectAttempts - 1))).clamp(5, 120),
     );
 
-    debugPrint('Scheduling reconnect attempt $_reconnectAttempts in ${delay.inSeconds}s');
+    debugPrint(
+        'Scheduling reconnect attempt $_reconnectAttempts in ${delay.inSeconds}s');
 
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(delay, () {

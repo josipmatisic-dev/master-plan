@@ -47,13 +47,13 @@ class _MapWebViewState extends State<MapWebView> {
     super.dispose();
   }
 }
-```
+```text
 
 ### Viewport Synchronization
 
 **Critical:** Prevents ISS-001 (overlay projection mismatch)
 
-**Flow:**
+#### Flow
 1. Map moves in WebView
 2. JavaScript bridge sends viewport state (debounced 200ms)
 3. MapProvider updates viewport
@@ -83,7 +83,7 @@ class LocationService {
       ));
   }
 }
-```
+```text
 
 ## Overlay Rendering
 
@@ -116,7 +116,7 @@ void _drawWindArrow(Canvas canvas, WindData wind, Viewport viewport) {
   
   canvas.restore();
 }
-```
+```text
 
 ### Track Overlay Specification
 
@@ -150,7 +150,7 @@ class _TrackOverlayState extends State<TrackOverlay> {
     );
   }
 }
-```
+```text
 
 ## Database Schema
 
@@ -170,7 +170,7 @@ CREATE TABLE track_points (
 );
 
 CREATE INDEX idx_timestamp ON track_points(timestamp);
-```
+```text
 
 **Queries:**
 - Insert: Batched (every 5 seconds)

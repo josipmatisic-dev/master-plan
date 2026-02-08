@@ -8,7 +8,7 @@ import 'nmea_parser.dart';
 
 /// NMEA Service - Background isolate for socket I/O and sentence parsing
 /// Prevents UI blocking by processing NMEA data in a separate isolate.
-/// 
+///
 /// Usage:
 /// ```dart
 /// final service = NMEAService();

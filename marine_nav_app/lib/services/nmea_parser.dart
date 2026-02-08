@@ -55,7 +55,7 @@ class NMEAParser {
       // Latitude is DDMM.MMMM (2 digit degrees), Longitude is DDDMM.MMMM (3 digit degrees)
       final isLatitude = direction == 'N' || direction == 'S';
       final degreeDigits = isLatitude ? 2 : 3;
-      
+
       final degrees = int.parse(value.substring(0, degreeDigits));
       final minutes = double.parse(value.substring(degreeDigits));
       var decimal = degrees + (minutes / 60.0);
@@ -144,7 +144,8 @@ class NMEAParser {
       final yearTwoDigit = int.parse(dateStr.substring(4, 6));
       // NMEA uses 2-digit years: 00-99 maps to 2000-2099 (Y2K compatible)
       // But for historical data, years 70-99 are 1970-1999
-      final year = yearTwoDigit >= 70 ? 1900 + yearTwoDigit : 2000 + yearTwoDigit;
+      final year =
+          yearTwoDigit >= 70 ? 1900 + yearTwoDigit : 2000 + yearTwoDigit;
 
       final time = DateTime.utc(
         year,
@@ -242,7 +243,8 @@ class NMEAParser {
 
       // Field 2 may contain checksum delimiter
       final offsetField = fields[2].split('*')[0];
-      final offsetMeters = offsetField.isEmpty ? null : double.tryParse(offsetField);
+      final offsetMeters =
+          offsetField.isEmpty ? null : double.tryParse(offsetField);
 
       return DPTData(
         depthMeters: depthMeters,

@@ -6,19 +6,22 @@ import 'package:marine_nav_app/services/nmea_parser.dart';
 void main() {
   group('Checksum Calculation', () {
     test('calculates correct checksum for GPGGA sentence', () {
-      const sentence = '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,';
+      const sentence =
+          '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,';
       final checksum = NMEAParser.calculateChecksum(sentence);
       expect(checksum, '47');
     });
 
     test('calculates correct checksum for GPRMC sentence', () {
-      const sentence = '\$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W';
+      const sentence =
+          '\$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W';
       final checksum = NMEAParser.calculateChecksum(sentence);
       expect(checksum, '6A');
     });
 
     test('handles sentence without \$ prefix', () {
-      const sentence = 'GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,';
+      const sentence =
+          'GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,';
       final checksum = NMEAParser.calculateChecksum(sentence);
       expect(checksum, '47');
     });
@@ -26,22 +29,26 @@ void main() {
 
   group('Checksum Validation', () {
     test('validates correct checksum', () {
-      const sentence = '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
+      const sentence =
+          '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
       expect(NMEAParser.validateChecksum(sentence), true);
     });
 
     test('rejects incorrect checksum', () {
-      const sentence = '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*FF';
+      const sentence =
+          '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*FF';
       expect(NMEAParser.validateChecksum(sentence), false);
     });
 
     test('accepts sentence without checksum', () {
-      const sentence = '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,';
+      const sentence =
+          '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,';
       expect(NMEAParser.validateChecksum(sentence), true);
     });
 
     test('validates checksum is case-insensitive', () {
-      const sentence = '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
+      const sentence =
+          '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
       expect(NMEAParser.validateChecksum(sentence), true);
     });
   });
@@ -82,7 +89,8 @@ void main() {
 
   group('GPGGA Parsing', () {
     test('parses valid GPGGA sentence', () {
-      const sentence = '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
+      const sentence =
+          '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
       final data = NMEAParser.parseGPGGA(sentence);
 
       expect(data, isNotNull);
@@ -119,7 +127,8 @@ void main() {
 
   group('GPRMC Parsing', () {
     test('parses valid GPRMC sentence', () {
-      const sentence = '\$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A';
+      const sentence =
+          '\$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A';
       final data = NMEAParser.parseGPRMC(sentence);
 
       expect(data, isNotNull);
@@ -137,7 +146,8 @@ void main() {
     });
 
     test('parses GPRMC with warning status', () {
-      const sentence = '\$GPRMC,123519,V,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*XX';
+      const sentence =
+          '\$GPRMC,123519,V,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*XX';
       final data = NMEAParser.parseGPRMC(sentence);
 
       expect(data, isNotNull);
@@ -242,13 +252,15 @@ void main() {
 
   group('Generic Sentence Parsing', () {
     test('routes GPGGA sentences correctly', () {
-      const sentence = '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
+      const sentence =
+          '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
       final data = NMEAParser.parseSentence(sentence);
       expect(data, isA<GPGGAData>());
     });
 
     test('routes GPRMC sentences correctly', () {
-      const sentence = '\$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A';
+      const sentence =
+          '\$GPRMC,123519,A,4807.038,N,01131.000,E,022.4,084.4,230394,003.1,W*6A';
       final data = NMEAParser.parseSentence(sentence);
       expect(data, isA<GPRMCData>());
     });
@@ -281,7 +293,8 @@ void main() {
     });
 
     test('throws error for sentence without \$ prefix', () {
-      const sentence = 'GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
+      const sentence =
+          'GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47';
       expect(
         () => NMEAParser.parseSentence(sentence),
         throwsA(isA<NMEAError>().having(
@@ -293,7 +306,8 @@ void main() {
     });
 
     test('throws error for invalid checksum', () {
-      const sentence = '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*FF';
+      const sentence =
+          '\$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*FF';
       expect(
         () => NMEAParser.parseSentence(sentence),
         throwsA(isA<NMEAError>().having(

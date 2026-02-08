@@ -154,7 +154,7 @@ This directory contains comprehensive documentation based on learnings from 4 fa
 ## 📊 Documentation Statistics
 
 | Document | Lines | Size | Purpose |
-|----------|-------|------|---------|
+| ---------- | ------- | ------ | --------- |
 | MASTER_DEVELOPMENT_BIBLE.md | 488 | 16KB | Primary reference |
 | AI_AGENT_INSTRUCTIONS.md | 801 | 18KB | AI guidelines |
 | CODEBASE_MAP.md | 501 | 18KB | Structure map |

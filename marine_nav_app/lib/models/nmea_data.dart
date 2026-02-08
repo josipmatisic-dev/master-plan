@@ -120,14 +120,19 @@ class NMEAData {
 class GPGGAData {
   /// Geographic position in WGS84 format (latitude/longitude)
   final LatLng position;
+
   /// UTC time of the fix
   final DateTime time;
+
   /// Fix quality indicator (0=invalid, 1=GPS fix, 2=DGPS fix, higher=RTK modes)
   final int fixQuality;
+
   /// Number of satellites currently used in the fix (0-12+)
   final int satellites;
+
   /// Horizontal dilution of precision - lower values indicate better accuracy
   final double? hdop;
+
   /// Altitude above mean sea level (meters)
   final double? altitudeMeters;
 
@@ -152,12 +157,16 @@ class GPGGAData {
 class GPRMCData {
   /// Geographic position in WGS84 format (latitude/longitude)
   final LatLng position;
+
   /// UTC time of the position fix
   final DateTime time;
+
   /// Fix validity indicator (true=valid fix, false=warning/invalid)
   final bool valid;
+
   /// Speed over ground (knots), null if not available
   final double? speedKnots;
+
   /// Course over ground (true heading, degrees 0-359), null if not available
   final double? trackTrue;
 
@@ -180,10 +189,13 @@ class GPRMCData {
 class GPVTGData {
   /// Course over ground (true heading, degrees 0-359), null if unavailable
   final double? trackTrue;
+
   /// Course over ground (magnetic heading, degrees 0-359), null if unavailable
   final double? trackMagnetic;
+
   /// Speed over ground (knots), null if unavailable
   final double? speedKnots;
+
   /// Speed over ground (kilometers per hour), null if unavailable
   final double? speedKmh;
 
@@ -207,10 +219,13 @@ class MWVData {
   /// Wind angle (degrees 0-359 from reference direction)
   /// Reference depends on [isRelative]: vessel bow if relative, true north if absolute
   final double angleDegrees;
+
   /// Wind reference frame (true=relative to vessel bow, false=true/absolute wind)
   final bool isRelative;
+
   /// Wind speed (knots)
   final double speedKnots;
+
   /// Data validity (true=valid, false=invalid/error)
   final bool valid;
 
@@ -233,6 +248,7 @@ class MWVData {
 class DPTData {
   /// Water depth below transducer (meters)
   final double depthMeters;
+
   /// Transducer offset from reference point (positive=below waterline, negative=above)
   /// Used to calculate depth from different reference points (e.g., keel, waterline)
   final double? offsetMeters;

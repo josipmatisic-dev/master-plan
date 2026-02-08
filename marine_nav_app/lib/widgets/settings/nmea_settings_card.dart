@@ -22,7 +22,7 @@ class NMEASettingsCard extends StatefulWidget {
 class _NMEASettingsCardState extends State<NMEASettingsCard> {
   late TextEditingController _hostController;
   late TextEditingController _portController;
-  
+
   @override
   void initState() {
     super.initState();
@@ -30,7 +30,7 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
     _hostController = TextEditingController(text: settings.nmeaHost);
     _portController = TextEditingController(text: settings.nmeaPort.toString());
   }
-  
+
   @override
   void dispose() {
     _hostController.dispose();
@@ -68,16 +68,20 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
           style: OceanTextStyles.body,
           decoration: InputDecoration(
             labelText: 'Host',
-            labelStyle: OceanTextStyles.label.copyWith(color: OceanColors.textDisabled),
+            labelStyle:
+                OceanTextStyles.label.copyWith(color: OceanColors.textDisabled),
             hintText: 'localhost or IP address',
-            hintStyle: OceanTextStyles.bodySmall.copyWith(color: OceanColors.textDisabled),
+            hintStyle: OceanTextStyles.bodySmall
+                .copyWith(color: OceanColors.textDisabled),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-              borderSide: BorderSide(color: OceanColors.textDisabled.withValues(alpha: 0.3)),
+              borderSide: BorderSide(
+                  color: OceanColors.textDisabled.withValues(alpha: 0.3)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-              borderSide: const BorderSide(color: OceanColors.seafoamGreen, width: 2),
+              borderSide:
+                  const BorderSide(color: OceanColors.seafoamGreen, width: 2),
             ),
           ),
           onChanged: (value) {
@@ -100,24 +104,30 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
           ],
           decoration: InputDecoration(
             labelText: 'Port',
-            labelStyle: OceanTextStyles.label.copyWith(color: OceanColors.textDisabled),
+            labelStyle:
+                OceanTextStyles.label.copyWith(color: OceanColors.textDisabled),
             hintText: '1-65535',
-            hintStyle: OceanTextStyles.bodySmall.copyWith(color: OceanColors.textDisabled),
+            hintStyle: OceanTextStyles.bodySmall
+                .copyWith(color: OceanColors.textDisabled),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-              borderSide: BorderSide(color: OceanColors.textDisabled.withValues(alpha: 0.3)),
+              borderSide: BorderSide(
+                  color: OceanColors.textDisabled.withValues(alpha: 0.3)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-              borderSide: const BorderSide(color: OceanColors.seafoamGreen, width: 2),
+              borderSide:
+                  const BorderSide(color: OceanColors.seafoamGreen, width: 2),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-              borderSide: const BorderSide(color: OceanColors.coralRed, width: 2),
+              borderSide:
+                  const BorderSide(color: OceanColors.coralRed, width: 2),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-              borderSide: const BorderSide(color: OceanColors.coralRed, width: 2),
+              borderSide:
+                  const BorderSide(color: OceanColors.coralRed, width: 2),
             ),
           ),
           onChanged: (value) {
@@ -140,14 +150,17 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
           dropdownColor: OceanColors.surface,
           decoration: InputDecoration(
             labelText: 'Connection Type',
-            labelStyle: OceanTextStyles.label.copyWith(color: OceanColors.textDisabled),
+            labelStyle:
+                OceanTextStyles.label.copyWith(color: OceanColors.textDisabled),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-              borderSide: BorderSide(color: OceanColors.textDisabled.withValues(alpha: 0.3)),
+              borderSide: BorderSide(
+                  color: OceanColors.textDisabled.withValues(alpha: 0.3)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
-              borderSide: const BorderSide(color: OceanColors.seafoamGreen, width: 2),
+              borderSide:
+                  const BorderSide(color: OceanColors.seafoamGreen, width: 2),
             ),
           ),
           items: const [
@@ -178,10 +191,12 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
           onChanged: (value) {
             settings.setAutoConnectNMEA(value);
           },
-          title: const Text('Auto-connect on startup', style: OceanTextStyles.body),
+          title: const Text('Auto-connect on startup',
+              style: OceanTextStyles.body),
           subtitle: Text(
             'Automatically connect to NMEA when app starts',
-            style: OceanTextStyles.bodySmall.copyWith(color: OceanColors.textDisabled),
+            style: OceanTextStyles.bodySmall
+                .copyWith(color: OceanColors.textDisabled),
           ),
           activeTrackColor: OceanColors.seafoamGreen.withValues(alpha: 0.5),
           activeThumbColor: OceanColors.seafoamGreen,
@@ -196,14 +211,13 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
       builder: (context, nmea, child) {
         final isConnected = nmea.isConnected;
         final isActive = nmea.isActive;
-        
+
         return SizedBox(
           width: double.infinity,
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: isConnected 
-                  ? OceanColors.coralRed 
-                  : OceanColors.seafoamGreen,
+              backgroundColor:
+                  isConnected ? OceanColors.coralRed : OceanColors.seafoamGreen,
               foregroundColor: OceanColors.pureWhite,
               padding: const EdgeInsets.symmetric(
                 vertical: OceanDimensions.spacing,
@@ -217,16 +231,20 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
               color: OceanColors.pureWhite,
             ),
             label: Text(
-              isConnected ? 'Disconnect' : (isActive ? 'Connecting...' : 'Test Connection'),
+              isConnected
+                  ? 'Disconnect'
+                  : (isActive ? 'Connecting...' : 'Test Connection'),
               style: OceanTextStyles.labelLarge,
             ),
-            onPressed: isActive ? null : () {
-              if (isConnected) {
-                nmea.disconnect();
-              } else {
-                _testConnection();
-              }
-            },
+            onPressed: isActive
+                ? null
+                : () {
+                    if (isConnected) {
+                      nmea.disconnect();
+                    } else {
+                      _testConnection();
+                    }
+                  },
           ),
         );
       },
@@ -235,7 +253,7 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
 
   Future<void> _testConnection() async {
     final nmea = context.read<NMEAProvider>();
-    
+
     // Show loading dialog
     if (!mounted) return;
     showDialog(
@@ -247,7 +265,8 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
           mainAxisSize: MainAxisSize.min,
           children: [
             CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(OceanColors.seafoamGreen),
+              valueColor:
+                  AlwaysStoppedAnimation<Color>(OceanColors.seafoamGreen),
             ),
             SizedBox(height: OceanDimensions.spacing),
             Text('Connecting to NMEA...', style: OceanTextStyles.body),
@@ -255,17 +274,17 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
         ),
       ),
     );
-    
+
     // Attempt connection
     await nmea.connect();
-    
+
     // Wait a moment for connection to establish
     await Future.delayed(const Duration(seconds: 2));
-    
+
     // Dismiss loading dialog
     if (!mounted) return;
     Navigator.of(context).pop();
-    
+
     // Show result dialog
     if (!mounted) return;
     showDialog(
@@ -290,7 +309,8 @@ class _NMEASettingsCardState extends State<NMEASettingsCard> {
               const SizedBox(height: OceanDimensions.spacingS),
               Text(
                 'Error: ${nmea.lastError!.message}',
-                style: OceanTextStyles.body.copyWith(color: OceanColors.coralRed),
+                style:
+                    OceanTextStyles.body.copyWith(color: OceanColors.coralRed),
               ),
             ],
           ],

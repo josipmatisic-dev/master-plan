@@ -79,7 +79,7 @@ flutter run
 
 # Run tests
 flutter test
-```
+```text
 
 ### iOS Development (Parallel)
 
@@ -100,13 +100,13 @@ flutter run
 # Or, list devices and pass the desired device id:
 # flutter devices
 # flutter run -d <device_id>
-```
+```text
 
 For Xcode workflows, open `ios/Runner.xcworkspace` and run the Runner target.
 
 ### Project Structure
 
-```
+```text
 lib/
 ├── main.dart                  # App entry point, provider setup
 ├── providers/                 # State management (Layer 0-2)
@@ -133,7 +133,7 @@ lib/
 │   └── home_screen.dart      # Main navigation screen
 └── utils/                     # Utilities
     └── responsive_utils.dart # Responsive design helpers
-```
+```text
 
 ---
 
@@ -142,7 +142,7 @@ lib/
 ### Color Palette
 
 | Color | Hex | Usage |
-|-------|-----|-------|
+| ------- | ----- | ------- |
 | Deep Navy | `#0A1F3F` | Primary background, night mode |
 | Teal | `#1D566E` | Secondary accents, depth |
 | Seafoam Green | `#00C9A7` | Primary accent, active states |
@@ -273,7 +273,7 @@ flutter test --coverage
 # View coverage report
 genhtml coverage/lcov.info -o coverage/html
 open coverage/html/index.html
-```
+```text
 
 Target: 80%+ code coverage for all new code.
 
