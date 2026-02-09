@@ -3,17 +3,24 @@ library;
 
 // ignore_for_file: public_member_api_docs, prefer_const_constructors, prefer_const_declarations
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Viewport;
+import 'package:provider/provider.dart';
+
+import '../providers/map_provider.dart';
+import '../providers/weather_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/controls/layer_toggle.dart';
 import '../widgets/data_displays/data_orb.dart';
 import '../widgets/data_displays/wind_widget.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/map/map_webview.dart';
 import '../widgets/navigation/compass_widget.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
+import '../widgets/overlays/wave_overlay.dart';
+import '../widgets/overlays/wind_overlay.dart';
 
 /// Primary map screen with layered glass UI.
 class MapScreen extends StatefulWidget {
@@ -47,11 +54,14 @@ class _MapScreenState extends State<MapScreen> {
         child: Stack(
           children: [
             const MapWebView(),
+            _buildWindOverlay(context),
+            _buildWaveOverlay(context),
             _buildTopBar(),
             _buildDataOrbs(context),
             _buildCompass(context),
             _buildNavigationSidebar(context),
             _buildWindWidgets(),
+            _buildLayerToggle(context),
             _buildTimelineScrubber(context),
           ],
         ),
@@ -190,6 +200,42 @@ class _MapScreenState extends State<MapScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildWindOverlay(BuildContext context) {
+    return Consumer2<WeatherProvider, MapProvider>(
+      builder: (_, weather, map, __) {
+        if (!weather.isWindVisible || !weather.hasData) {
+          return const SizedBox.shrink();
+        }
+        return WindOverlay(
+          windPoints: weather.data.windPoints,
+          viewport: map.viewport,
+        );
+      },
+    );
+  }
+
+  Widget _buildWaveOverlay(BuildContext context) {
+    return Consumer2<WeatherProvider, MapProvider>(
+      builder: (_, weather, map, __) {
+        if (!weather.isWaveVisible || !weather.hasData) {
+          return const SizedBox.shrink();
+        }
+        return WaveOverlay(
+          wavePoints: weather.data.wavePoints,
+          viewport: map.viewport,
+        );
+      },
+    );
+  }
+
+  Widget _buildLayerToggle(BuildContext context) {
+    return Positioned(
+      top: context.isMobile ? 120 : 140,
+      right: OceanDimensions.spacing,
+      child: const LayerToggle(),
     );
   }
 }

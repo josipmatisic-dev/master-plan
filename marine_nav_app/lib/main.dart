@@ -13,6 +13,7 @@ import 'providers/nmea_provider.dart';
 import 'providers/route_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/weather_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/navigation_mode_screen.dart';
@@ -43,6 +44,10 @@ void main() async {
     cacheProvider: cacheProvider,
   );
   final routeProvider = RouteProvider();
+  final weatherProvider = WeatherProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
 
   // Initialize all providers
   await Future.wait([
@@ -60,6 +65,7 @@ void main() async {
       mapProvider: mapProvider,
       nmeaProvider: nmeaProvider,
       routeProvider: routeProvider,
+      weatherProvider: weatherProvider,
     ),
   );
 }
@@ -67,7 +73,7 @@ void main() async {
 /// Marine Navigation App Root Widget
 ///
 /// Implements provider hierarchy following CON-004:
-/// Layer 2: MapProvider, NMEAProvider, RouteProvider
+/// Layer 2: MapProvider, NMEAProvider, RouteProvider, WeatherProvider
 /// Layer 1: ThemeProvider, CacheProvider
 /// Layer 0: SettingsProvider
 class MarineNavigationApp extends StatelessWidget {
@@ -89,6 +95,9 @@ class MarineNavigationApp extends StatelessWidget {
   /// The route provider (Layer 2).
   final RouteProvider routeProvider;
 
+  /// The weather provider (Layer 2).
+  final WeatherProvider weatherProvider;
+
   /// Creates a MarineNavigationApp with pre-initialized providers.
   const MarineNavigationApp({
     super.key,
@@ -98,6 +107,7 @@ class MarineNavigationApp extends StatelessWidget {
     required this.mapProvider,
     required this.nmeaProvider,
     required this.routeProvider,
+    required this.weatherProvider,
   });
 
   @override
@@ -127,6 +137,9 @@ class MarineNavigationApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<RouteProvider>.value(
           value: routeProvider,
+        ),
+        ChangeNotifierProvider<WeatherProvider>.value(
+          value: weatherProvider,
         ),
       ],
       child: Consumer<ThemeProvider>(
