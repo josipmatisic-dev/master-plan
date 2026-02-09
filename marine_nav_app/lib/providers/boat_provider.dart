@@ -147,10 +147,12 @@ class BoatProvider extends ChangeNotifier {
 
     // Apply ISS-018 filter: reject unrealistic position jumps
     if (!_passesPositionFilter(newPosition)) {
-      debugPrint(
-        'ISS-018: Filtered unrealistic position jump '
-        '(accuracy: ${accuracy.toStringAsFixed(1)}m)',
-      );
+      if (kDebugMode) {
+        debugPrint(
+          'ISS-018: Filtered unrealistic position jump '
+          '(accuracy: ${accuracy.toStringAsFixed(1)}m)',
+        );
+      }
       return;
     }
 
