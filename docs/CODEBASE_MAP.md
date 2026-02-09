@@ -645,10 +645,10 @@ NavigationModeScreen (StatefulWidget)
 | Category | Max Lines | Current Max | Compliant |
 |----------|-----------|-------------|-----------|
 | Providers | 300 | 231 (NMEAProvider) | ✅ |
-| Services | 300 | 280 | ✅ |
+| Services | 300 | > 300 (NMEAService) | ❌ Over limit |
 | Screens | 300 | 285 | ✅ |
-| Widgets | 200 | 221 (BoatMarker) | ⚠️ Slightly over |
-| Models | 150 | 135 (BoatPosition) | ✅ |
+| Widgets | 300 | 221 (BoatMarker) | ✅ |
+| Models | 300 | 135 (BoatPosition) | ✅ |
 
 ---
 
