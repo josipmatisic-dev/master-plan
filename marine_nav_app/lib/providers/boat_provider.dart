@@ -6,9 +6,7 @@
 ///
 /// Dependencies:
 /// - Layer 2: NMEAProvider (position data source)
-/// - Layer 2: MapProvider (viewport for center-on-boat)
 library;
-
 import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
