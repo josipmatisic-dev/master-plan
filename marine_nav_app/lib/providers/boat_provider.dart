@@ -137,7 +137,7 @@ class BoatProvider extends ChangeNotifier {
       ),
       speedKnots: data.speedOverGroundKnots,
       courseTrue: data.courseOverGroundDegrees,
-      heading: data.gpvtg?.trackMagnetic,
+      heading: null, // Do not treat magnetic course over ground as vessel heading
       timestamp: data.timestamp,
       accuracy: accuracy,
       fixQuality: data.gpgga?.fixQuality ?? 0,
