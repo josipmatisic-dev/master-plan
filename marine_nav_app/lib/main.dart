@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/boat_provider.dart';
 import 'providers/cache_provider.dart';
 import 'providers/map_provider.dart';
 import 'providers/nmea_provider.dart';
@@ -16,7 +17,6 @@ import 'providers/theme_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/navigation_mode_screen.dart';
-import 'screens/settings_screen.dart';
 
 void main() async {
   // Ensure Flutter is initialized
@@ -34,6 +34,8 @@ void main() async {
   final settingsProvider = SettingsProvider();
   final themeProvider = ThemeProvider();
   final cacheProvider = CacheProvider();
+
+  // Layer 2 providers
   final mapProvider = MapProvider(
     settingsProvider: settingsProvider,
     cacheProvider: cacheProvider,
@@ -43,8 +45,9 @@ void main() async {
     cacheProvider: cacheProvider,
   );
   final routeProvider = RouteProvider();
+  final boatProvider = BoatProvider(nmeaProvider: nmeaProvider);
 
-  // Initialize all providers
+  // Initialize all providers that require async init
   await Future.wait([
     settingsProvider.init(),
     themeProvider.init(),
@@ -60,6 +63,7 @@ void main() async {
       mapProvider: mapProvider,
       nmeaProvider: nmeaProvider,
       routeProvider: routeProvider,
+      boatProvider: boatProvider,
     ),
   );
 }
@@ -67,7 +71,7 @@ void main() async {
 /// Marine Navigation App Root Widget
 ///
 /// Implements provider hierarchy following CON-004:
-/// Layer 2: MapProvider, NMEAProvider, RouteProvider
+/// Layer 2: (Future) MapProvider, WeatherProvider
 /// Layer 1: ThemeProvider, CacheProvider
 /// Layer 0: SettingsProvider
 class MarineNavigationApp extends StatelessWidget {
@@ -89,6 +93,9 @@ class MarineNavigationApp extends StatelessWidget {
   /// The route provider (Layer 2).
   final RouteProvider routeProvider;
 
+  /// The boat position provider (Layer 2).
+  final BoatProvider boatProvider;
+
   /// Creates a MarineNavigationApp with pre-initialized providers.
   const MarineNavigationApp({
     super.key,
@@ -98,6 +105,7 @@ class MarineNavigationApp extends StatelessWidget {
     required this.mapProvider,
     required this.nmeaProvider,
     required this.routeProvider,
+    required this.boatProvider,
   });
 
   @override
@@ -118,7 +126,7 @@ class MarineNavigationApp extends StatelessWidget {
           value: cacheProvider,
         ),
 
-        // Layer 2: Domain providers (depend on Layers 0+1)
+        // Layer 2: MapProvider (WeatherProvider future)
         ChangeNotifierProvider<MapProvider>.value(
           value: mapProvider,
         ),
@@ -127,6 +135,9 @@ class MarineNavigationApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<RouteProvider>.value(
           value: routeProvider,
+        ),
+        ChangeNotifierProvider<BoatProvider>.value(
+          value: boatProvider,
         ),
       ],
       child: Consumer<ThemeProvider>(
@@ -148,7 +159,6 @@ class MarineNavigationApp extends StatelessWidget {
             routes: {
               '/map': (_) => const MapScreen(),
               '/navigation': (_) => const NavigationModeScreen(),
-              '/settings': (_) => const SettingsScreen(),
             },
           );
         },

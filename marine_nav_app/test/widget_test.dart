@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marine_nav_app/main.dart';
+import 'package:marine_nav_app/providers/boat_provider.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
 import 'package:marine_nav_app/providers/nmea_provider.dart';
@@ -24,6 +25,7 @@ void main() {
       cacheProvider: cacheProvider,
     );
     final routeProvider = RouteProvider();
+    final boatProvider = BoatProvider(nmeaProvider: nmeaProvider);
 
     await settingsProvider.init();
     await themeProvider.init();
@@ -38,6 +40,7 @@ void main() {
         mapProvider: mapProvider,
         nmeaProvider: nmeaProvider,
         routeProvider: routeProvider,
+        boatProvider: boatProvider,
       ),
     );
 
