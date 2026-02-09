@@ -71,7 +71,7 @@ void main() async {
 /// Marine Navigation App Root Widget
 ///
 /// Implements provider hierarchy following CON-004:
-/// Layer 2: (Future) MapProvider, WeatherProvider
+/// Layer 2: MapProvider, NMEAProvider, RouteProvider, BoatProvider
 /// Layer 1: ThemeProvider, CacheProvider
 /// Layer 0: SettingsProvider
 class MarineNavigationApp extends StatelessWidget {
