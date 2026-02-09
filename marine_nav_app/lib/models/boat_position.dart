@@ -112,11 +112,26 @@ class BoatPosition {
         other.position == position &&
         other.timestamp == timestamp &&
         other.speedKnots == speedKnots &&
-        other.courseTrue == courseTrue;
+        other.courseTrue == courseTrue &&
+        other.heading == heading &&
+        other.accuracy == accuracy &&
+        other.fixQuality == fixQuality &&
+        other.satellites == satellites &&
+        other.altitudeMeters == altitudeMeters;
   }
 
   @override
-  int get hashCode => Object.hash(position, timestamp, speedKnots, courseTrue);
+  int get hashCode => Object.hash(
+        position,
+        timestamp,
+        speedKnots,
+        courseTrue,
+        heading,
+        accuracy,
+        fixQuality,
+        satellites,
+        altitudeMeters,
+      );
 }
 
 /// Maximum speed threshold in meters per second for ISS-018 filtering.
