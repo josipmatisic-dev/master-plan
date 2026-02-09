@@ -159,6 +159,14 @@ class MarineNavigationApp extends StatelessWidget {
             routes: {
               '/map': (_) => const MapScreen(),
               '/navigation': (_) => const NavigationModeScreen(),
+              '/settings': (_) => Scaffold(
+                    appBar: AppBar(
+                      title: const Text('Settings'),
+                    ),
+                    body: const Center(
+                      child: Text('Settings'),
+                    ),
+                  ),
             },
           );
         },
