@@ -6,6 +6,49 @@ import 'package:marine_nav_app/services/geo_utils.dart';
 
 void main() {
   group('GeoUtils', () {
+    group('distanceBetweenMeters', () {
+      test('calculates distance between two points in meters', () {
+        // Washington DC to New York City (approximately 327,000 meters)
+        const dcPosition = LatLng(38.9072, -77.0369);
+        const nycPosition = LatLng(40.7128, -74.0060);
+
+        final distance = GeoUtils.distanceBetweenMeters(dcPosition, nycPosition);
+
+        // Allow 10,000m tolerance for rounding
+        expect(distance, greaterThan(315000));
+        expect(distance, lessThan(340000));
+      });
+
+      test('returns zero for same point', () {
+        const point = LatLng(40.7128, -74.0060);
+        final distance = GeoUtils.distanceBetweenMeters(point, point);
+
+        expect(distance, equals(0.0));
+      });
+
+      test('distance is symmetric', () {
+        const point1 = LatLng(38.9072, -77.0369);
+        const point2 = LatLng(40.7128, -74.0060);
+
+        final distance1 = GeoUtils.distanceBetweenMeters(point1, point2);
+        final distance2 = GeoUtils.distanceBetweenMeters(point2, point1);
+
+        expect(distance1, closeTo(distance2, 0.01));
+      });
+
+      test('converts correctly to nautical miles', () {
+        const point1 = LatLng(38.9072, -77.0369);
+        const point2 = LatLng(40.7128, -74.0060);
+
+        final distanceMeters = GeoUtils.distanceBetweenMeters(point1, point2);
+        final distanceNm = GeoUtils.distanceBetween(point1, point2);
+
+        // 1 nautical mile = 1852 meters
+        final expectedNm = distanceMeters / 1852.0;
+        expect(distanceNm, closeTo(expectedNm, 0.01));
+      });
+    });
+
     group('distanceBetween', () {
       test('calculates distance between two points', () {
         // Washington DC to New York City (approximately 177 nautical miles)

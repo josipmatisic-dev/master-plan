@@ -31,8 +31,8 @@ class GeoUtils {
 
   /// Calculates great-circle distance between two points using Haversine formula.
   ///
-  /// Returns distance in nautical miles.
-  static double distanceBetween(LatLng from, LatLng to) {
+  /// Returns distance in meters.
+  static double distanceBetweenMeters(LatLng from, LatLng to) {
     final lat1Rad = _degreesToRadians(from.latitude);
     final lat2Rad = _degreesToRadians(to.latitude);
     final deltaLatRad = _degreesToRadians(to.latitude - from.latitude);
@@ -45,9 +45,14 @@ class GeoUtils {
             math.sin(deltaLngRad / 2);
 
     final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    final distanceMeters = earthRadiusMeters * c;
+    return earthRadiusMeters * c;
+  }
 
-    return _metersToNauticalMiles(distanceMeters);
+  /// Calculates great-circle distance between two points using Haversine formula.
+  ///
+  /// Returns distance in nautical miles.
+  static double distanceBetween(LatLng from, LatLng to) {
+    return _metersToNauticalMiles(distanceBetweenMeters(from, to));
   }
 
   /// Calculates initial bearing (true course) from one point to another.

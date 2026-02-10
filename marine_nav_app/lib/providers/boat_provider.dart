@@ -7,13 +7,13 @@
 /// Dependencies:
 /// - Layer 2: NMEAProvider (position data source)
 library;
-import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 
 import '../models/boat_position.dart';
 import '../models/lat_lng.dart';
 import '../models/nmea_data.dart';
+import '../services/geo_utils.dart';
 import 'nmea_provider.dart';
 
 /// Provides vessel position tracking, track history, and MOB capability.
@@ -35,9 +35,6 @@ class BoatProvider extends ChangeNotifier {
   final List<BoatPosition> _trackHistory = [];
   BoatPosition? _mobPosition;
   bool _isTracking = true;
-
-  /// Earth radius in meters for haversine distance calculation.
-  static const double _earthRadiusMeters = 6371000.0;
 
   /// Creates a BoatProvider that listens to [nmeaProvider] for updates.
   BoatProvider({
@@ -175,7 +172,7 @@ class BoatProvider extends ChangeNotifier {
     // Avoid division by zero; accept if timestamps are identical
     if (timeDelta <= 0) return true;
 
-    final distanceMeters = _haversineDistance(
+    final distanceMeters = GeoUtils.distanceBetweenMeters(
       previous.position,
       newPosition.position,
     );
@@ -200,27 +197,6 @@ class BoatProvider extends ChangeNotifier {
       _trackHistory.removeAt(0);
     }
   }
-
-  /// Haversine distance calculation between two coordinates.
-  ///
-  /// Returns distance in meters. Used for ISS-018 speed calculation.
-  static double _haversineDistance(LatLng from, LatLng to) {
-    final lat1 = _degToRad(from.latitude);
-    final lat2 = _degToRad(to.latitude);
-    final dLat = _degToRad(to.latitude - from.latitude);
-    final dLng = _degToRad(to.longitude - from.longitude);
-
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(lat1) *
-            math.cos(lat2) *
-            math.sin(dLng / 2) *
-            math.sin(dLng / 2);
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-
-    return _earthRadiusMeters * c;
-  }
-
-  static double _degToRad(double deg) => deg * math.pi / 180.0;
 
   @override
   void dispose() {
