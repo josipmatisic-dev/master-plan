@@ -3,7 +3,11 @@ library;
 
 // ignore_for_file: public_member_api_docs, prefer_const_constructors, prefer_const_declarations
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Viewport;
+import 'package:provider/provider.dart';
+
+import '../providers/boat_provider.dart';
+import '../providers/map_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
@@ -14,6 +18,8 @@ import '../widgets/glass/glass_card.dart';
 import '../widgets/map/map_webview.dart';
 import '../widgets/navigation/compass_widget.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
+import '../widgets/overlays/boat_marker.dart';
+import '../widgets/overlays/track_overlay.dart';
 
 /// Primary map screen with layered glass UI.
 class MapScreen extends StatefulWidget {
@@ -47,6 +53,8 @@ class _MapScreenState extends State<MapScreen> {
         child: Stack(
           children: [
             const MapWebView(),
+            _buildTrackOverlay(context),
+            _buildBoatMarker(context),
             _buildTopBar(),
             _buildDataOrbs(context),
             _buildCompass(context),
@@ -190,6 +198,43 @@ class _MapScreenState extends State<MapScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTrackOverlay(BuildContext context) {
+    return Consumer<BoatProvider>(
+      builder: (_, boatProvider, __) {
+        if (boatProvider.trackHistoryLength < 2) {
+          return const SizedBox.shrink();
+        }
+        return Consumer<MapProvider>(
+          builder: (_, mapProvider, __) {
+            return TrackOverlay(
+              trackHistory: boatProvider.trackHistory,
+              viewport: mapProvider.viewport,
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildBoatMarker(BuildContext context) {
+    return Consumer<BoatProvider>(
+      builder: (_, boatProvider, __) {
+        if (!boatProvider.hasPosition) {
+          return const SizedBox.shrink();
+        }
+        return Consumer<MapProvider>(
+          builder: (_, mapProvider, __) {
+            return BoatMarker(
+              position: boatProvider.currentPosition!,
+              viewport: mapProvider.viewport,
+              mobPosition: boatProvider.mobPosition,
+            );
+          },
+        );
+      },
     );
   }
 }
