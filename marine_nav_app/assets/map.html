@@ -4,23 +4,33 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SailStream Map</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.css"
+    />
+    <script src="https://unpkg.com/maplibre-gl@4.1.2/dist/maplibre-gl.js"></script>
     <style>
-      html,
-      body {
+      html, body, #map {
         height: 100%;
         margin: 0;
+        padding: 0;
         background: #0a1f3f;
-        color: #ffffff;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       }
-      .container {
-        height: 100%;
+      #loading {
+        position: absolute;
+        inset: 0;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-direction: column;
         gap: 8px;
+        color: #ffffff;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        z-index: 10;
+        background: #0a1f3f;
+        transition: opacity 0.3s ease;
       }
+      #loading.hidden { opacity: 0; pointer-events: none; }
       .badge {
         padding: 6px 12px;
         border-radius: 999px;
@@ -28,18 +38,150 @@
         color: #00c9a7;
         border: 1px solid rgba(0, 201, 167, 0.5);
         font-size: 12px;
-        letter-spacing: 0.4px;
-      }
-      .hint {
-        font-size: 14px;
-        opacity: 0.8;
       }
     </style>
   </head>
   <body>
-    <div class="container">
-      <div class="badge">MapTiler WebView Placeholder</div>
-      <div class="hint">WebView bridge ready for MapLibre integration.</div>
+    <div id="map"></div>
+    <div id="loading">
+      <div class="badge">Loading MapTiler…</div>
     </div>
+
+    <script>
+      // Bridge for Dart ↔ JS communication
+      window.mapBridge = {
+        _map: null,
+        _suppressEvents: false,
+        _apiKey: null,
+
+        // Called from Dart to set the MapTiler API key and initialize
+        setApiKey: function (key) {
+          this._apiKey = key;
+          this._initMap();
+        },
+
+        // Initialize MapLibre GL map
+        _initMap: function () {
+          if (!this._apiKey || this._map) return;
+
+          try {
+            this._map = new maplibregl.Map({
+              container: 'map',
+              style:
+                'https://api.maptiler.com/maps/ocean/style.json?key=' +
+                this._apiKey,
+              center: [0, 0],
+              zoom: 3,
+              attributionControl: false,
+            });
+
+            this._map.addControl(
+              new maplibregl.AttributionControl({ compact: true }),
+              'bottom-right'
+            );
+
+            this._map.on('load', function () {
+              document.getElementById('loading').classList.add('hidden');
+              window.mapBridge._sendToDart({
+                type: 'mapReady',
+              });
+            });
+
+            this._map.on('moveend', function () {
+              window.mapBridge._emitViewport();
+            });
+
+            this._map.on('zoomend', function () {
+              window.mapBridge._emitViewport();
+            });
+
+            this._map.on('rotateend', function () {
+              window.mapBridge._emitViewport();
+            });
+
+            this._map.on('error', function (e) {
+              window.mapBridge._sendToDart({
+                type: 'error',
+                message: e.error ? e.error.message : 'Map error',
+              });
+            });
+          } catch (e) {
+            this._sendToDart({
+              type: 'error',
+              message: 'Map init failed: ' + e.message,
+            });
+          }
+        },
+
+        // Emit current viewport state to Dart
+        _emitViewport: function () {
+          if (this._suppressEvents || !this._map) return;
+          var center = this._map.getCenter();
+          this._sendToDart({
+            type: 'viewportChanged',
+            center: [center.lat, center.lng],
+            zoom: this._map.getZoom(),
+            rotation: (-this._map.getBearing() * Math.PI) / 180,
+          });
+        },
+
+        // Send JSON message to Dart via MapBridge channel
+        _sendToDart: function (obj) {
+          try {
+            if (window.MapBridge) {
+              window.MapBridge.postMessage(JSON.stringify(obj));
+            }
+          } catch (e) {
+            console.error('MapBridge send failed:', e);
+          }
+        },
+
+        // Called from Dart to update map center
+        setCenter: function (lat, lng) {
+          if (!this._map) return;
+          this._suppressEvents = true;
+          this._map.setCenter([lng, lat]);
+          this._suppressEvents = false;
+        },
+
+        // Called from Dart to update zoom level
+        setZoom: function (zoom) {
+          if (!this._map) return;
+          this._suppressEvents = true;
+          this._map.setZoom(zoom);
+          this._suppressEvents = false;
+        },
+
+        // Called from Dart to update rotation (radians → degrees)
+        setRotation: function (radians) {
+          if (!this._map) return;
+          this._suppressEvents = true;
+          this._map.setBearing((-radians * 180) / Math.PI);
+          this._suppressEvents = false;
+        },
+
+        // Called from Dart to fly to a location with animation
+        flyTo: function (lat, lng, zoom) {
+          if (!this._map) return;
+          this._map.flyTo({
+            center: [lng, lat],
+            zoom: zoom || this._map.getZoom(),
+            essential: true,
+          });
+        },
+
+        // Called from Dart to update viewport in one call
+        setViewport: function (lat, lng, zoom, radians) {
+          if (!this._map) return;
+          this._suppressEvents = true;
+          this._map.jumpTo({
+            center: [lng, lat],
+            zoom: zoom,
+            bearing: (-radians * 180) / Math.PI,
+          });
+          this._suppressEvents = false;
+        },
+      };
+    </script>
   </body>
 </html>

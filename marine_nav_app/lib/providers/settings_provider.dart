@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/env.dart' as env;
 import '../models/nmea_error.dart' show ConnectionType;
 
 /// Unit types for speed measurement
@@ -51,6 +52,9 @@ class SettingsProvider extends ChangeNotifier {
   ConnectionType _nmeaConnectionType = ConnectionType.tcp;
   bool _autoConnectNMEA = false;
 
+  // Map Configuration
+  String _mapTilerApiKey = '';
+
   // ============ Public Getters ============
 
   /// Current speed unit preference
@@ -76,6 +80,12 @@ class SettingsProvider extends ChangeNotifier {
 
   /// Auto-connect to NMEA on startup
   bool get autoConnectNMEA => _autoConnectNMEA;
+
+  /// MapTiler API key for map rendering
+  String get mapTilerApiKey => _mapTilerApiKey;
+
+  /// True when a MapTiler API key is configured
+  bool get hasMapTilerApiKey => _mapTilerApiKey.isNotEmpty;
 
   /// Check if settings are initialized
   bool get isInitialized => _prefs != null;
@@ -121,6 +131,15 @@ class SettingsProvider extends ChangeNotifier {
       }
 
       _autoConnectNMEA = _prefs!.getBool('autoConnectNMEA') ?? false;
+
+      // Map settings
+      _mapTilerApiKey = _prefs!.getString('mapTilerApiKey') ?? '';
+
+      // Auto-load API key from env config if not yet persisted
+      if (_mapTilerApiKey.isEmpty && env.mapTilerApiKey.isNotEmpty) {
+        _mapTilerApiKey = env.mapTilerApiKey;
+        await _prefs!.setString('mapTilerApiKey', _mapTilerApiKey);
+      }
 
       notifyListeners();
     } catch (e) {
@@ -189,6 +208,13 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Update MapTiler API key
+  Future<void> setMapTilerApiKey(String key) async {
+    _mapTilerApiKey = key;
+    await _prefs?.setString('mapTilerApiKey', key);
+    notifyListeners();
+  }
+
   // ============ Utility Methods ============
 
   /// Reset all settings to defaults
@@ -201,6 +227,7 @@ class SettingsProvider extends ChangeNotifier {
     _nmeaPort = 10110;
     _nmeaConnectionType = ConnectionType.tcp;
     _autoConnectNMEA = false;
+    _mapTilerApiKey = '';
 
     await _prefs?.clear();
     notifyListeners();

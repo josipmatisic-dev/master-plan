@@ -10,7 +10,6 @@ import '../../theme/colors.dart';
 import '../../theme/dimensions.dart';
 import '../../theme/text_styles.dart';
 import '../../utils/responsive_utils.dart';
-import '../glass/glass_card.dart';
 
 /// WebView container for the MapTiler integration.
 class MapWebView extends StatefulWidget {
@@ -39,15 +38,27 @@ class _MapWebViewState extends State<MapWebView> {
       return;
     }
 
+    final mapProvider = context.read<MapProvider>();
+
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.transparent)
       ..addJavaScriptChannel(
         'MapBridge',
         onMessageReceived: (message) {
-          debugPrint('MapBridge: ${message.message}');
+          mapProvider.handleWebViewEvent(message.message);
         },
       )
+      ..setNavigationDelegate(NavigationDelegate(
+        onPageFinished: (_) {
+          mapProvider.attachWebView(_controller!);
+          if (mapProvider.settingsProvider.hasMapTilerApiKey) {
+            mapProvider.initializeMap(
+              mapProvider.settingsProvider.mapTilerApiKey,
+            );
+          }
+        },
+      ))
       ..loadFlutterAsset('assets/map.html');
   }
 
@@ -78,45 +89,6 @@ class _MapWebViewState extends State<MapWebView> {
                         WebViewWidget(controller: _controller!)
                       else
                         _buildFallback(),
-                      Align(
-                        alignment: Alignment.bottomLeft,
-                        child: Padding(
-                          padding: const EdgeInsets.all(
-                            OceanDimensions.spacingS,
-                          ),
-                          child: GlassCard(
-                            padding: GlassCardPadding.small,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Map Preview',
-                                  style: OceanTextStyles.bodySmall.copyWith(
-                                    color: OceanColors.textPrimary,
-                                  ),
-                                ),
-                                OceanDimensions.spacingS.verticalSpace,
-                                Text(
-                                  'Center: '
-                                  '${mapProvider.viewport.center.latitude.toStringAsFixed(2)}, '
-                                  '${mapProvider.viewport.center.longitude.toStringAsFixed(2)}',
-                                  style: OceanTextStyles.label.copyWith(
-                                    color: OceanColors.textPrimary,
-                                  ),
-                                ),
-                                Text(
-                                  'Zoom: '
-                                  '${mapProvider.viewport.zoom.toStringAsFixed(1)}',
-                                  style: OceanTextStyles.label.copyWith(
-                                    color: OceanColors.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
                     ],
                   ),
                 ),

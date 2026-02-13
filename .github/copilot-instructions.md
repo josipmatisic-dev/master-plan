@@ -9,6 +9,7 @@
 
 ## Quick Context
 - **Repo structure:** Master planning docs at root; runnable Flutter app in `marine_nav_app/`
+- **Technology stack:** Flutter 3.2+, Provider state management, WebView for MapTiler, HTTP for weather APIs
 - **Why this matters:** 4 previous failed attempts documented—avoid repeating: god objects (ISS-002), projection mismatches (ISS-001), circular dependencies (ISS-003), cache race conditions (ISS-004), memory leaks (ISS-006), RenderFlex overflow (ISS-005)
 - **Pattern reuse:** Section B of Bible contains battle-tested code; copy don't reinvent—don't rewrite working patterns
 
@@ -121,7 +122,29 @@ Point webMercatorToWgs84(x, y) → conversion for map tiles
 - Destination point: `GeoUtils.destination(from, distance, bearing)`
 - **Coordinate format:** All methods accept `LatLng` model
 
-## UI system (SailStream / Ocean Glass)
+## UI system (SailStream / Dual Theme)
+
+### Theme System Architecture
+The app supports two visual themes via `ThemeVariant`:
+- **Ocean Glass** (default) — Professional nautical theme with frosted glass effects
+- **Holographic Cyberpunk** — Futuristic neon theme with particles, glows, gradients
+
+**Key files:**
+- `lib/theme/theme_variant.dart` — `ThemeVariant` enum (oceanGlass, holographicCyberpunk)
+- `lib/theme/holographic_colors.dart` — Neon palette (Electric Blue #00D9FF, Magenta, Cyber Purple)
+- `lib/theme/holographic_effects.dart` — NeonGlow, TextGlow, GlowShadows utilities
+- `lib/theme/app_theme.dart` — 4 ThemeData variants via `getThemeForVariant(isDark, variant)`
+- `lib/providers/theme_provider.dart` — Manages AppThemeMode + ThemeVariant, persisted to SharedPreferences
+
+**Theme-aware pattern:** Widgets use `Theme.of(context).colorScheme` for colors (adapts automatically). For variant-specific effects (particles, neon glow), use `context.watch<ThemeProvider>().isHolographic`.
+
+### DraggableOverlay System
+All map/nav overlay widgets are draggable and resizable:
+- `lib/widgets/common/draggable_overlay.dart` — Wraps any widget with drag + resize
+- `lib/utils/overlay_layout_store.dart` — Persists position/scale to SharedPreferences
+- Resize via bottom-right handle (scale 0.45x–1.5x)
+- Used in `MapScreen` and `NavigationModeScreen`
+
 ### Design tokens (all in `lib/theme/`)
 - **Colors** (`colors.dart`):
   - Primary: `deepNavy` #0A1F3F (backgrounds), `seafoamGreen` #00C9A7 (accents/active)
@@ -146,6 +169,13 @@ Point webMercatorToWgs84(x, y) → conversion for map tiles
   - Backdrop blur: 12px standard, 15px intense
   - Always wrapped in `RepaintBoundary` for 60 FPS
   - Example: `GlassCard(padding: GlassCardPadding.medium, child: ...)`
+
+#### Holographic effect widgets
+- **ParticleBackground** (`lib/widgets/effects/particle_background.dart`): CustomPainter particle system, 60 FPS, adaptive density. Must wrap in `IgnorePointer` when used in Stack.
+- **HolographicCard** (`lib/widgets/glass/holographic_card.dart`): Glassmorphism card with neon glow border
+- **NeonDataOrb** (`lib/widgets/data_displays/neon_data_orb.dart`): Rotating neon orb for holographic theme
+- **GlowText** (`lib/widgets/common/glow_text.dart`): Multi-layer shadow text for bloom effect
+- **DraggableOverlay** (`lib/widgets/common/draggable_overlay.dart`): Drag + resize wrapper with persistence
 
 #### SailStream navigation widgets
 - **DataOrb** (`lib/widgets/data_displays/data_orb.dart`): Circular data display for critical nav data
@@ -185,18 +215,38 @@ Point webMercatorToWgs84(x, y) → conversion for map tiles
 ### Local development
 ```bash
 cd marine_nav_app
+
+# Install dependencies
 flutter pub get
-flutter analyze --fatal-infos --fatal-warnings  # CI will fail on warnings
+
+# Static analysis (CI will fail on warnings)
+flutter analyze --fatal-infos --fatal-warnings
+
+# Format check (match Dart style exactly)
 dart format --output=none --set-exit-if-changed .
-flutter test --coverage  # Target ≥80% for new code
-flutter run -d <device>  # or flutter devices to list
+# Auto-format files
+dart format .
+
+# Run tests with coverage (target ≥80%)
+flutter test --coverage
+
+# List available devices
+flutter devices
+
+# Run on specific device
+flutter run -d <device-id>
+
+# Hot reload during development (press 'r' in terminal)
+# Hot restart (press 'R' in terminal)
 ```
 
 ### CI validation (runs on every PR)
-- Tests with coverage → Codecov upload
-- Static analysis (treats warnings as errors)
-- Format check (no auto-format, must match Dart style)
-- Builds: Android APK (debug) + Web
+**Workflow:** `.github/workflows/flutter-ci.yml`
+- **Tests**: `flutter test --coverage` → Codecov upload
+- **Analysis**: `flutter analyze --fatal-warnings` (treats warnings as errors)
+- **Formatting**: `dart format --output=none --set-exit-if-changed .` (must match Dart style exactly)
+- **Builds**: Android APK (debug) + Web (validates compilation)
+- **Runs on**: Push to `main`, PRs to `main`, changes in `marine_nav_app/`
 - See `.github/workflows/README.md` for details
 
 ### iOS parallel development
@@ -209,6 +259,21 @@ flutter run -d <device>  # or flutter devices to list
 - **Unit tests** (`test/providers/`, `test/services/`, `test/models/`): Test business logic in isolation
 - **Widget tests** (`test/widget_test.dart`): Test UI components and screen rendering
 - **Integration tests** (`test/integration/`): Test real workflows (e.g., NMEA → UI update → map render)
+
+**Running Tests:**
+```bash
+# Run all tests with coverage
+flutter test --coverage
+
+# Run specific test file
+flutter test test/providers/map_provider_test.dart
+
+# Run tests matching name pattern
+flutter test --name "NMEA"
+
+# Watch mode for TDD
+flutter test --watch
+```
 
 **Writing Tests:**
 1. Mock external dependencies: `SharedPreferences`, `http.Client`, streams
@@ -360,14 +425,22 @@ When you change:
 6. **UI overflow (ISS-005):** Fixed heights → use `Flexible`/`Expanded`
 
 ## Quick reference checklist
+Before starting work:
 - [ ] Read Bible Section A (failure patterns) for context
 - [ ] Check `KNOWN_ISSUES_DATABASE.md` for similar problems
 - [ ] Verify against Architecture Rules (Bible Section C)
 - [ ] Use working patterns from Bible Section B
+
+While coding:
 - [ ] Keep files under 300 lines
 - [ ] All coordinates through `ProjectionService`
 - [ ] Providers created in `main.dart` only
 - [ ] Dispose all controllers/subscriptions
 - [ ] Use design tokens, not magic numbers
-- [ ] Update documentation (4 docs listed above)
 - [ ] Write tests (≥80% coverage)
+
+Before committing:
+- [ ] Run `flutter analyze --fatal-warnings` (must pass)
+- [ ] Run `dart format .` (auto-format)
+- [ ] Run `flutter test --coverage` (verify tests pass)
+- [ ] Update documentation (4 docs listed in "Documentation sync" section)

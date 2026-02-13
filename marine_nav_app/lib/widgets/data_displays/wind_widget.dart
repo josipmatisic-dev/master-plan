@@ -110,7 +110,10 @@ class _TrueWindWidgetState extends State<TrueWindWidget> {
                 children: [
                   Text(
                     '${widget.speedKnots.toStringAsFixed(1)} kts',
-                    style: OceanTextStyles.heading2,
+                    style: OceanTextStyles.heading2.copyWith(
+                      color: OceanColors.pureWhite,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: OceanDimensions.spacingXS),
                   Text(
@@ -118,6 +121,7 @@ class _TrueWindWidgetState extends State<TrueWindWidget> {
                     style: OceanTextStyles.bodySmall.copyWith(
                       color: OceanColors.textSecondary,
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                   if (widget.editMode && widget.onDelete != null) ...[
                     const SizedBox(height: OceanDimensions.spacingS),

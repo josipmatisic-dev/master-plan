@@ -9,6 +9,24 @@
         "--rm",
         "ghcr.io/microsoft/mcp-dotnet-samples/awesome-copilot:latest"
       ]
+    },
+    "playwright": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/playwright-mcp-server"
+      ]
+    },
+    "sqlite": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sqlite",
+        "--db-path",
+        "marine_nav_app/.flutter-plugins-dependencies"
+      ]
     }
   }
 }
