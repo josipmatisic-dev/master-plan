@@ -11,10 +11,24 @@ import 'package:flutter/services.dart';
 import 'colors.dart';
 import 'dimensions.dart';
 import 'text_styles.dart';
+import 'theme_variant.dart';
+import 'holographic_colors.dart';
 
 /// App theme configuration with Ocean Glass design system
 class AppTheme {
   AppTheme._(); // Private constructor
+
+  // ============ Theme Variant Support ============
+
+  /// Get ThemeData for specific variant and brightness
+  static ThemeData getThemeForVariant(bool isDark, ThemeVariant variant) {
+    switch (variant) {
+      case ThemeVariant.oceanGlass:
+        return isDark ? darkTheme : lightTheme;
+      case ThemeVariant.holographicCyberpunk:
+        return isDark ? holographicDarkTheme : holographicLightTheme;
+    }
+  }
 
   // ============ Dark Theme (Primary) ============
 
@@ -99,6 +113,136 @@ class AppTheme {
         onSecondary: OceanColors.pureWhite,
         onSurface: OceanColors.textPrimaryLight,
         onError: OceanColors.pureWhite,
+      ),
+
+      scaffoldBackgroundColor: OceanColors.backgroundLight,
+
+      // Typography
+      textTheme: _buildTextTheme(OceanColors.textPrimaryLight),
+
+      // AppBar
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        titleTextStyle: TextStyle(
+          color: OceanColors.textPrimaryLight,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          fontFamily: OceanTextStyles.fontFamily,
+        ),
+        iconTheme: IconThemeData(color: OceanColors.textPrimaryLight),
+      ),
+
+      // Card Theme
+      cardTheme: CardThemeData(
+        color: OceanColors.surfaceLight,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(OceanDimensions.radius),
+        ),
+      ),
+
+      // Icon Theme
+      iconTheme: const IconThemeData(
+        color: OceanColors.textPrimaryLight,
+        size: OceanDimensions.icon,
+      ),
+
+      // Divider
+      dividerTheme: DividerThemeData(
+        color: OceanColors.textSecondaryLight.withValues(alpha: 0.2),
+        thickness: 1,
+        space: OceanDimensions.spacingM,
+      ),
+
+      useMaterial3: true,
+    );
+  }
+
+  // ============ Holographic Cyberpunk Dark Theme ============
+
+  /// Holographic Cyberpunk dark theme with neon effects
+  static ThemeData get holographicDarkTheme {
+    return ThemeData(
+      brightness: Brightness.dark,
+
+      // Color Scheme
+      colorScheme: ColorScheme.dark(
+        primary: HolographicColors.electricBlue,
+        secondary: HolographicColors.neonCyan,
+        surface: HolographicColors.surface,
+        error: HolographicColors.error,
+        onPrimary: HolographicColors.pureWhite,
+        onSecondary: HolographicColors.cosmicBlack,
+        onSurface: HolographicColors.textPrimary,
+        onError: HolographicColors.pureWhite,
+      ),
+
+      scaffoldBackgroundColor: HolographicColors.background,
+
+      // Typography
+      textTheme: _buildTextTheme(HolographicColors.textPrimary),
+
+      // AppBar
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        systemOverlayStyle: SystemUiOverlayStyle.light,
+        titleTextStyle: TextStyle(
+          color: HolographicColors.textPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          fontFamily: OceanTextStyles.fontFamily,
+        ),
+        iconTheme: IconThemeData(color: HolographicColors.textPrimary),
+      ),
+
+      // Card Theme
+      cardTheme: CardThemeData(
+        color: HolographicColors.surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(OceanDimensions.radius),
+        ),
+      ),
+
+      // Icon Theme
+      iconTheme: const IconThemeData(
+        color: HolographicColors.textPrimary,
+        size: OceanDimensions.icon,
+      ),
+
+      // Divider
+      dividerTheme: DividerThemeData(
+        color: HolographicColors.textDisabled.withValues(alpha: 0.2),
+        thickness: 1,
+        space: OceanDimensions.spacingM,
+      ),
+
+      useMaterial3: true,
+    );
+  }
+
+  // ============ Holographic Cyberpunk Light Theme ============
+
+  /// Holographic Cyberpunk light theme (less common, for day use)
+  static ThemeData get holographicLightTheme {
+    return ThemeData(
+      brightness: Brightness.light,
+
+      // Color Scheme (inverted for light mode)
+      colorScheme: const ColorScheme.light(
+        primary: HolographicColors.electricBlue,
+        secondary: HolographicColors.cyberPurple,
+        surface: OceanColors.surfaceLight,
+        error: HolographicColors.error,
+        onPrimary: HolographicColors.pureWhite,
+        onSecondary: HolographicColors.pureWhite,
+        onSurface: OceanColors.textPrimaryLight,
+        onError: HolographicColors.pureWhite,
       ),
 
       scaffoldBackgroundColor: OceanColors.backgroundLight,

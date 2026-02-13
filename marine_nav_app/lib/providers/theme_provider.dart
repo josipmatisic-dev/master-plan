@@ -1,12 +1,13 @@
 /// Theme Provider - Layer 1
 ///
-/// Manages theme mode (dark/light/system) and provides ThemeData.
+/// Manages theme mode (dark/light/system) and theme variant (Ocean Glass/Holographic).
 /// Depends on SettingsProvider (Layer 0).
 library;
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
+import '../theme/theme_variant.dart';
 
 /// Theme mode options
 enum AppThemeMode {
@@ -32,26 +33,35 @@ class ThemeProvider extends ChangeNotifier {
 
   SharedPreferences? _prefs;
   AppThemeMode _themeMode = AppThemeMode.dark; // Dark mode first
+  ThemeVariant _themeVariant = ThemeVariant.oceanGlass; // Ocean Glass default
 
   // ============ Public Getters ============
 
   /// Current theme mode
   AppThemeMode get themeMode => _themeMode;
 
-  /// Get ThemeData for current theme mode
+  /// Current theme variant
+  ThemeVariant get themeVariant => _themeVariant;
+
+  /// Get ThemeData for current theme mode and variant
   ThemeData getTheme(Brightness systemBrightness) {
+    // Determine if should use dark or light theme
+    final bool useDark = _shouldUseDark(systemBrightness);
+
+    // Get theme for current variant
+    return AppTheme.getThemeForVariant(useDark, _themeVariant);
+  }
+
+  /// Helper: Determine if dark theme should be used
+  bool _shouldUseDark(Brightness systemBrightness) {
     switch (_themeMode) {
       case AppThemeMode.light:
-        return AppTheme.lightTheme;
-
+        return false;
       case AppThemeMode.dark:
       case AppThemeMode.redLight:
-        return AppTheme.darkTheme;
-
+        return true;
       case AppThemeMode.system:
-        return systemBrightness == Brightness.dark
-            ? AppTheme.darkTheme
-            : AppTheme.lightTheme;
+        return systemBrightness == Brightness.dark;
     }
   }
 
@@ -84,18 +94,29 @@ class ThemeProvider extends ChangeNotifier {
     }
   }
 
-  /// Load theme mode from SharedPreferences
+  /// Load theme mode and variant from SharedPreferences
   Future<void> _loadThemeMode() async {
     if (_prefs == null) return;
 
     try {
+      // Load theme mode (backward compatible with index-based storage)
       final themeModeIndex = _prefs!.getInt('themeMode');
-      if (themeModeIndex != null) {
+      if (themeModeIndex != null &&
+          themeModeIndex < AppThemeMode.values.length) {
         _themeMode = AppThemeMode.values[themeModeIndex];
-        notifyListeners();
       }
+
+      // Load theme variant (string-based for stability)
+      final themeVariantKey = _prefs!.getString('themeVariant');
+      if (themeVariantKey != null) {
+        _themeVariant = ThemeVariantExtension.fromPersistenceKey(
+          themeVariantKey,
+        );
+      }
+
+      notifyListeners();
     } catch (e) {
-      debugPrint('ThemeProvider: Failed to load theme mode - $e');
+      debugPrint('ThemeProvider: Failed to load theme preferences - $e');
     }
   }
 
@@ -125,4 +146,29 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> disableRedLightMode() async {
     await setThemeMode(AppThemeMode.dark);
   }
+
+  // ============ Theme Variant Management ============
+
+  /// Set theme variant with animated transition
+  Future<void> setThemeVariant(ThemeVariant variant) async {
+    if (_themeVariant == variant) return;
+
+    _themeVariant = variant;
+    await _prefs?.setString('themeVariant', variant.persistenceKey);
+    notifyListeners();
+  }
+
+  /// Toggle between Ocean Glass and Holographic themes
+  Future<void> toggleThemeVariant() async {
+    final newVariant = _themeVariant == ThemeVariant.oceanGlass
+        ? ThemeVariant.holographicCyberpunk
+        : ThemeVariant.oceanGlass;
+    await setThemeVariant(newVariant);
+  }
+
+  /// Check if current variant is Ocean Glass
+  bool get isOceanGlass => _themeVariant == ThemeVariant.oceanGlass;
+
+  /// Check if current variant is Holographic Cyberpunk
+  bool get isHolographic => _themeVariant == ThemeVariant.holographicCyberpunk;
 }

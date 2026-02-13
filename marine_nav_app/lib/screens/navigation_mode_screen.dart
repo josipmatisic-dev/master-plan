@@ -8,56 +8,48 @@ import '../theme/colors.dart';
 import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/common/draggable_overlay.dart';
 import '../widgets/data_displays/data_orb.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/map/map_webview.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
 import '../widgets/navigation/nmea_connection_widget.dart';
 
-/// Navigation mode screen displaying route info and actions.
-class NavigationModeScreen extends StatelessWidget {
+/// Navigation mode screen with fullscreen map and draggable overlays.
+class NavigationModeScreen extends StatefulWidget {
   const NavigationModeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const items = <NavItem>[
-      NavItem(icon: Icons.dashboard_outlined, label: 'Dashboard'),
-      NavItem(icon: Icons.map_outlined, label: 'Map'),
-      NavItem(icon: Icons.alt_route, label: 'Route'),
-      NavItem(icon: Icons.settings_outlined, label: 'Settings'),
-    ];
+  State<NavigationModeScreen> createState() => _NavigationModeScreenState();
+}
 
+class _NavigationModeScreenState extends State<NavigationModeScreen> {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Stack(
-          children: [
-            const MapWebView(),
-            _buildTopBar(context),
-            _buildDataOrbsRow(context),
-            _buildRouteInfoCard(context),
-            _buildActionBar(context),
-            Positioned(
-              top: 80,
-              bottom: 80,
-              left: OceanDimensions.spacing,
-              child: NavigationSidebar(
-                items: items,
-                activeIndex: 2,
-                onSelected: (index) => _handleNavSelection(context, index),
-              ),
-            ),
-          ],
+        child: SizedBox.expand(
+          child: Stack(
+            children: [
+              const Positioned.fill(child: MapWebView(height: null)),
+              _buildTopBar(context),
+              _buildDataOrbsRow(context),
+              _buildSidebar(context),
+              _buildRouteInfoCard(context),
+              _buildActionBar(context),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildTopBar(BuildContext context) {
-    return Positioned(
-      top: OceanDimensions.spacing,
-      left: OceanDimensions.spacing,
-      right: OceanDimensions.spacing,
+    return DraggableOverlay(
+      id: 'nav_topBar',
+      initialPosition: const Offset(16, 8),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           GlassCard(
             padding: GlassCardPadding.small,
@@ -67,176 +59,175 @@ class NavigationModeScreen extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.arrow_back,
                       color: OceanColors.pureWhite),
-                  onPressed: () => Navigator.of(context).pushNamed('/map'),
+                  onPressed: () => Navigator.of(context).pop(),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
-                const SizedBox(width: OceanDimensions.spacingS),
-                const Text('Navigation Mode', style: OceanTextStyles.heading2),
+                const SizedBox(width: 8),
+                Text(
+                  'Navigation',
+                  style: OceanTextStyles.heading2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           const NMEAConnectionIndicator(),
         ],
       ),
     );
   }
 
-  void _handleNavSelection(BuildContext context, int index) {
-    switch (index) {
-      case 1:
-        Navigator.of(context).pushNamed('/map');
-        break;
-      case 2:
-        // Current screen
-        break;
-      case 3:
-        Navigator.of(context).pushNamed('/settings');
-        break;
-      default:
-        break;
-    }
-  }
-
   Widget _buildDataOrbsRow(BuildContext context) {
-    return Positioned(
-      top: context.isMobile ? 80 : 120,
-      left: 0,
-      right: 0,
-      child: Consumer<NMEAProvider>(
-        builder: (context, nmea, child) {
-          final data = nmea.currentData;
-          final isConnected = nmea.isConnected;
+    final orbSize = context.isMobile ? DataOrbSize.small : DataOrbSize.medium;
+    final width = MediaQuery.of(context).size.width - 80;
 
-          // Extract values from NMEA data or use fallback
-          final sog = data?.gpvtg?.speedKnots?.toStringAsFixed(1) ?? '--';
-          final cog = data?.gprmc?.trackTrue?.toStringAsFixed(0) ?? '--';
-          final depth = data?.dpt?.depthMeters.toStringAsFixed(1) ?? '--';
+    return DraggableOverlay(
+      id: 'nav_dataOrbs',
+      initialPosition: const Offset(16, 65),
+      child: SizedBox(
+        width: width,
+        child: Consumer<NMEAProvider>(
+          builder: (context, nmea, _) {
+            final data = nmea.currentData;
+            final connected = nmea.isConnected;
+            final sog = data?.gpvtg?.speedKnots?.toStringAsFixed(1) ?? '--';
+            final cog = data?.gprmc?.trackTrue?.toStringAsFixed(0) ?? '--';
+            final depth = data?.dpt?.depthMeters.toStringAsFixed(1) ?? '--';
+            final depthState = !connected
+                ? DataOrbState.inactive
+                : (data?.dpt != null && data!.dpt!.depthMeters < 5.0)
+                    ? DataOrbState.alert
+                    : DataOrbState.normal;
 
-          // Determine states based on connection and data
-          final sogState =
-              isConnected ? DataOrbState.normal : DataOrbState.inactive;
-          final cogState =
-              isConnected ? DataOrbState.normal : DataOrbState.inactive;
-
-          // Depth alert if shallow (< 5m) or unknown
-          final depthState = !isConnected
-              ? DataOrbState.inactive
-              : (data?.dpt != null && data!.dpt!.depthMeters < 5.0)
-                  ? DataOrbState.alert
-                  : DataOrbState.normal;
-
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              DataOrb(
-                label: 'SOG',
-                value: sog,
-                unit: 'kts',
-                size: DataOrbSize.large,
-                state: sogState,
-                heroTag: 'orb-sog',
-              ),
-              const SizedBox(width: OceanDimensions.spacingL),
-              DataOrb(
-                label: 'COG',
-                value: cog,
-                unit: '°',
-                size: DataOrbSize.large,
-                state: cogState,
-                heroTag: 'orb-cog',
-              ),
-              const SizedBox(width: OceanDimensions.spacingL),
-              DataOrb(
-                label: 'DEPTH',
-                value: depth,
-                unit: 'm',
-                size: DataOrbSize.large,
-                state: depthState,
-                heroTag: 'orb-depth',
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildRouteInfoCard(BuildContext context) {
-    return Positioned(
-      bottom: 120,
-      left: OceanDimensions.spacingL,
-      right: OceanDimensions.spacingL,
-      child: Consumer<NMEAProvider>(
-        builder: (context, nmea, _) {
-          final position = nmea.currentData?.position;
-          final sog = nmea.currentData?.speedOverGroundKnots ?? 0.0;
-          final eta = _calculateETA(sog);
-
-          return GlassCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                const Text('Next: Waypoint 1', style: OceanTextStyles.heading2),
-                SizedBox(height: OceanDimensions.spacingS),
-                Text(
-                  'Distance: 2.4 nm',
-                  style: OceanTextStyles.body,
+                Flexible(
+                  child: DataOrb(
+                    label: 'SOG', value: sog, unit: 'kts',
+                    size: orbSize,
+                    state: connected ? DataOrbState.normal : DataOrbState.inactive,
+                    heroTag: 'nav-orb-sog',
+                  ),
                 ),
-                SizedBox(height: OceanDimensions.spacingXS),
-                Text(
-                  'ETA: ${eta.toStringAsFixed(0)} min',
-                  style: OceanTextStyles.body,
+                Flexible(
+                  child: DataOrb(
+                    label: 'COG', value: cog, unit: '°',
+                    size: orbSize,
+                    state: connected ? DataOrbState.normal : DataOrbState.inactive,
+                    heroTag: 'nav-orb-cog',
+                  ),
                 ),
-                SizedBox(height: OceanDimensions.spacingXS),
-                Text(
-                  'Position: ${position?.latitude.toStringAsFixed(4) ?? 'N/A'}, ${position?.longitude.toStringAsFixed(4) ?? 'N/A'}',
-                  style: OceanTextStyles.bodySmall,
+                Flexible(
+                  child: DataOrb(
+                    label: 'DEPTH', value: depth, unit: 'm',
+                    size: orbSize, state: depthState,
+                    heroTag: 'nav-orb-depth',
+                  ),
                 ),
               ],
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Calculate estimated time to arrival (minutes) based on speed and distance.
-  double _calculateETA(double speedKnots) {
-    const distanceNm = 2.4;
-    if (speedKnots <= 0) return 0.0;
-    return (distanceNm / speedKnots) * 60; // Convert hours to minutes
-  }
-
-  Widget _buildActionBar(BuildContext context) {
-    return Positioned(
-      bottom: OceanDimensions.spacing,
-      left: OceanDimensions.spacing,
-      right: OceanDimensions.spacing,
-      child: GlassCard(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            _actionButton('+ Route', () => _handleRouteAction(context)),
-            _actionButton(
-              'Mark Position',
-              () => _handleMarkPositionAction(context),
-            ),
-            _actionButton('Track', () => _handleTrackAction(context)),
-            _actionButton('Alerts', () => _handleAlertsAction(context)),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _actionButton(String label, VoidCallback onPressed) {
+  Widget _buildSidebar(BuildContext context) {
+    const items = <NavItem>[
+      NavItem(icon: Icons.dashboard_outlined, label: 'Dashboard'),
+      NavItem(icon: Icons.map_outlined, label: 'Map'),
+      NavItem(icon: Icons.alt_route, label: 'Route'),
+      NavItem(icon: Icons.settings_outlined, label: 'Settings'),
+    ];
+
+    return DraggableOverlay(
+      id: 'nav_sidebar',
+      initialPosition: const Offset(0, 180),
+      child: NavigationSidebar(
+        items: items,
+        activeIndex: 2,
+        onSelected: (index) => _handleNavSelection(context, index),
+      ),
+    );
+  }
+
+  Widget _buildRouteInfoCard(BuildContext context) {
+    final bottom = MediaQuery.of(context).size.height - 240;
+
+    return DraggableOverlay(
+      id: 'nav_routeInfo',
+      initialPosition: Offset(24, bottom),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width - 48,
+        child: Consumer<NMEAProvider>(
+          builder: (context, nmea, _) {
+            final pos = nmea.currentData?.position;
+            final sog = nmea.currentData?.speedOverGroundKnots ?? 0.0;
+            final eta = sog > 0 ? (2.4 / sog * 60) : 0.0;
+
+            return GlassCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Next: Waypoint 1', style: OceanTextStyles.heading2),
+                  SizedBox(height: OceanDimensions.spacingXS),
+                  Text('Distance: 2.4 nm', style: OceanTextStyles.bodySmall),
+                  Text('ETA: ${eta.toStringAsFixed(0)} min',
+                      style: OceanTextStyles.bodySmall),
+                  Text(
+                    'Pos: ${pos?.latitude.toStringAsFixed(4) ?? 'N/A'}, '
+                    '${pos?.longitude.toStringAsFixed(4) ?? 'N/A'}',
+                    style: OceanTextStyles.label,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionBar(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final bottom = MediaQuery.of(context).size.height - 130;
+
+    return DraggableOverlay(
+      id: 'nav_actions',
+      initialPosition: Offset(16, bottom),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width - 32,
+        child: GlassCard(
+          padding: GlassCardPadding.small,
+          child: Wrap(
+            spacing: OceanDimensions.spacingS,
+            runSpacing: OceanDimensions.spacingS,
+            alignment: WrapAlignment.spaceEvenly,
+            children: [
+              _btn('+ Route', cs, () => _snack(context, 'Route creation coming soon')),
+              _btn('Mark', cs, () => _markPosition(context)),
+              _btn('Track', cs, () => _snack(context, 'Tracking toggled')),
+              _btn('Alerts', cs, () => _snack(context, 'No active alerts')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _btn(String label, ColorScheme cs, VoidCallback onPressed) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: OceanColors.seafoamGreen.withValues(alpha: 0.15),
-        foregroundColor: OceanColors.pureWhite,
+        backgroundColor: cs.primary.withValues(alpha: 0.15),
+        foregroundColor: cs.onSurface,
         padding: const EdgeInsets.symmetric(
           vertical: OceanDimensions.spacingS,
-          horizontal: OceanDimensions.spacing,
+          horizontal: OceanDimensions.spacingM,
         ),
       ),
       onPressed: onPressed,
@@ -244,51 +235,33 @@ class NavigationModeScreen extends StatelessWidget {
     );
   }
 
-  void _handleRouteAction(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Route creation not yet implemented'),
-        duration: Duration(seconds: 2),
-      ),
-    );
-  }
-
-  void _handleMarkPositionAction(BuildContext context) {
-    final nmea = context.read<NMEAProvider>().currentData;
-    if (nmea?.position != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Waypoint marked at ${nmea!.position!.latitude.toStringAsFixed(4)}, ${nmea.position!.longitude.toStringAsFixed(4)}',
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No position data available'),
-          duration: Duration(seconds: 2),
-        ),
-      );
+  void _handleNavSelection(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        Navigator.of(context).pushNamed('/dashboard');
+        break;
+      case 1:
+        Navigator.of(context).pushNamed('/map');
+        break;
+      case 2:
+        break; // already here
+      case 3:
+        Navigator.of(context).pushNamed('/settings');
+        break;
     }
   }
 
-  void _handleTrackAction(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Tracking toggled'),
-        duration: Duration(seconds: 2),
-      ),
+  void _snack(BuildContext ctx, String msg) {
+    ScaffoldMessenger.of(ctx).showSnackBar(
+      SnackBar(content: Text(msg), duration: const Duration(seconds: 2)),
     );
   }
 
-  void _handleAlertsAction(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('No active navigation alerts'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  void _markPosition(BuildContext ctx) {
+    final nmea = ctx.read<NMEAProvider>().currentData;
+    final msg = nmea?.position != null
+        ? 'Waypoint marked at ${nmea!.position!.latitude.toStringAsFixed(4)}, ${nmea.position!.longitude.toStringAsFixed(4)}'
+        : 'No position data available';
+    _snack(ctx, msg);
   }
 }

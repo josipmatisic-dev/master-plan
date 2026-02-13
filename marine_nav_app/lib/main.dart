@@ -14,10 +14,14 @@ import 'providers/route_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/weather_provider.dart';
+import 'screens/dashboard_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/map_screen.dart';
 import 'screens/navigation_mode_screen.dart';
+import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/vessel_screen.dart';
+import 'screens/weather_screen.dart';
 
 void main() async {
   // Ensure Flutter is initialized
@@ -154,14 +158,22 @@ class MarineNavigationApp extends StatelessWidget {
             theme: themeProvider.getTheme(systemBrightness),
             themeMode: _getThemeMode(themeProvider.themeMode),
 
+            // Animated cross-fade when switching themes
+            themeAnimationDuration: const Duration(milliseconds: 400),
+            themeAnimationCurve: Curves.easeInOut,
+
             // Home screen
             home: const HomeScreen(),
 
             // Named routes for primary surfaces
             routes: {
+              '/dashboard': (_) => const DashboardScreen(),
               '/map': (_) => const MapScreen(),
               '/navigation': (_) => const NavigationModeScreen(),
+              '/weather': (_) => const WeatherScreen(),
               '/settings': (_) => const SettingsScreen(),
+              '/profile': (_) => const ProfileScreen(),
+              '/vessel': (_) => const VesselScreen(),
             },
           );
         },

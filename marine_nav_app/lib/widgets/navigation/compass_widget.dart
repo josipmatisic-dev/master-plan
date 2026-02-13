@@ -7,7 +7,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import '../../theme/colors.dart';
 import '../../theme/dimensions.dart';
 import '../../theme/text_styles.dart';
 import '../glass/glass_card.dart';
@@ -44,6 +43,7 @@ class CompassWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return GlassCard(
       borderRadius: OceanDimensions.radiusL,
       child: SizedBox(
@@ -52,17 +52,17 @@ class CompassWidget extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            _buildCompassRing(),
-            _buildHeadingNeedle(),
-            _buildCenterContent(),
+            _buildCompassRing(colorScheme),
+            _buildHeadingNeedle(colorScheme),
+            _buildCenterContent(colorScheme),
             Positioned(
               bottom: OceanDimensions.spacing,
-              child: _buildWindInfo(),
+              child: _buildWindInfo(colorScheme),
             ),
             Positioned(
               top: OceanDimensions.spacing,
               right: OceanDimensions.spacing,
-              child: _buildVrButton(),
+              child: _buildVrButton(colorScheme),
             ),
           ],
         ),
@@ -70,7 +70,7 @@ class CompassWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCompassRing() {
+  Widget _buildCompassRing(ColorScheme colorScheme) {
     return SizedBox(
       width: 200,
       height: 200,
@@ -78,13 +78,13 @@ class CompassWidget extends StatelessWidget {
         value: 1,
         strokeWidth: 2,
         valueColor:
-            const AlwaysStoppedAnimation<Color>(OceanColors.textSecondary),
-        backgroundColor: OceanColors.textSecondary.withValues(alpha: 0.2),
+            AlwaysStoppedAnimation<Color>(colorScheme.onSurfaceVariant),
+        backgroundColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
       ),
     );
   }
 
-  Widget _buildHeadingNeedle() {
+  Widget _buildHeadingNeedle(ColorScheme colorScheme) {
     return Transform.rotate(
       angle: headingDegrees * (3.1415926535 / 180),
       child: Container(
@@ -92,8 +92,8 @@ class CompassWidget extends StatelessWidget {
         height: 90,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(4),
-          gradient: const LinearGradient(
-            colors: [OceanColors.seafoamGreen, OceanColors.teal],
+          gradient: LinearGradient(
+            colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.6)],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -102,48 +102,56 @@ class CompassWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildCenterContent() {
+  Widget _buildCenterContent(ColorScheme colorScheme) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           _formatHeading(headingDegrees),
-          style: OceanTextStyles.heading2,
+          style: OceanTextStyles.heading2.copyWith(
+            color: colorScheme.onSurface,
+          ),
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: OceanDimensions.spacingS),
         Text(
           '${speedKnots.toStringAsFixed(1)} kts',
           style:
-              OceanTextStyles.body.copyWith(color: OceanColors.textSecondary),
+              OceanTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
   }
 
-  Widget _buildWindInfo() {
+  Widget _buildWindInfo(ColorScheme colorScheme) {
     return Column(
       children: [
         Text(
           'Wind',
           style:
-              OceanTextStyles.label.copyWith(color: OceanColors.textSecondary),
+              OceanTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant),
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: OceanDimensions.spacingXS),
         Text(
           '${windKnots.toStringAsFixed(1)} kts · $windDirection',
-          style: OceanTextStyles.bodySmall,
+          style: OceanTextStyles.bodySmall.copyWith(
+            color: colorScheme.onSurface,
+          ),
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
   }
 
-  Widget _buildVrButton() {
+  Widget _buildVrButton(ColorScheme colorScheme) {
     return IconButton(
       onPressed: onToggleVr,
       icon: Icon(
         isVrEnabled ? Icons.vrpano : Icons.vrpano_outlined,
         color:
-            isVrEnabled ? OceanColors.seafoamGreen : OceanColors.textSecondary,
+            isVrEnabled ? colorScheme.primary : colorScheme.onSurfaceVariant,
       ),
       tooltip: 'Toggle VR',
     );

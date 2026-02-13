@@ -14,8 +14,8 @@ import '../glass/glass_card.dart';
 
 /// WebView container for the MapTiler integration.
 class MapWebView extends StatefulWidget {
-  /// Height of the map container.
-  final double height;
+  /// Height of the map container. Null means fill parent.
+  final double? height;
 
   /// Creates the MapWebView widget.
   const MapWebView({
@@ -55,9 +55,7 @@ class _MapWebViewState extends State<MapWebView> {
   Widget build(BuildContext context) {
     return Consumer<MapProvider>(
       builder: (context, mapProvider, _) {
-        return SizedBox(
-          height: widget.height,
-          child: LayoutBuilder(
+        final Widget layoutChild = LayoutBuilder(
             builder: (context, constraints) {
               final size = constraints.biggest;
               if (!size.isEmpty && size != mapProvider.viewport.size) {
@@ -66,62 +64,69 @@ class _MapWebViewState extends State<MapWebView> {
                 });
               }
 
-              return GlassCard(
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: OceanColors.surface,
-                    borderRadius: BorderRadius.circular(OceanDimensions.radius),
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(OceanDimensions.radius),
-                    child: Stack(
-                      children: [
-                        if (_webViewAvailable && _controller != null)
-                          WebViewWidget(controller: _controller!)
-                        else
-                          _buildFallback(),
-                        Align(
-                          alignment: Alignment.bottomLeft,
-                          child: Padding(
-                            padding: const EdgeInsets.all(
-                              OceanDimensions.spacingS,
-                            ),
-                            child: GlassCard(
-                              padding: GlassCardPadding.small,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Map Preview',
-                                    style: OceanTextStyles.bodySmall,
+              return Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: OceanColors.surface,
+                  borderRadius: BorderRadius.circular(OceanDimensions.radius),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(OceanDimensions.radius),
+                  child: Stack(
+                    children: [
+                      if (_webViewAvailable && _controller != null)
+                        WebViewWidget(controller: _controller!)
+                      else
+                        _buildFallback(),
+                      Align(
+                        alignment: Alignment.bottomLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.all(
+                            OceanDimensions.spacingS,
+                          ),
+                          child: GlassCard(
+                            padding: GlassCardPadding.small,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Map Preview',
+                                  style: OceanTextStyles.bodySmall.copyWith(
+                                    color: OceanColors.textPrimary,
                                   ),
-                                  OceanDimensions.spacingS.verticalSpace,
-                                  Text(
-                                    'Center: '
-                                    '${mapProvider.viewport.center.latitude.toStringAsFixed(2)}, '
-                                    '${mapProvider.viewport.center.longitude.toStringAsFixed(2)}',
-                                    style: OceanTextStyles.label,
+                                ),
+                                OceanDimensions.spacingS.verticalSpace,
+                                Text(
+                                  'Center: '
+                                  '${mapProvider.viewport.center.latitude.toStringAsFixed(2)}, '
+                                  '${mapProvider.viewport.center.longitude.toStringAsFixed(2)}',
+                                  style: OceanTextStyles.label.copyWith(
+                                    color: OceanColors.textPrimary,
                                   ),
-                                  Text(
-                                    'Zoom: '
-                                    '${mapProvider.viewport.zoom.toStringAsFixed(1)}',
-                                    style: OceanTextStyles.label,
+                                ),
+                                Text(
+                                  'Zoom: '
+                                  '${mapProvider.viewport.zoom.toStringAsFixed(1)}',
+                                  style: OceanTextStyles.label.copyWith(
+                                    color: OceanColors.textPrimary,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               );
             },
-          ),
-        );
+          );
+        if (widget.height != null) {
+          return SizedBox(height: widget.height, child: layoutChild);
+        }
+        return layoutChild;
       },
     );
   }
@@ -137,9 +142,11 @@ class _MapWebViewState extends State<MapWebView> {
             color: OceanColors.seafoamGreen,
           ),
           OceanDimensions.spacingS.verticalSpace,
-          const Text(
+          Text(
             'Map View (WebView pending)',
-            style: OceanTextStyles.body,
+            style: OceanTextStyles.body.copyWith(
+              color: OceanColors.textPrimary,
+            ),
           ),
         ],
       ),

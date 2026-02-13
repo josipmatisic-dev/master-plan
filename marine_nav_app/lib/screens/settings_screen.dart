@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/settings_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
+import '../theme/theme_variant.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/settings/nmea_settings_card.dart';
 
@@ -32,6 +34,8 @@ class SettingsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const NMEASettingsCard(),
+              const SizedBox(height: OceanDimensions.spacingL),
+              _buildThemeSection(context),
               const SizedBox(height: OceanDimensions.spacingL),
               _buildGeneralSection(),
             ],
@@ -88,6 +92,55 @@ class SettingsScreen extends StatelessWidget {
                 onChanged: (value) {
                   if (value != null) {
                     settings.setSpeedUnit(value);
+                  }
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeSection(BuildContext context) {
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Theme', style: OceanTextStyles.heading2),
+          const SizedBox(height: OceanDimensions.spacing),
+          Consumer<ThemeProvider>(
+            builder: (context, themeProvider, child) {
+              return DropdownButtonFormField<ThemeVariant>(
+                value: themeProvider.themeVariant,
+                style: OceanTextStyles.body,
+                dropdownColor: OceanColors.surface,
+                decoration: InputDecoration(
+                  labelText: 'Theme Variant',
+                  labelStyle: OceanTextStyles.label
+                      .copyWith(color: OceanColors.textDisabled),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(OceanDimensions.radiusS),
+                    borderSide: BorderSide(
+                        color: OceanColors.textDisabled.withValues(alpha: 0.3)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(OceanDimensions.radiusS),
+                    borderSide: const BorderSide(
+                        color: OceanColors.seafoamGreen, width: 2),
+                  ),
+                ),
+                items: ThemeVariant.values.map((variant) {
+                  return DropdownMenuItem(
+                    value: variant,
+                    child: Text(variant.displayName),
+                  );
+                }).toList(),
+                onChanged: (ThemeVariant? value) {
+                  if (value != null) {
+                    themeProvider.setThemeVariant(value);
                   }
                 },
               );

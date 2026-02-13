@@ -29,6 +29,7 @@ class LayerToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Consumer<WeatherProvider>(
       builder: (_, weather, __) {
         return GlassCard(
@@ -41,6 +42,7 @@ class LayerToggle extends StatelessWidget {
                 label: 'Wind',
                 isActive: weather.isWindVisible,
                 onTap: () => weather.toggleLayer(WeatherLayer.wind),
+                colorScheme: colorScheme,
               ),
               const SizedBox(height: OceanDimensions.spacingXS),
               _buildToggleRow(
@@ -48,17 +50,18 @@ class LayerToggle extends StatelessWidget {
                 label: 'Waves',
                 isActive: weather.isWaveVisible,
                 onTap: () => weather.toggleLayer(WeatherLayer.wave),
+                colorScheme: colorScheme,
               ),
               if (weather.isLoading)
-                const Padding(
-                  padding: EdgeInsets.only(top: OceanDimensions.spacingXS),
+                Padding(
+                  padding: const EdgeInsets.only(top: OceanDimensions.spacingXS),
                   child: SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
                       valueColor: AlwaysStoppedAnimation<Color>(
-                        OceanColors.seafoamGreen,
+                        colorScheme.primary,
                       ),
                     ),
                   ),
@@ -75,12 +78,12 @@ class LayerToggle extends StatelessWidget {
                   ),
                 ),
               if (weather.errorMessage != null && !weather.hasData)
-                const Padding(
-                  padding: EdgeInsets.only(top: OceanDimensions.spacingXS),
+                Padding(
+                  padding: const EdgeInsets.only(top: OceanDimensions.spacingXS),
                   child: Icon(
                     Icons.warning_amber_rounded,
                     size: 16,
-                    color: OceanColors.coralRed,
+                    color: colorScheme.error,
                   ),
                 ),
             ],
@@ -95,6 +98,7 @@ class LayerToggle extends StatelessWidget {
     required String label,
     required bool isActive,
     required VoidCallback onTap,
+    required ColorScheme colorScheme,
   }) {
     return GestureDetector(
       onTap: onTap,
@@ -105,14 +109,14 @@ class LayerToggle extends StatelessWidget {
             icon,
             size: 18,
             color:
-                isActive ? OceanColors.seafoamGreen : OceanColors.textSecondary,
+                isActive ? colorScheme.primary : colorScheme.onSurfaceVariant,
           ),
           const SizedBox(width: OceanDimensions.spacingXS),
           Text(
             label,
             style: OceanTextStyles.label.copyWith(
               color:
-                  isActive ? OceanColors.pureWhite : OceanColors.textSecondary,
+                  isActive ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
             ),
           ),
         ],

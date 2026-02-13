@@ -1,14 +1,20 @@
 /// Home Screen - Main Navigation Screen
 ///
-/// Demonstrates Ocean Glass design system and provider usage.
+/// Theme-aware home screen that adapts between Ocean Glass and
+/// Holographic Cyberpunk styles with particle effects.
 library;
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../providers/theme_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
+import '../theme/holographic_colors.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/effects/particle_background.dart';
+import '../widgets/effects/scroll_reveal.dart';
 import '../widgets/home/cache_info_card.dart';
 import '../widgets/home/navigation_shortcuts.dart';
 import '../widgets/home/settings_card.dart';
@@ -23,49 +29,82 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHolographic = context.watch<ThemeProvider>().isHolographic;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: SafeArea(
-        child: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                OceanColors.background,
-                OceanColors.surface,
+        child: Stack(
+          children: [
+            // Background gradient
+            Container(
+              decoration: BoxDecoration(
+                gradient: isHolographic
+                    ? HolographicColors.deepSpaceBackground
+                    : const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          OceanColors.background,
+                          OceanColors.surface,
+                        ],
+                      ),
+              ),
+            ),
+            // Particle background (holographic only)
+            if (isHolographic)
+              const IgnorePointer(
+                  child: RepaintBoundary(child: ParticleBackground())),
+            // Content
+            CustomScrollView(
+              slivers: [
+                _buildAppBar(context, isHolographic, colorScheme),
+                SliverPadding(
+                  padding: EdgeInsets.all(context.responsiveSpacing),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      const ScrollReveal(
+                        child: WelcomeCard(),
+                      ),
+                      OceanDimensions.spacingL.verticalSpace,
+                      const ScrollReveal(
+                        delay: Duration(milliseconds: 100),
+                        child: NavigationShortcuts(),
+                      ),
+                      OceanDimensions.spacingL.verticalSpace,
+                      _buildMapPreview(context, colorScheme),
+                      OceanDimensions.spacingL.verticalSpace,
+                      const ScrollReveal(
+                        delay: Duration(milliseconds: 200),
+                        child: ThemeControls(),
+                      ),
+                      OceanDimensions.spacingL.verticalSpace,
+                      const ScrollReveal(
+                        delay: Duration(milliseconds: 300),
+                        child: SettingsCard(),
+                      ),
+                      OceanDimensions.spacingL.verticalSpace,
+                      const ScrollReveal(
+                        delay: Duration(milliseconds: 400),
+                        child: CacheInfoCard(),
+                      ),
+                    ]),
+                  ),
+                ),
               ],
             ),
-          ),
-          child: CustomScrollView(
-            slivers: [
-              _buildAppBar(context),
-              SliverPadding(
-                padding: EdgeInsets.all(context.responsiveSpacing),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    const WelcomeCard(),
-                    OceanDimensions.spacingL.verticalSpace,
-                    const NavigationShortcuts(),
-                    OceanDimensions.spacingL.verticalSpace,
-                    _buildMapPreview(context),
-                    OceanDimensions.spacingL.verticalSpace,
-                    const ThemeControls(),
-                    OceanDimensions.spacingL.verticalSpace,
-                    const SettingsCard(),
-                    OceanDimensions.spacingL.verticalSpace,
-                    const CacheInfoCard(),
-                  ]),
-                ),
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
   }
 
   /// Build app bar
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(
+    BuildContext context,
+    bool isHolographic,
+    ColorScheme colorScheme,
+  ) {
     return SliverAppBar(
       expandedHeight: context.isMobile ? 120 : 160,
       floating: false,
@@ -74,10 +113,27 @@ class HomeScreen extends StatelessWidget {
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           'SailStream',
-          style: OceanTextStyles.heading1.copyWith(
-            color: OceanColors.textPrimary,
-            fontSize: context.isMobile ? 24 : 32,
-          ),
+          style: isHolographic
+              ? OceanTextStyles.heading1.copyWith(
+                  color: HolographicColors.electricBlue,
+                  fontSize: context.isMobile ? 24 : 32,
+                  shadows: [
+                    Shadow(
+                      color: HolographicColors.electricBlue
+                          .withValues(alpha: 0.6),
+                      blurRadius: 12,
+                    ),
+                    Shadow(
+                      color: HolographicColors.neonCyan
+                          .withValues(alpha: 0.3),
+                      blurRadius: 24,
+                    ),
+                  ],
+                )
+              : OceanTextStyles.heading1.copyWith(
+                  color: OceanColors.textPrimary,
+                  fontSize: context.isMobile ? 24 : 32,
+                ),
         ),
         centerTitle: true,
       ),
@@ -85,13 +141,15 @@ class HomeScreen extends StatelessWidget {
   }
 
   /// Build map preview card
-  Widget _buildMapPreview(BuildContext context) {
+  Widget _buildMapPreview(BuildContext context, ColorScheme colorScheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Map Preview',
-          style: OceanTextStyles.heading2,
+          style: OceanTextStyles.heading2.copyWith(
+            color: colorScheme.onSurface,
+          ),
         ),
         OceanDimensions.spacingS.verticalSpace,
         const MapWebView(),

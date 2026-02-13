@@ -1,15 +1,18 @@
-/// Glass Card - Frosted Glass Container
+/// Glass Card - Theme-Aware Frosted Glass Container
 ///
-/// Base reusable component with Ocean Glass frosted glass effect.
-/// Maintains 60 FPS performance using RepaintBoundary.
+/// Automatically adapts between Ocean Glass and Holographic Cyberpunk styles
+/// based on the active theme variant. Uses RepaintBoundary for 60 FPS.
 library;
 
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../providers/theme_provider.dart';
 import '../../theme/colors.dart';
 import '../../theme/dimensions.dart';
+import '../../theme/holographic_colors.dart';
 
 /// Padding size variants for glass cards
 enum GlassCardPadding {
@@ -26,18 +29,11 @@ enum GlassCardPadding {
   none,
 }
 
-/// Glass Card - Frosted glass container component
+/// Glass Card - Theme-aware frosted glass container
 ///
-/// Base component for Ocean Glass design system.
-/// Uses RepaintBoundary for 60 FPS performance.
-///
-/// Example:
-/// ```dart
-/// GlassCard(
-///   child: Text('Navigation Data'),
-///   padding: GlassCardPadding.medium,
-/// )
-/// ```
+/// Reads theme variant from ThemeProvider and applies:
+/// - Ocean Glass: subtle blur, muted border
+/// - Holographic: neon glow border, deeper blur, purple-tinted glass
 class GlassCard extends StatelessWidget {
   /// Child widget to display inside the glass card
   final Widget child;
@@ -78,46 +74,25 @@ class GlassCard extends StatelessWidget {
     }
   }
 
-  /// Get blur sigma based on intensity
-  double get _blurSigma {
-    return intenseBlur
-        ? OceanDimensions.glassBlurIntense
-        : OceanDimensions.glassBlur;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final isHolographic = context.watch<ThemeProvider>().isHolographic;
     final radius = borderRadius ?? OceanDimensions.radius;
+    final blurSigma = isHolographic
+        ? 20.0
+        : (intenseBlur
+            ? OceanDimensions.glassBlurIntense
+            : OceanDimensions.glassBlur);
 
     return RepaintBoundary(
       child: Container(
-        decoration: BoxDecoration(
-          color: isDark
-              ? OceanColors.deepNavy
-                  .withValues(alpha: OceanDimensions.glassOpacity)
-              : OceanColors.pureWhite
-                  .withValues(alpha: OceanDimensions.glassOpacityLight),
-          borderRadius: BorderRadius.circular(radius),
-          border: Border.all(
-            color:
-                isDark ? OceanColors.glassBorder : OceanColors.glassBorderLight,
-            width: OceanDimensions.glassBorderWidth,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: OceanColors.glassShadow,
-              blurRadius: OceanDimensions.shadowBlur,
-              offset: const Offset(0, OceanDimensions.shadowOffsetY),
-            ),
-          ],
-        ),
+        decoration: isHolographic
+            ? _holographicDecoration(radius)
+            : _oceanDecoration(radius),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(radius),
           child: BackdropFilter(
-            filter: ImageFilter.blur(
-              sigmaX: _blurSigma,
-              sigmaY: _blurSigma,
-            ),
+            filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
             child: Padding(
               padding: EdgeInsets.all(_paddingValue),
               child: child,
@@ -125,6 +100,53 @@ class GlassCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  BoxDecoration _oceanDecoration(double radius) {
+    return BoxDecoration(
+      color: isDark
+          ? OceanColors.deepNavy
+              .withValues(alpha: OceanDimensions.glassOpacity)
+          : OceanColors.pureWhite
+              .withValues(alpha: OceanDimensions.glassOpacityLight),
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(
+        color: isDark ? OceanColors.glassBorder : OceanColors.glassBorderLight,
+        width: OceanDimensions.glassBorderWidth,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: OceanColors.glassShadow,
+          blurRadius: OceanDimensions.shadowBlur,
+          offset: const Offset(0, OceanDimensions.shadowOffsetY),
+        ),
+      ],
+    );
+  }
+
+  BoxDecoration _holographicDecoration(double radius) {
+    return BoxDecoration(
+      color: HolographicColors.spaceNavy.withValues(alpha: 0.4),
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(
+        color: HolographicColors.electricBlue.withValues(alpha: 0.4),
+        width: 1.5,
+      ),
+      boxShadow: [
+        // Inner glow
+        BoxShadow(
+          color: HolographicColors.electricBlue.withValues(alpha: 0.15),
+          blurRadius: 8,
+          spreadRadius: 1,
+        ),
+        // Outer neon glow
+        BoxShadow(
+          color: HolographicColors.electricBlue.withValues(alpha: 0.08),
+          blurRadius: 20,
+          spreadRadius: 2,
+        ),
+      ],
     );
   }
 }
