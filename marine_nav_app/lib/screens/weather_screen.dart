@@ -77,30 +77,36 @@ class WeatherScreen extends StatelessWidget {
             textStyle: tt.titleMedium),
         const SizedBox(height: 16),
         Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          DataOrb(
-            label: 'Wind',
-            value: wind != null ? wind.speedKnots.toStringAsFixed(1) : '--',
-            unit: 'kts',
-            size: DataOrbSize.medium,
-            state: wind != null && wind.beaufortScale >= 7
-                ? DataOrbState.alert
-                : DataOrbState.normal,
+          Flexible(
+            child: DataOrb(
+              label: 'Wind',
+              value: wind != null ? wind.speedKnots.toStringAsFixed(1) : '--',
+              unit: 'kts',
+              size: DataOrbSize.small,
+              state: wind != null && wind.beaufortScale >= 7
+                  ? DataOrbState.alert
+                  : DataOrbState.normal,
+            ),
           ),
-          DataOrb(
-            label: 'Waves',
-            value: wave != null ? wave.heightMeters.toStringAsFixed(1) : '--',
-            unit: 'm',
-            size: DataOrbSize.medium,
-            state: wave != null && wave.heightMeters >= 3.0
-                ? DataOrbState.alert
-                : DataOrbState.normal,
+          Flexible(
+            child: DataOrb(
+              label: 'Waves',
+              value: wave != null ? wave.heightMeters.toStringAsFixed(1) : '--',
+              unit: 'm',
+              size: DataOrbSize.small,
+              state: wave != null && wave.heightMeters >= 3.0
+                  ? DataOrbState.alert
+                  : DataOrbState.normal,
+            ),
           ),
-          DataOrb(
-            label: 'Wind Dir',
-            value:
-                wind != null ? _compassDirection(wind.directionDegrees) : '--',
-            unit: wind != null ? '${wind.directionDegrees.round()}°' : '',
-            size: DataOrbSize.medium,
+          Flexible(
+            child: DataOrb(
+              label: 'Wind Dir',
+              value:
+                  wind != null ? _compassDirection(wind.directionDegrees) : '--',
+              unit: wind != null ? '${wind.directionDegrees.round()}°' : '',
+              size: DataOrbSize.small,
+            ),
           ),
         ]),
       ]),

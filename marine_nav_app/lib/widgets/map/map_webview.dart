@@ -156,18 +156,20 @@ class _MapWebViewState extends State<MapWebView> {
                         final wavePts = timeline.hasFrames
                             ? timeline.activeWavePoints
                             : weather.data.wavePoints;
-                        return Stack(children: [
-                          if (weather.isWindVisible && windPts.isNotEmpty)
-                            WindOverlay(
-                              windPoints: windPts,
-                              viewport: mapProvider.viewport,
-                            ),
-                          if (weather.isWaveVisible && wavePts.isNotEmpty)
-                            WaveOverlay(
-                              wavePoints: wavePts,
-                              viewport: mapProvider.viewport,
-                            ),
-                        ]);
+                        return Positioned.fill(
+                          child: Stack(children: [
+                            if (weather.isWindVisible && windPts.isNotEmpty)
+                              WindOverlay(
+                                windPoints: windPts,
+                                viewport: mapProvider.viewport,
+                              ),
+                            if (weather.isWaveVisible && wavePts.isNotEmpty)
+                              WaveOverlay(
+                                wavePoints: wavePts,
+                                viewport: mapProvider.viewport,
+                              ),
+                          ]),
+                        );
                       },
                     ),
                   ],

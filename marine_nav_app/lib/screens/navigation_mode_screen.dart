@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 // ignore_for_file: public_member_api_docs, prefer_const_constructors, prefer_const_declarations
 
 import '../providers/nmea_provider.dart';
+import '../providers/route_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
@@ -12,6 +13,7 @@ import '../widgets/common/draggable_overlay.dart';
 import '../widgets/data_displays/data_orb.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/map/map_webview.dart';
+import '../widgets/navigation/course_deviation_indicator.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
 import '../widgets/navigation/nmea_connection_widget.dart';
 
@@ -171,22 +173,35 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
       initialPosition: Offset(24, bottom),
       child: SizedBox(
         width: MediaQuery.of(context).size.width - 48,
-        child: Consumer<NMEAProvider>(
-          builder: (context, nmea, _) {
+        child: Consumer2<NMEAProvider, RouteProvider>(
+          builder: (context, nmea, route, _) {
             final pos = nmea.currentData?.position;
             final sog = nmea.currentData?.speedOverGroundKnots ?? 0.0;
-            final eta = sog > 0 ? (2.4 / sog * 60) : 0.0;
+            final wp = route.nextWaypoint;
+            final dist = route.distanceToNextWaypoint;
+            final eta = route.getETAToNextWaypoint(sog);
+            final xte = route.crossTrackError;
+            final hasRoute = route.activeRoute != null;
 
             return GlassCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('Next: Waypoint 1', style: OceanTextStyles.heading2),
+                  Text(
+                    hasRoute ? 'Next: ${wp?.name ?? 'Final'}' : 'No Route',
+                    style: OceanTextStyles.heading2,
+                  ),
                   SizedBox(height: OceanDimensions.spacingXS),
-                  Text('Distance: 2.4 nm', style: OceanTextStyles.bodySmall),
-                  Text('ETA: ${eta.toStringAsFixed(0)} min',
-                      style: OceanTextStyles.bodySmall),
+                  Text(
+                    'Distance: ${hasRoute ? dist.toStringAsFixed(1) : '--'} nm',
+                    style: OceanTextStyles.bodySmall,
+                  ),
+                  Text(
+                    'ETA: ${hasRoute && eta > 0 ? eta.toStringAsFixed(0) : '--'} min',
+                    style: OceanTextStyles.bodySmall,
+                  ),
+                  if (hasRoute) CourseDeviationIndicator(xte: xte),
                   Text(
                     'Pos: ${pos?.latitude.toStringAsFixed(4) ?? 'N/A'}, '
                     '${pos?.longitude.toStringAsFixed(4) ?? 'N/A'}',
