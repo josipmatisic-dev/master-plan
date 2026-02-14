@@ -1,7 +1,4 @@
-/// High-performance particle background with optional multi-touch interactivity.
-///
-/// Auto-adaptive density based on screen size and FPS. Supports touch
-/// attraction, burst repulsion, and drag trail effects.
+/// Particle background with auto-adaptive density and optional multi-touch.
 library;
 
 import 'dart:math' as math;
@@ -9,9 +6,16 @@ import 'package:flutter/material.dart';
 
 /// A single particle with physics, animation, and optional trail behavior.
 class Particle {
+  /// Size, pulse speed, and total lifetime in seconds.
   final double size, pulseSpeed, lifetime;
+
+  /// The particle color.
   final Color color;
+
+  /// Whether this is a drag-trail particle.
   final bool isTrail;
+
+  /// Position (x, y), velocity (vx, vy), current age, and opacity.
   double x, y, vx, vy, age, opacity;
 
   /// Creates a [Particle].
@@ -28,10 +32,10 @@ class Particle {
   })  : age = 0,
         opacity = 0.3;
 
-  /// Whether this particle has exceeded its lifetime.
+  /// Whether this particle has exceeded its [lifetime].
   bool get isDead => age >= lifetime;
 
-  /// Updates the particle state by the given time delta [dt].
+  /// Updates the particle state by [dt].
   void update(double dt) {
     age += dt;
     x += vx;
@@ -44,7 +48,7 @@ class Particle {
     }
   }
 
-  /// Resets the particle to a new random position along the bottom edge.
+  /// Resets particle to a random bottom-edge position.
   void reset(double w, double h, List<Color> colors) {
     age = 0;
     opacity = 0.3;
@@ -55,11 +59,12 @@ class Particle {
   }
 }
 
-/// Renders particles to a canvas.
+/// Paints [Particle] objects on a canvas.
 class ParticlePainter extends CustomPainter {
-  final List<Particle> particles;
+  final List<Particle> particles; // ignore: public_member_api_docs
   final Paint _paint = Paint()..strokeCap = StrokeCap.round;
 
+  /// Constructs with the given [particles].
   ParticlePainter({required this.particles});
 
   @override
@@ -79,15 +84,18 @@ class ParticlePainter extends CustomPainter {
 }
 
 /// High-performance particle background for holographic theme.
-///
-/// Set [interactive] to `true` (default) to enable multi-touch attraction,
-/// burst repulsion, and drag trail effects. Use `false` for IgnorePointer screens.
+/// Set [interactive] to `true` to enable multi-touch effects.
 class ParticleBackground extends StatefulWidget {
+  /// Custom particle count (null = auto-detect).
   final int? particleCount;
+
+  /// Custom color palette.
   final List<Color>? colors;
+
+  /// Debug mode (logs FPS).
   final bool debugMode;
 
-  /// Whether touch events are captured for interactive effects.
+  /// Enable multi-touch interactive effects.
   final bool interactive;
 
   /// Creates a [ParticleBackground].
@@ -112,7 +120,6 @@ class _ParticleBackgroundState extends State<ParticleBackground>
   int _targetParticleCount = 50, _currentParticleCount = 50, _frameCount = 0;
   double _fps = 60;
   Stopwatch? _frameTimer;
-
   final Map<int, Offset> _activePointers = {};
   static const _maxPointers = 5, _attractR = 80.0, _burstR = 60.0;
 
@@ -181,7 +188,6 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     }
   }
 
-  // --- Core loop ---
   void _onAnimationUpdate() {
     if (!mounted) return;
     final size = MediaQuery.of(context).size;
@@ -221,8 +227,8 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     _particles = [];
     _controller =
         AnimationController(vsync: this, duration: const Duration(seconds: 1))
-          ..repeat();
-    _controller.addListener(_onAnimationUpdate);
+          ..repeat()
+          ..addListener(_onAnimationUpdate);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateParticleCount();
       _spawnInitial();

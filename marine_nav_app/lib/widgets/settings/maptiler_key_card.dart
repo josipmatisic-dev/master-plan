@@ -68,11 +68,11 @@ class _MapTilerKeyCardState extends State<MapTilerKeyCard> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide(
-                    color: cs.primary.withValues(alpha: 0.3)),
+                borderSide:
+                    BorderSide(color: cs.primary.withValues(alpha: 0.3)),
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 10),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscured ? Icons.visibility_off : Icons.visibility,

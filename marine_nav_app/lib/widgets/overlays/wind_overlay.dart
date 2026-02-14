@@ -25,10 +25,10 @@ const _kWindColors = <(double, Color)>[
   (40, Color(0xFF4A148C)),
 ];
 
-const _kGridStep = 6;
-const _kHeatmapAlpha = 0.35;
-const _kParticleAlpha = 0.7;
-const _kParticleCount = 150;
+const _kGridStep = 3;
+const _kHeatmapAlpha = 0.55;
+const _kParticleAlpha = 0.85;
+const _kParticleCount = 400;
 
 Color _windColor(double knots) {
   if (knots <= _kWindColors.first.$1) return _kWindColors.first.$2;
@@ -93,17 +93,19 @@ class _WindOverlayState extends State<WindOverlay>
   Widget build(BuildContext context) {
     if (widget.windPoints.isEmpty) return const SizedBox.shrink();
 
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (_, __) => CustomPaint(
-          painter: _WindHeatmapPainter(
-            windPoints: widget.windPoints,
-            viewport: widget.viewport,
-            particles: _particles,
-            rng: _rng,
+    return Positioned.fill(
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _controller,
+          builder: (_, __) => CustomPaint(
+            painter: _WindHeatmapPainter(
+              windPoints: widget.windPoints,
+              viewport: widget.viewport,
+              particles: _particles,
+              rng: _rng,
+            ),
+            size: Size.infinite,
           ),
-          size: widget.viewport.size,
         ),
       ),
     );

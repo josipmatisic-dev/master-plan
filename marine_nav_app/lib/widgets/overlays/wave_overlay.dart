@@ -61,16 +61,18 @@ class _WaveOverlayState extends State<WaveOverlay>
   Widget build(BuildContext context) {
     if (widget.wavePoints.isEmpty) return const SizedBox.shrink();
 
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: _rippleController,
-        builder: (_, __) => CustomPaint(
-          painter: _WaveHeatmapPainter(
-            wavePoints: widget.wavePoints,
-            viewport: widget.viewport,
-            ripplePhase: _rippleController.value,
+    return Positioned.fill(
+      child: RepaintBoundary(
+        child: AnimatedBuilder(
+          animation: _rippleController,
+          builder: (_, __) => CustomPaint(
+            painter: _WaveHeatmapPainter(
+              wavePoints: widget.wavePoints,
+              viewport: widget.viewport,
+              ripplePhase: _rippleController.value,
+            ),
+            size: Size.infinite,
           ),
-          size: widget.viewport.size,
         ),
       ),
     );
@@ -93,9 +95,9 @@ class _WaveHeatmapPainter extends CustomPainter {
   final Viewport viewport;
   final double ripplePhase;
 
-  static const int _step = 6;
-  static const double _heatmapAlpha = 0.30;
-  static const double _rippleAlpha = 0.4;
+  static const int _step = 3;
+  static const double _heatmapAlpha = 0.45;
+  static const double _rippleAlpha = 0.55;
   static const double _rippleThreshold = 2.0;
   // IDW power parameter.
   static const double _idwPower = 2.0;

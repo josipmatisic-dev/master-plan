@@ -31,8 +31,7 @@ InputDecoration nmeaInputDecoration({
 
   return InputDecoration(
     labelText: labelText,
-    labelStyle:
-        OceanTextStyles.label.copyWith(color: OceanColors.textDisabled),
+    labelStyle: OceanTextStyles.label.copyWith(color: OceanColors.textDisabled),
     hintText: hintText,
     hintStyle:
         OceanTextStyles.bodySmall.copyWith(color: OceanColors.textDisabled),
@@ -57,8 +56,7 @@ Future<void> showNmeaTestConnection(BuildContext context) async {
         mainAxisSize: MainAxisSize.min,
         children: [
           CircularProgressIndicator(
-            valueColor:
-                AlwaysStoppedAnimation<Color>(OceanColors.seafoamGreen),
+            valueColor: AlwaysStoppedAnimation<Color>(OceanColors.seafoamGreen),
           ),
           SizedBox(height: OceanDimensions.spacing),
           Text('Connecting to NMEA...', style: OceanTextStyles.body),
@@ -96,8 +94,7 @@ Future<void> showNmeaTestConnection(BuildContext context) async {
             const SizedBox(height: OceanDimensions.spacingS),
             Text(
               'Error: ${nmea.lastError!.message}',
-              style:
-                  OceanTextStyles.body.copyWith(color: OceanColors.coralRed),
+              style: OceanTextStyles.body.copyWith(color: OceanColors.coralRed),
             ),
           ],
         ],

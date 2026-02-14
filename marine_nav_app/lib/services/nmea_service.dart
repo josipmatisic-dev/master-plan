@@ -4,6 +4,7 @@ import 'dart:isolate';
 
 import '../models/nmea_data.dart';
 import '../models/nmea_error.dart';
+import 'nmea_isolate_messages.dart';
 import 'nmea_parser.dart';
 
 /// NMEA Service - Background isolate for socket I/O and sentence parsing
@@ -51,7 +52,7 @@ class NMEAService {
       // Spawn isolate with entry point
       _isolate = await Isolate.spawn(
         _isolateEntryPoint,
-        _IsolateStartupMessage(
+        IsolateStartupMessage(
           sendPort: _receivePort!.sendPort,
           config: config,
         ),
@@ -76,7 +77,7 @@ class NMEAService {
     if (!_isRunning) return;
 
     // Send shutdown command to isolate
-    _sendPort?.send(_IsolateCommand.shutdown);
+    _sendPort?.send(IsolateCommand.shutdown);
 
     // Wait a bit for graceful shutdown
     await Future.delayed(const Duration(milliseconds: 100));
@@ -103,21 +104,21 @@ class NMEAService {
       return;
     }
 
-    if (message is _IsolateDataMessage) {
+    if (message is IsolateDataMessage) {
       if (!_dataController.isClosed) {
         _dataController.add(message.data);
       }
       return;
     }
 
-    if (message is _IsolateErrorMessage) {
+    if (message is IsolateErrorMessage) {
       if (!_errorController.isClosed) {
         _errorController.add(message.error);
       }
       return;
     }
 
-    if (message is _IsolateStatusMessage) {
+    if (message is IsolateStatusMessage) {
       if (!_statusController.isClosed) {
         _statusController.add(message.status);
       }
@@ -126,9 +127,9 @@ class NMEAService {
   }
 
   /// Isolate entry point - runs in background thread
-  static Future<void> _isolateEntryPoint(_IsolateStartupMessage startup) async {
+  static Future<void> _isolateEntryPoint(IsolateStartupMessage startup) async {
     final receivePort = ReceivePort();
-    final context = _IsolateContext(
+    final context = IsolateContext(
       sendPort: startup.sendPort,
       config: startup.config,
     );
@@ -141,7 +142,7 @@ class NMEAService {
 
     // Listen for commands from main isolate
     await for (final message in receivePort) {
-      if (message == _IsolateCommand.shutdown) {
+      if (message == IsolateCommand.shutdown) {
         await context.socket?.close();
         receivePort.close();
         break;
@@ -150,7 +151,7 @@ class NMEAService {
   }
 
   /// Run the socket connection and process NMEA sentences
-  static Future<void> _runConnection(_IsolateContext context) async {
+  static Future<void> _runConnection(IsolateContext context) async {
     Socket? socket;
     final buffer = StringBuffer();
     NMEAData? currentData;
@@ -274,62 +275,4 @@ class NMEAService {
     _errorController.close();
     _statusController.close();
   }
-}
-
-/// Context for isolate execution
-class _IsolateContext {
-  final SendPort sendPort;
-  final ConnectionConfig config;
-  Socket? socket;
-
-  _IsolateContext({
-    required this.sendPort,
-    required this.config,
-  });
-
-  void sendData(NMEAData data) {
-    sendPort.send(_IsolateDataMessage(data));
-  }
-
-  void sendError(NMEAError error) {
-    sendPort.send(_IsolateErrorMessage(error));
-  }
-
-  void sendStatus(ConnectionStatus status) {
-    sendPort.send(_IsolateStatusMessage(status));
-  }
-}
-
-/// Startup message for isolate
-class _IsolateStartupMessage {
-  final SendPort sendPort;
-  final ConnectionConfig config;
-
-  _IsolateStartupMessage({
-    required this.sendPort,
-    required this.config,
-  });
-}
-
-/// Commands sent to isolate
-enum _IsolateCommand {
-  shutdown,
-}
-
-/// Data message from isolate
-class _IsolateDataMessage {
-  final NMEAData data;
-  _IsolateDataMessage(this.data);
-}
-
-/// Error message from isolate
-class _IsolateErrorMessage {
-  final NMEAError error;
-  _IsolateErrorMessage(this.error);
-}
-
-/// Status message from isolate
-class _IsolateStatusMessage {
-  final ConnectionStatus status;
-  _IsolateStatusMessage(this.status);
 }

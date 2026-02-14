@@ -1,6 +1,4 @@
-/// Settings Provider - Layer 0
-///
-/// Manages user preferences and app settings.
+/// Settings Provider - Layer 0. Manages user preferences and app settings.
 /// No dependencies on other providers (bottom of hierarchy).
 library;
 
@@ -50,31 +48,23 @@ enum DepthUnit {
 /// Layer 0 provider with no dependencies.
 /// Persists settings to SharedPreferences.
 class SettingsProvider extends ChangeNotifier {
-  // ============ Private Fields ============
-
   SharedPreferences? _prefs;
   SpeedUnit _speedUnit = SpeedUnit.knots;
   DistanceUnit _distanceUnit = DistanceUnit.nauticalMiles;
   DepthUnit _depthUnit = DepthUnit.meters;
   String _language = 'en';
-  int _mapRefreshRate = 5000; // milliseconds
-
-  // Display preferences
+  int _mapRefreshRate = 5000;
   bool _showCompass = true;
   bool _showDataOrbs = true;
   bool _showSpeedArc = true;
   bool _showWaveAnimation = true;
-
-  // NMEA Configuration
   String _nmeaHost = 'localhost';
   int _nmeaPort = 10110;
   ConnectionType _nmeaConnectionType = ConnectionType.tcp;
   bool _autoConnectNMEA = false;
-
-  // Map Configuration
   String _mapTilerApiKey = '';
 
-  // ============ Public Getters ============
+  // ============ Getters ============
 
   /// Current speed unit preference
   SpeedUnit get speedUnit => _speedUnit;
@@ -123,8 +113,6 @@ class SettingsProvider extends ChangeNotifier {
 
   /// Check if settings are initialized
   bool get isInitialized => _prefs != null;
-
-  // ============ Initialization ============
 
   /// Initialize and load settings from storage
   Future<void> init() async {
@@ -190,8 +178,6 @@ class SettingsProvider extends ChangeNotifier {
       debugPrint('SettingsProvider: Failed to load settings - $e');
     }
   }
-
-  // ============ Setters ============
 
   /// Update speed unit preference
   Future<void> setSpeedUnit(SpeedUnit unit) async {
@@ -294,8 +280,6 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ============ Utility Methods ============
-
   /// Reset all settings to defaults
   Future<void> resetToDefaults() async {
     _speedUnit = SpeedUnit.knots;
@@ -308,11 +292,7 @@ class SettingsProvider extends ChangeNotifier {
     _nmeaConnectionType = ConnectionType.tcp;
     _autoConnectNMEA = false;
     _mapTilerApiKey = '';
-    _showCompass = true;
-    _showDataOrbs = true;
-    _showSpeedArc = true;
-    _showWaveAnimation = true;
-
+    _showCompass = _showDataOrbs = _showSpeedArc = _showWaveAnimation = true;
     await _prefs?.clear();
     notifyListeners();
   }
