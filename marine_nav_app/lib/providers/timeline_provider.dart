@@ -110,7 +110,8 @@ class TimelineProvider extends ChangeNotifier {
     if (allFrames.length <= maxFramesInMemory) return allFrames;
     // Window of frames around current index.
     final half = maxFramesInMemory ~/ 2;
-    var start = (_frameIndex - half).clamp(0, allFrames.length - maxFramesInMemory);
+    var start =
+        (_frameIndex - half).clamp(0, allFrames.length - maxFramesInMemory);
     return allFrames.sublist(start, start + maxFramesInMemory);
   }
 

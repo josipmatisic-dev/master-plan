@@ -115,61 +115,61 @@ class _MapWebViewState extends State<MapWebView> {
     return Consumer<MapProvider>(
       builder: (context, mapProvider, _) {
         final Widget layoutChild = LayoutBuilder(
-            builder: (context, constraints) {
-              final size = constraints.biggest;
-              if (!size.isEmpty && size != mapProvider.viewport.size) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  mapProvider.setSize(size);
-                });
-              }
+          builder: (context, constraints) {
+            final size = constraints.biggest;
+            if (!size.isEmpty && size != mapProvider.viewport.size) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                mapProvider.setSize(size);
+              });
+            }
 
-              return Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: OceanColors.surface,
-                  borderRadius: BorderRadius.circular(OceanDimensions.radius),
+            return Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: OceanColors.surface,
+                borderRadius: BorderRadius.circular(OceanDimensions.radius),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(OceanDimensions.radius),
+                child: Stack(
+                  children: [
+                    if (_webViewAvailable && _controller != null)
+                      WebViewWidget(controller: _controller!)
+                    else
+                      _buildFallback(),
+                    // Weather overlays — use timeline frame if available
+                    Consumer2<WeatherProvider, TimelineProvider>(
+                      builder: (context, weather, timeline, _) {
+                        if (!weather.hasData) {
+                          return const SizedBox.shrink();
+                        }
+                        // Use timeline's active frame data when available.
+                        final windPts = timeline.hasFrames
+                            ? timeline.activeWindPoints
+                            : weather.data.windPoints;
+                        final wavePts = timeline.hasFrames
+                            ? timeline.activeWavePoints
+                            : weather.data.wavePoints;
+                        return Stack(children: [
+                          if (weather.isWindVisible && windPts.isNotEmpty)
+                            WindOverlay(
+                              windPoints: windPts,
+                              viewport: mapProvider.viewport,
+                            ),
+                          if (weather.isWaveVisible && wavePts.isNotEmpty)
+                            WaveOverlay(
+                              wavePoints: wavePts,
+                              viewport: mapProvider.viewport,
+                            ),
+                        ]);
+                      },
+                    ),
+                  ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(OceanDimensions.radius),
-                  child: Stack(
-                    children: [
-                      if (_webViewAvailable && _controller != null)
-                        WebViewWidget(controller: _controller!)
-                      else
-                        _buildFallback(),
-                      // Weather overlays — use timeline frame if available
-                      Consumer2<WeatherProvider, TimelineProvider>(
-                        builder: (context, weather, timeline, _) {
-                          if (!weather.hasData) {
-                            return const SizedBox.shrink();
-                          }
-                          // Use timeline's active frame data when available.
-                          final windPts = timeline.hasFrames
-                              ? timeline.activeWindPoints
-                              : weather.data.windPoints;
-                          final wavePts = timeline.hasFrames
-                              ? timeline.activeWavePoints
-                              : weather.data.wavePoints;
-                          return Stack(children: [
-                            if (weather.isWindVisible && windPts.isNotEmpty)
-                              WindOverlay(
-                                windPoints: windPts,
-                                viewport: mapProvider.viewport,
-                              ),
-                            if (weather.isWaveVisible && wavePts.isNotEmpty)
-                              WaveOverlay(
-                                wavePoints: wavePts,
-                                viewport: mapProvider.viewport,
-                              ),
-                          ]);
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
+              ),
+            );
+          },
+        );
         if (widget.height != null) {
           return SizedBox(height: widget.height, child: layoutChild);
         }

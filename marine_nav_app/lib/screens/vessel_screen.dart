@@ -66,7 +66,8 @@ class VesselScreen extends StatelessWidget {
           children: [
             _buildHeader(cs, tt),
             const SizedBox(height: 16),
-            _buildKeyValueCard('Dimensions', Icons.straighten, _dimensions, cs, tt),
+            _buildKeyValueCard(
+                'Dimensions', Icons.straighten, _dimensions, cs, tt),
             const SizedBox(height: 16),
             _buildEquipmentCard(cs, tt),
             const SizedBox(height: 16),
@@ -133,8 +134,11 @@ class VesselScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(e.key, style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
-                  Text(e.value, style: tt.titleMedium?.copyWith(color: cs.onSurface)),
+                  Text(e.key,
+                      style:
+                          tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                  Text(e.value,
+                      style: tt.titleMedium?.copyWith(color: cs.onSurface)),
                 ],
               ),
             ),
@@ -224,7 +228,8 @@ class VesselScreen extends StatelessWidget {
 
   // -- Shared section header --------------------------------------------
 
-  Widget _sectionHeader(String title, IconData icon, ColorScheme cs, TextTheme tt) {
+  Widget _sectionHeader(
+      String title, IconData icon, ColorScheme cs, TextTheme tt) {
     return Row(
       children: [
         Icon(icon, size: 20, color: cs.primary),

@@ -131,8 +131,8 @@ class _WaveHeatmapPainter extends CustomPainter {
         final color = _colorForHeight(height);
         paint.color = color.withValues(alpha: _heatmapAlpha);
         canvas.drawRect(
-          Rect.fromLTWH(x.toDouble(), y.toDouble(), _step.toDouble(),
-              _step.toDouble()),
+          Rect.fromLTWH(
+              x.toDouble(), y.toDouble(), _step.toDouble(), _step.toDouble()),
           paint,
         );
       }
@@ -192,8 +192,7 @@ class _WaveHeatmapPainter extends CustomPainter {
         final phase = (ripplePhase + i / ringCount) % 1.0;
         final radius = maxRadius * phase;
         final opacity = _rippleAlpha * (1.0 - phase);
-        paint.color =
-            _colorForHeight(height).withValues(alpha: opacity);
+        paint.color = _colorForHeight(height).withValues(alpha: opacity);
         canvas.drawCircle(pos, radius, paint);
       }
     }

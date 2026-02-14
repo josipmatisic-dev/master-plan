@@ -67,7 +67,10 @@ void main() {
     test('fetchWeatherData parses dual response with 25-point grid', () async {
       final api = WeatherApiService(client: _dualMockClient());
       final data = await api.fetchWeatherData(
-        south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
       );
 
       // 5×5 grid = 25 points each
@@ -91,10 +94,14 @@ void main() {
 
     test('fetchWeatherData handles empty responses', () async {
       final api = WeatherApiService(
-        client: _dualMockClient(marine: _emptyResponse, forecast: _emptyResponse),
+        client:
+            _dualMockClient(marine: _emptyResponse, forecast: _emptyResponse),
       );
       final data = await api.fetchWeatherData(
-        south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
       );
 
       expect(data.isEmpty, true);
@@ -111,10 +118,15 @@ void main() {
 
       expect(
         () => api.fetchWeatherData(
-          south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+          south: 58.0,
+          north: 62.0,
+          west: 8.0,
+          east: 12.0,
         ),
         throwsA(isA<WeatherApiException>().having(
-          (e) => e.type, 'type', WeatherApiErrorType.server,
+          (e) => e.type,
+          'type',
+          WeatherApiErrorType.server,
         )),
       );
 
@@ -128,10 +140,15 @@ void main() {
 
       expect(
         () => api.fetchWeatherData(
-          south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+          south: 58.0,
+          north: 62.0,
+          west: 8.0,
+          east: 12.0,
         ),
         throwsA(isA<WeatherApiException>().having(
-          (e) => e.type, 'type', WeatherApiErrorType.server,
+          (e) => e.type,
+          'type',
+          WeatherApiErrorType.server,
         )),
       );
 
@@ -145,10 +162,15 @@ void main() {
 
       expect(
         () => api.fetchWeatherData(
-          south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+          south: 58.0,
+          north: 62.0,
+          west: 8.0,
+          east: 12.0,
         ),
         throwsA(isA<WeatherApiException>().having(
-          (e) => e.type, 'type', WeatherApiErrorType.parsing,
+          (e) => e.type,
+          'type',
+          WeatherApiErrorType.parsing,
         )),
       );
 
@@ -171,7 +193,10 @@ void main() {
 
       final api = WeatherApiService(client: mockClient);
       final data = await api.fetchWeatherData(
-        south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
       );
 
       expect(data.hasWind, true);
@@ -189,10 +214,15 @@ void main() {
 
       expect(
         () => api.fetchWeatherData(
-          south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+          south: 58.0,
+          north: 62.0,
+          west: 8.0,
+          east: 12.0,
         ),
         throwsA(isA<WeatherApiException>().having(
-          (e) => e.type, 'type', WeatherApiErrorType.network,
+          (e) => e.type,
+          'type',
+          WeatherApiErrorType.network,
         )),
       );
 
@@ -211,28 +241,30 @@ void main() {
 
       final api = WeatherApiService(client: mockClient);
       await api.fetchWeatherData(
-        south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
       );
 
       expect(capturedUris.length, 2);
 
-      final marineUri = capturedUris.firstWhere(
-          (u) => u.host == 'marine-api.open-meteo.com');
+      final marineUri =
+          capturedUris.firstWhere((u) => u.host == 'marine-api.open-meteo.com');
       expect(marineUri.path, '/v1/marine');
       expect(marineUri.queryParameters['latitude'], '60.0000');
       expect(marineUri.queryParameters['longitude'], '10.0000');
-      expect(marineUri.queryParameters['current'],
-          contains('wave_height'));
+      expect(marineUri.queryParameters['current'], contains('wave_height'));
       // Marine should NOT have wind params
-      expect(marineUri.queryParameters['current'],
-          isNot(contains('wind_speed')));
+      expect(
+          marineUri.queryParameters['current'], isNot(contains('wind_speed')));
 
-      final forecastUri = capturedUris.firstWhere(
-          (u) => u.host == 'api.open-meteo.com');
+      final forecastUri =
+          capturedUris.firstWhere((u) => u.host == 'api.open-meteo.com');
       expect(forecastUri.path, '/v1/forecast');
       expect(forecastUri.queryParameters['wind_speed_unit'], 'kn');
-      expect(forecastUri.queryParameters['current'],
-          contains('wind_speed_10m'));
+      expect(
+          forecastUri.queryParameters['current'], contains('wind_speed_10m'));
       // Forecast should NOT have wave params
       expect(forecastUri.queryParameters['current'],
           isNot(contains('wave_height')));
@@ -252,7 +284,10 @@ void main() {
     test('hourly frames contain both wind and wave data', () async {
       final api = WeatherApiService(client: _dualMockClient());
       final data = await api.fetchWeatherData(
-        south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
       );
 
       expect(data.frames.length, 3);

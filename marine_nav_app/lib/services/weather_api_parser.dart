@@ -39,7 +39,10 @@ WeatherData parseDualResponse({
     // Expand single-point data into a 5×5 grid with ±10% variation.
     final rng = Random(42);
     final windPoints = _expandToGrid(
-      south: south, north: north, west: west, east: east,
+      south: south,
+      north: north,
+      west: west,
+      east: east,
       base: windBase,
       rng: rng,
       builder: (pos, w, r) => WindDataPoint(
@@ -49,7 +52,10 @@ WeatherData parseDualResponse({
       ),
     );
     final wavePoints = _expandToGrid(
-      south: south, north: north, west: west, east: east,
+      south: south,
+      north: north,
+      west: west,
+      east: east,
       base: waveBase,
       rng: rng,
       builder: (pos, w, r) => WaveDataPoint(
@@ -168,8 +174,10 @@ List<WeatherFrame> _parseHourlyFrames(
     if (time == null) continue;
 
     WindDataPoint? wind;
-    if (windSpeeds != null && windDirs != null &&
-        i < windSpeeds.length && i < windDirs.length) {
+    if (windSpeeds != null &&
+        windDirs != null &&
+        i < windSpeeds.length &&
+        i < windDirs.length) {
       final speed = (windSpeeds[i] as num?)?.toDouble();
       final dir = (windDirs[i] as num?)?.toDouble();
       if (speed != null && dir != null) {
@@ -179,8 +187,10 @@ List<WeatherFrame> _parseHourlyFrames(
     }
 
     WaveDataPoint? wave;
-    if (waveHeights != null && waveDirs != null &&
-        i < waveHeights.length && i < waveDirs.length) {
+    if (waveHeights != null &&
+        waveDirs != null &&
+        i < waveHeights.length &&
+        i < waveDirs.length) {
       final height = (waveHeights[i] as num?)?.toDouble();
       final wDir = (waveDirs[i] as num?)?.toDouble();
       final period = wavePeriods != null && i < wavePeriods.length

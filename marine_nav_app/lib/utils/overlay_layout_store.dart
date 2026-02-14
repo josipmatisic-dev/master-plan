@@ -12,18 +12,18 @@ class OverlayLayoutStore {
   static Future<void> save(String id, Offset position, double scale) async {
     final prefs = await SharedPreferences.getInstance();
     await Future.wait([
-      prefs.setDouble('${_prefix}${id}_x', position.dx),
-      prefs.setDouble('${_prefix}${id}_y', position.dy),
-      prefs.setDouble('${_prefix}${id}_scale', scale),
+      prefs.setDouble('$_prefix${id}_x', position.dx),
+      prefs.setDouble('$_prefix${id}_y', position.dy),
+      prefs.setDouble('$_prefix${id}_scale', scale),
     ]);
   }
 
   /// Load saved position and scale. Returns nulls if nothing saved.
   static Future<({Offset? position, double? scale})> load(String id) async {
     final prefs = await SharedPreferences.getInstance();
-    final x = prefs.getDouble('${_prefix}${id}_x');
-    final y = prefs.getDouble('${_prefix}${id}_y');
-    final scale = prefs.getDouble('${_prefix}${id}_scale');
+    final x = prefs.getDouble('$_prefix${id}_x');
+    final y = prefs.getDouble('$_prefix${id}_y');
+    final scale = prefs.getDouble('$_prefix${id}_scale');
     return (
       position: (x != null && y != null) ? Offset(x, y) : null,
       scale: scale,
@@ -34,9 +34,9 @@ class OverlayLayoutStore {
   static Future<void> clear(String id) async {
     final prefs = await SharedPreferences.getInstance();
     await Future.wait([
-      prefs.remove('${_prefix}${id}_x'),
-      prefs.remove('${_prefix}${id}_y'),
-      prefs.remove('${_prefix}${id}_scale'),
+      prefs.remove('$_prefix${id}_x'),
+      prefs.remove('$_prefix${id}_y'),
+      prefs.remove('$_prefix${id}_scale'),
     ]);
   }
 

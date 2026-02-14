@@ -15,24 +15,35 @@ class Particle {
   double x, y, vx, vy, age, opacity;
 
   Particle({
-    required this.x, required this.y, required this.vx, required this.vy,
-    required this.size, required this.color,
-    required this.pulseSpeed, required this.lifetime, this.isTrail = false,
-  })  : age = 0, opacity = 0.3;
+    required this.x,
+    required this.y,
+    required this.vx,
+    required this.vy,
+    required this.size,
+    required this.color,
+    required this.pulseSpeed,
+    required this.lifetime,
+    this.isTrail = false,
+  })  : age = 0,
+        opacity = 0.3;
 
   bool get isDead => age >= lifetime;
 
   void update(double dt) {
-    age += dt; x += vx; y += vy;
+    age += dt;
+    x += vx;
+    y += vy;
     if (isTrail) {
       opacity = (1.0 - age / lifetime).clamp(0.0, 0.8);
     } else {
-      opacity = 0.3 + 0.5 * (math.sin(age * pulseSpeed * 2 * math.pi) * 0.5 + 0.5);
+      opacity =
+          0.3 + 0.5 * (math.sin(age * pulseSpeed * 2 * math.pi) * 0.5 + 0.5);
     }
   }
 
   void reset(double w, double h, List<Color> colors) {
-    age = 0; opacity = 0.3;
+    age = 0;
+    opacity = 0.3;
     x = math.Random().nextDouble() * w;
     y = h + 10;
     vx = 0.5 + math.Random().nextDouble();
@@ -50,7 +61,9 @@ class ParticlePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     for (final p in particles) {
       if (p.x >= 0 && p.x <= size.width && p.y >= -10) {
-        _paint..color = p.color.withValues(alpha: p.opacity)..style = PaintingStyle.fill;
+        _paint
+          ..color = p.color.withValues(alpha: p.opacity)
+          ..style = PaintingStyle.fill;
         canvas.drawCircle(Offset(p.x, p.y), p.size / 2, _paint);
       }
     }
@@ -67,16 +80,22 @@ class ParticlePainter extends CustomPainter {
 class ParticleBackground extends StatefulWidget {
   /// Custom particle count (null = auto-detect based on screen size).
   final int? particleCount;
+
   /// Custom color palette.
   final List<Color>? colors;
+
   /// Debug mode (logs FPS metrics).
   final bool debugMode;
+
   /// Whether touch events are captured for interactive effects.
   final bool interactive;
 
   const ParticleBackground({
-    super.key, this.particleCount, this.colors,
-    this.debugMode = false, this.interactive = true,
+    super.key,
+    this.particleCount,
+    this.colors,
+    this.debugMode = false,
+    this.interactive = true,
   });
 
   @override
@@ -98,26 +117,36 @@ class _ParticleBackgroundState extends State<ParticleBackground>
 
   // --- Touch handlers ---
   void _onPointerDown(PointerDownEvent e) {
-    if (_activePointers.length < _maxPointers) _activePointers[e.pointer] = e.localPosition;
+    if (_activePointers.length < _maxPointers)
+      _activePointers[e.pointer] = e.localPosition;
   }
+
   void _onPointerMove(PointerMoveEvent e) {
     if (!_activePointers.containsKey(e.pointer)) return;
     _activePointers[e.pointer] = e.localPosition;
     _spawnTrail(e.localPosition);
   }
+
   void _onPointerUp(PointerUpEvent e) {
     final pos = _activePointers.remove(e.pointer);
     if (pos != null) _applyBurst(pos);
   }
-  void _onPointerCancel(PointerCancelEvent e) => _activePointers.remove(e.pointer);
+
+  void _onPointerCancel(PointerCancelEvent e) =>
+      _activePointers.remove(e.pointer);
 
   void _spawnTrail(Offset pos) {
     for (int i = 0, n = 2 + _rng.nextInt(2); i < n; i++) {
       _particles.add(Particle(
-        x: pos.dx + _rng.nextDouble() * 6 - 3, y: pos.dy + _rng.nextDouble() * 6 - 3,
-        vx: _rng.nextDouble() * 0.6 - 0.3, vy: _rng.nextDouble() * 0.6 - 0.3,
-        size: 1.0 + _rng.nextDouble(), color: _colors[_rng.nextInt(_colors.length)],
-        pulseSpeed: 1.0, lifetime: 1.0 + _rng.nextDouble(), isTrail: true,
+        x: pos.dx + _rng.nextDouble() * 6 - 3,
+        y: pos.dy + _rng.nextDouble() * 6 - 3,
+        vx: _rng.nextDouble() * 0.6 - 0.3,
+        vy: _rng.nextDouble() * 0.6 - 0.3,
+        size: 1.0 + _rng.nextDouble(),
+        color: _colors[_rng.nextInt(_colors.length)],
+        pulseSpeed: 1.0,
+        lifetime: 1.0 + _rng.nextDouble(),
+        isTrail: true,
       ));
     }
   }
@@ -129,7 +158,8 @@ class _ParticleBackgroundState extends State<ParticleBackground>
       final d = math.sqrt(dx * dx + dy * dy);
       if (d < _burstR && d > 0.1) {
         final s = (1.0 - d / _burstR) * 4.0;
-        p.vx += (dx / d) * s; p.vy += (dy / d) * s;
+        p.vx += (dx / d) * s;
+        p.vy += (dy / d) * s;
       }
     }
   }
@@ -143,7 +173,8 @@ class _ParticleBackgroundState extends State<ParticleBackground>
         final d = math.sqrt(dx * dx + dy * dy);
         if (d < _attractR && d > 0.1) {
           final s = (1.0 - d / _attractR) * 0.3;
-          p.vx += (dx / d) * s; p.vy += (dy / d) * s;
+          p.vx += (dx / d) * s;
+          p.vy += (dy / d) * s;
         }
       }
     }
@@ -164,12 +195,17 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     // Adaptive FPS monitoring
     _frameCount++;
     if (_frameTimer!.elapsedMilliseconds >= 1000) {
-      _fps = _frameCount.toDouble(); _frameCount = 0; _frameTimer!.reset();
+      _fps = _frameCount.toDouble();
+      _frameCount = 0;
+      _frameTimer!.reset();
       if (_fps < 50 && _currentParticleCount > 20) {
         _currentParticleCount = (_currentParticleCount * 0.8).toInt();
-        final keep = _particles.where((p) => !p.isTrail).take(_currentParticleCount);
+        final keep =
+            _particles.where((p) => !p.isTrail).take(_currentParticleCount);
         _particles = [...keep, ..._particles.where((p) => p.isTrail)];
-        if (widget.debugMode) debugPrint('ParticleBackground: FPS=$_fps, reducing to $_currentParticleCount');
+        if (widget.debugMode)
+          debugPrint(
+              'ParticleBackground: FPS=$_fps, reducing to $_currentParticleCount');
       }
     }
     setState(() {});
@@ -178,19 +214,31 @@ class _ParticleBackgroundState extends State<ParticleBackground>
   @override
   void initState() {
     super.initState();
-    _colors = widget.colors ?? const [Color(0xFF00D9FF), Color(0xFF00FFFF), Color(0xFFFF00FF)];
+    _colors = widget.colors ??
+        const [Color(0xFF00D9FF), Color(0xFF00FFFF), Color(0xFFFF00FF)];
     _particles = [];
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat();
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 1))
+          ..repeat();
     _controller.addListener(_onAnimationUpdate);
-    WidgetsBinding.instance.addPostFrameCallback((_) { _updateParticleCount(); _spawnInitial(); });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateParticleCount();
+      _spawnInitial();
+    });
     _frameTimer = Stopwatch()..start();
   }
 
   void _updateParticleCount() {
-    if (widget.particleCount != null) { _targetParticleCount = widget.particleCount!; return; }
+    if (widget.particleCount != null) {
+      _targetParticleCount = widget.particleCount!;
+      return;
+    }
     final w = MediaQuery.of(context).size.width;
-    _targetParticleCount = w > 1200 ? 80 + _rng.nextInt(41)
-        : w > 600 ? 50 + _rng.nextInt(31) : 30 + _rng.nextInt(21);
+    _targetParticleCount = w > 1200
+        ? 80 + _rng.nextInt(41)
+        : w > 600
+            ? 50 + _rng.nextInt(31)
+            : 30 + _rng.nextInt(21);
     _currentParticleCount = _targetParticleCount;
   }
 
@@ -199,29 +247,44 @@ class _ParticleBackgroundState extends State<ParticleBackground>
     final sz = MediaQuery.of(context).size;
     for (int i = 0; i < _currentParticleCount; i++) {
       _particles.add(Particle(
-        x: _rng.nextDouble() * sz.width, y: _rng.nextDouble() * sz.height,
-        vx: 0.5 + _rng.nextDouble(), vy: -0.3 - _rng.nextDouble() * 0.5,
-        size: 2.0 + _rng.nextDouble() * 4.0, color: _colors[_rng.nextInt(_colors.length)],
-        pulseSpeed: 0.5 + _rng.nextDouble() * 1.5, lifetime: 5.0 + _rng.nextDouble() * 5.0,
+        x: _rng.nextDouble() * sz.width,
+        y: _rng.nextDouble() * sz.height,
+        vx: 0.5 + _rng.nextDouble(),
+        vy: -0.3 - _rng.nextDouble() * 0.5,
+        size: 2.0 + _rng.nextDouble() * 4.0,
+        color: _colors[_rng.nextInt(_colors.length)],
+        pulseSpeed: 0.5 + _rng.nextDouble() * 1.5,
+        lifetime: 5.0 + _rng.nextDouble() * 5.0,
       ));
     }
   }
 
   @override
-  void didChangeDependencies() { super.didChangeDependencies(); _updateParticleCount(); }
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateParticleCount();
+  }
 
   @override
-  void dispose() { _controller.dispose(); _frameTimer?.stop(); super.dispose(); }
+  void dispose() {
+    _controller.dispose();
+    _frameTimer?.stop();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final paint = CustomPaint(painter: ParticlePainter(particles: _particles), size: Size.infinite);
+    final paint = CustomPaint(
+        painter: ParticlePainter(particles: _particles), size: Size.infinite);
     return RepaintBoundary(
       child: widget.interactive
           ? Listener(
-              onPointerDown: _onPointerDown, onPointerMove: _onPointerMove,
-              onPointerUp: _onPointerUp, onPointerCancel: _onPointerCancel,
-              behavior: HitTestBehavior.translucent, child: paint)
+              onPointerDown: _onPointerDown,
+              onPointerMove: _onPointerMove,
+              onPointerUp: _onPointerUp,
+              onPointerCancel: _onPointerCancel,
+              behavior: HitTestBehavior.translucent,
+              child: paint)
           : paint,
     );
   }

@@ -116,9 +116,8 @@ class _MapScreenState extends State<MapScreen> {
       initialPosition: const Offset(16, 70),
       child: Consumer<NMEAProvider>(
         builder: (_, nmea, __) {
-          final baseState = nmea.isConnected
-              ? DataOrbState.normal
-              : DataOrbState.inactive;
+          final baseState =
+              nmea.isConnected ? DataOrbState.normal : DataOrbState.inactive;
           final depth = nmea.currentData?.depthMeters;
           final depthState = nmea.isConnected
               ? (depth != null && depth < 5.0
@@ -135,7 +134,8 @@ class _MapScreenState extends State<MapScreen> {
                   child: DataOrb(
                     label: 'SOG',
                     value: nmea.currentData?.speedOverGroundKnots
-                            ?.toStringAsFixed(1) ?? '--',
+                            ?.toStringAsFixed(1) ??
+                        '--',
                     unit: 'kts',
                     size: orbSize,
                     state: baseState,
@@ -147,7 +147,8 @@ class _MapScreenState extends State<MapScreen> {
                   child: DataOrb(
                     label: 'COG',
                     value: nmea.currentData?.courseOverGroundDegrees
-                            ?.toStringAsFixed(0) ?? '--',
+                            ?.toStringAsFixed(0) ??
+                        '--',
                     unit: '°',
                     size: orbSize,
                     state: baseState,
@@ -184,10 +185,8 @@ class _MapScreenState extends State<MapScreen> {
               ? '${_cardinalDirection(windDeg)} ${windDeg.toStringAsFixed(0)}°'
               : '--';
           return CompassWidget(
-            headingDegrees:
-                nmea.currentData?.courseOverGroundDegrees ?? 0,
-            speedKnots:
-                nmea.currentData?.speedOverGroundKnots ?? 0,
+            headingDegrees: nmea.currentData?.courseOverGroundDegrees ?? 0,
+            speedKnots: nmea.currentData?.speedOverGroundKnots ?? 0,
             windKnots: nmea.currentData?.windSpeedKnots ?? 0,
             windDirection: windLabel,
             isVrEnabled: isVr,
@@ -299,8 +298,24 @@ class _MapScreenState extends State<MapScreen> {
 
   String _cardinalDirection(double? degrees) {
     if (degrees == null) return '--';
-    const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE',
-                   'S','SSW','SW','WSW','W','WNW','NW','NNW'];
+    const dirs = [
+      'N',
+      'NNE',
+      'NE',
+      'ENE',
+      'E',
+      'ESE',
+      'SE',
+      'SSE',
+      'S',
+      'SSW',
+      'SW',
+      'WSW',
+      'W',
+      'WNW',
+      'NW',
+      'NNW'
+    ];
     return dirs[((degrees % 360) / 22.5).round() % 16];
   }
 }

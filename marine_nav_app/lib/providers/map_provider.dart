@@ -243,7 +243,9 @@ class MapProvider extends ChangeNotifier {
 
   /// Update the boat marker position and heading on the JS map.
   Future<void> updateBoatMarker(
-    double lat, double lng, double headingDeg,
+    double lat,
+    double lng,
+    double headingDeg,
   ) async {
     await _runJs(
       'window.mapBridge.updateBoatMarker($lat, $lng, $headingDeg)',

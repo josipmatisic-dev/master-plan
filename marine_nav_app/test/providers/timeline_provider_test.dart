@@ -36,9 +36,10 @@ void main() {
 
   TimelineProvider createTimeline({http.Client? client}) {
     final api = WeatherApiService(
-      client: client ?? MockClient((_) async {
-        return http.Response(sampleWeatherResponse, 200);
-      }),
+      client: client ??
+          MockClient((_) async {
+            return http.Response(sampleWeatherResponse, 200);
+          }),
     );
     weatherProvider = WeatherProvider(
       settingsProvider: settingsProvider,
@@ -51,7 +52,10 @@ void main() {
 
   Future<void> loadWeatherData() async {
     await weatherProvider.refresh(
-      south: 58.0, north: 62.0, west: 8.0, east: 12.0,
+      south: 58.0,
+      north: 62.0,
+      west: 8.0,
+      east: 12.0,
     );
   }
 

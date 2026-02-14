@@ -54,7 +54,8 @@ class LayerToggle extends StatelessWidget {
               ),
               if (weather.isLoading)
                 Padding(
-                  padding: const EdgeInsets.only(top: OceanDimensions.spacingXS),
+                  padding:
+                      const EdgeInsets.only(top: OceanDimensions.spacingXS),
                   child: SizedBox(
                     width: 16,
                     height: 16,
@@ -79,7 +80,8 @@ class LayerToggle extends StatelessWidget {
                 ),
               if (weather.errorMessage != null && !weather.hasData)
                 Padding(
-                  padding: const EdgeInsets.only(top: OceanDimensions.spacingXS),
+                  padding:
+                      const EdgeInsets.only(top: OceanDimensions.spacingXS),
                   child: Icon(
                     Icons.warning_amber_rounded,
                     size: 16,
@@ -115,8 +117,9 @@ class LayerToggle extends StatelessWidget {
           Text(
             label,
             style: OceanTextStyles.label.copyWith(
-              color:
-                  isActive ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
+              color: isActive
+                  ? colorScheme.onSurface
+                  : colorScheme.onSurfaceVariant,
             ),
           ),
         ],

@@ -49,18 +49,27 @@ class ThemeControls extends StatelessWidget {
 
               // Theme Mode Buttons
               _buildThemeButton(
-                context, 'Dark Mode', AppThemeMode.dark,
-                themeProvider, isHolographic,
+                context,
+                'Dark Mode',
+                AppThemeMode.dark,
+                themeProvider,
+                isHolographic,
               ),
               const SizedBox(height: OceanDimensions.spacingS),
               _buildThemeButton(
-                context, 'Light Mode', AppThemeMode.light,
-                themeProvider, isHolographic,
+                context,
+                'Light Mode',
+                AppThemeMode.light,
+                themeProvider,
+                isHolographic,
               ),
               const SizedBox(height: OceanDimensions.spacingS),
               _buildThemeButton(
-                context, 'System', AppThemeMode.system,
-                themeProvider, isHolographic,
+                context,
+                'System',
+                AppThemeMode.system,
+                themeProvider,
+                isHolographic,
               ),
             ],
           ),
@@ -80,12 +89,10 @@ class ThemeControls extends StatelessWidget {
       child: Container(
         decoration: isHolographic
             ? BoxDecoration(
-                borderRadius:
-                    BorderRadius.circular(OceanDimensions.radiusS),
+                borderRadius: BorderRadius.circular(OceanDimensions.radiusS),
                 boxShadow: [
                   BoxShadow(
-                    color: HolographicColors.neonMagenta
-                        .withValues(alpha: 0.3),
+                    color: HolographicColors.neonMagenta.withValues(alpha: 0.3),
                     blurRadius: 12,
                     spreadRadius: 1,
                   ),
@@ -98,9 +105,7 @@ class ThemeControls extends StatelessWidget {
             isHolographic ? Icons.auto_awesome : Icons.water,
           ),
           label: Text(
-            isHolographic
-                ? 'Switch to Ocean Glass'
-                : 'Switch to Holographic ⚡',
+            isHolographic ? 'Switch to Ocean Glass' : 'Switch to Holographic ⚡',
           ),
           style: ElevatedButton.styleFrom(
             backgroundColor: isHolographic
@@ -135,9 +140,8 @@ class ThemeControls extends StatelessWidget {
           : OceanColors.seafoamGreen;
       fgColor = Colors.white;
     } else {
-      bgColor = isHolographic
-          ? HolographicColors.spaceNavy
-          : OceanColors.surface;
+      bgColor =
+          isHolographic ? HolographicColors.spaceNavy : OceanColors.surface;
       fgColor = isHolographic
           ? HolographicColors.textSecondary
           : OceanColors.textSecondary;

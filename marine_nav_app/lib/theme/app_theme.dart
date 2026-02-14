@@ -10,9 +10,9 @@ import 'package:flutter/services.dart';
 
 import 'colors.dart';
 import 'dimensions.dart';
+import 'holographic_colors.dart';
 import 'text_styles.dart';
 import 'theme_variant.dart';
-import 'holographic_colors.dart';
 
 /// App theme configuration with Ocean Glass design system
 class AppTheme {
@@ -169,7 +169,7 @@ class AppTheme {
       brightness: Brightness.dark,
 
       // Color Scheme
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: HolographicColors.electricBlue,
         secondary: HolographicColors.neonCyan,
         surface: HolographicColors.surface,

@@ -126,13 +126,12 @@ class HomeScreen extends StatelessWidget {
                   fontSize: context.isMobile ? 24 : 32,
                   shadows: [
                     Shadow(
-                      color: HolographicColors.electricBlue
-                          .withValues(alpha: 0.6),
+                      color:
+                          HolographicColors.electricBlue.withValues(alpha: 0.6),
                       blurRadius: 12,
                     ),
                     Shadow(
-                      color: HolographicColors.neonCyan
-                          .withValues(alpha: 0.3),
+                      color: HolographicColors.neonCyan.withValues(alpha: 0.3),
                       blurRadius: 24,
                     ),
                   ],

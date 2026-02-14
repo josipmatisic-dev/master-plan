@@ -59,13 +59,11 @@ class WeatherApiService {
 
   /// Base URL for Open-Meteo Marine API (waves).
   @visibleForTesting
-  static const String marineUrl =
-      'https://marine-api.open-meteo.com/v1/marine';
+  static const String marineUrl = 'https://marine-api.open-meteo.com/v1/marine';
 
   /// Base URL for Open-Meteo Forecast API (wind).
   @visibleForTesting
-  static const String forecastUrl =
-      'https://api.open-meteo.com/v1/forecast';
+  static const String forecastUrl = 'https://api.open-meteo.com/v1/forecast';
 
   /// Maximum retry attempts.
   static const int maxRetries = 3;
@@ -74,8 +72,7 @@ class WeatherApiService {
   static const Duration requestTimeout = Duration(seconds: 15);
 
   /// Creates a weather API service with an optional HTTP client.
-  WeatherApiService({http.Client? client})
-      : _client = client ?? http.Client();
+  WeatherApiService({http.Client? client}) : _client = client ?? http.Client();
 
   /// Fetches weather data for a geographic bounding box.
   ///
@@ -97,8 +94,7 @@ class WeatherApiService {
     // Parallel fetch with shared retry logic.
     final responses = await Future.wait([
       _retryWithBackoff(() => _client.get(marineUri).timeout(requestTimeout)),
-      _retryWithBackoff(
-          () => _client.get(forecastUri).timeout(requestTimeout)),
+      _retryWithBackoff(() => _client.get(forecastUri).timeout(requestTimeout)),
     ]);
 
     final marineResponse = responses[0];

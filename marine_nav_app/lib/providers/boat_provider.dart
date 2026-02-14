@@ -198,8 +198,10 @@ class BoatProvider extends ChangeNotifier {
     final prev = _currentPosition;
     if (prev != null) {
       final distM = _haversine(
-        prev.position.latitude, prev.position.longitude,
-        newPos.position.latitude, newPos.position.longitude,
+        prev.position.latitude,
+        prev.position.longitude,
+        newPos.position.latitude,
+        newPos.position.longitude,
       );
       final dtS =
           newPos.timestamp.difference(prev.timestamp).inMilliseconds / 1000.0;
@@ -215,8 +217,10 @@ class BoatProvider extends ChangeNotifier {
     if (_trackHistory.isNotEmpty) {
       final last = _trackHistory.last;
       final dist = _haversine(
-        last.lat, last.lng,
-        pos.position.latitude, pos.position.longitude,
+        last.lat,
+        last.lng,
+        pos.position.latitude,
+        pos.position.longitude,
       );
       if (dist < minTrackDistanceM) return;
     }
@@ -255,14 +259,16 @@ class BoatProvider extends ChangeNotifier {
       hdop != null ? hdop * 5.0 : null;
 
   static double _haversine(
-    double lat1, double lon1, double lat2, double lon2,
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
   ) {
     const r = 6371000.0;
     final dLat = _rad(lat2 - lat1);
     final dLon = _rad(lon2 - lon1);
     final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_rad(lat1)) * cos(_rad(lat2)) *
-        sin(dLon / 2) * sin(dLon / 2);
+        cos(_rad(lat1)) * cos(_rad(lat2)) * sin(dLon / 2) * sin(dLon / 2);
     return r * 2 * atan2(sqrt(a), sqrt(1 - a));
   }
 

@@ -76,9 +76,12 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Captain', style: tt.titleMedium?.copyWith(color: cs.onSurface)),
+                      Text('Captain',
+                          style: tt.titleMedium?.copyWith(color: cs.onSurface)),
                       const SizedBox(height: 4),
-                      Text('SailStream Navigator', style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                      Text('SailStream Navigator',
+                          style: tt.bodySmall
+                              ?.copyWith(color: cs.onSurfaceVariant)),
                     ],
                   ),
                 ),
@@ -96,10 +99,12 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Theme', style: tt.titleMedium?.copyWith(color: cs.onSurface)),
+                Text('Theme',
+                    style: tt.titleMedium?.copyWith(color: cs.onSurface)),
                 const SizedBox(height: 8),
                 _themeRadio(themeProvider, tt, cs, ThemeVariant.oceanGlass),
-                _themeRadio(themeProvider, tt, cs, ThemeVariant.holographicCyberpunk),
+                _themeRadio(
+                    themeProvider, tt, cs, ThemeVariant.holographicCyberpunk),
               ],
             ),
           ),
@@ -113,13 +118,28 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _unitDropdown(tt, cs, 'Speed', speedLabel, _speedLabels.keys.toList(),
+                _unitDropdown(
+                    tt,
+                    cs,
+                    'Speed',
+                    speedLabel,
+                    _speedLabels.keys.toList(),
                     (v) => settings.setSpeedUnit(_speedLabels[v!]!)),
                 const Divider(height: 24),
-                _unitDropdown(tt, cs, 'Depth', depthLabel, _depthLabels.keys.toList(),
+                _unitDropdown(
+                    tt,
+                    cs,
+                    'Depth',
+                    depthLabel,
+                    _depthLabels.keys.toList(),
                     (v) => settings.setDepthUnit(_depthLabels[v!]!)),
                 const Divider(height: 24),
-                _unitDropdown(tt, cs, 'Distance', distanceLabel, _distanceLabels.keys.toList(),
+                _unitDropdown(
+                    tt,
+                    cs,
+                    'Distance',
+                    distanceLabel,
+                    _distanceLabels.keys.toList(),
                     (v) => settings.setDistanceUnit(_distanceLabels[v!]!)),
               ],
             ),
@@ -133,13 +153,18 @@ class ProfileScreen extends StatelessWidget {
             padding: GlassCardPadding.medium,
             child: Column(
               children: [
-                _displayToggle(tt, cs, 'Show Compass', Icons.explore, settings.showCompass,
-                    (v) => settings.setShowCompass(v)),
-                _displayToggle(tt, cs, 'Show Data Orbs', Icons.blur_circular, settings.showDataOrbs,
-                    (v) => settings.setShowDataOrbs(v)),
-                _displayToggle(tt, cs, 'Show Speed Arc', Icons.speed, settings.showSpeedArc,
-                    (v) => settings.setShowSpeedArc(v)),
-                _displayToggle(tt, cs, 'Show Wave Animation', Icons.waves, settings.showWaveAnimation,
+                _displayToggle(tt, cs, 'Show Compass', Icons.explore,
+                    settings.showCompass, (v) => settings.setShowCompass(v)),
+                _displayToggle(tt, cs, 'Show Data Orbs', Icons.blur_circular,
+                    settings.showDataOrbs, (v) => settings.setShowDataOrbs(v)),
+                _displayToggle(tt, cs, 'Show Speed Arc', Icons.speed,
+                    settings.showSpeedArc, (v) => settings.setShowSpeedArc(v)),
+                _displayToggle(
+                    tt,
+                    cs,
+                    'Show Wave Animation',
+                    Icons.waves,
+                    settings.showWaveAnimation,
                     (v) => settings.setShowWaveAnimation(v)),
               ],
             ),
@@ -176,7 +201,8 @@ class ProfileScreen extends StatelessWidget {
     return GlowText(title, glowStyle: GlowTextStyle.subtle, color: cs.primary);
   }
 
-  Widget _themeRadio(ThemeProvider provider, TextTheme tt, ColorScheme cs, ThemeVariant variant) {
+  Widget _themeRadio(ThemeProvider provider, TextTheme tt, ColorScheme cs,
+      ThemeVariant variant) {
     return RadioListTile<ThemeVariant>(
       value: variant,
       groupValue: provider.themeVariant,
@@ -184,8 +210,10 @@ class ProfileScreen extends StatelessWidget {
       fillColor: WidgetStateProperty.resolveWith((states) =>
           states.contains(WidgetState.selected) ? cs.primary : null),
       contentPadding: EdgeInsets.zero,
-      title: Text(variant.displayName, style: tt.bodyLarge?.copyWith(color: cs.onSurface)),
-      subtitle: Text(variant.description, style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+      title: Text(variant.displayName,
+          style: tt.bodyLarge?.copyWith(color: cs.onSurface)),
+      subtitle: Text(variant.description,
+          style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
     );
   }
 
@@ -193,21 +221,25 @@ class ProfileScreen extends StatelessWidget {
       List<String> options, ValueChanged<String?> onChanged) {
     return Row(
       children: [
-        Expanded(child: Text(label, style: tt.bodyLarge?.copyWith(color: cs.onSurface))),
+        Expanded(
+            child: Text(label,
+                style: tt.bodyLarge?.copyWith(color: cs.onSurface))),
         DropdownButton<String>(
           value: value,
           dropdownColor: cs.surface,
           style: tt.bodyLarge?.copyWith(color: cs.primary),
           underline: const SizedBox.shrink(),
-          items: options.map((o) => DropdownMenuItem(value: o, child: Text(o))).toList(),
+          items: options
+              .map((o) => DropdownMenuItem(value: o, child: Text(o)))
+              .toList(),
           onChanged: onChanged,
         ),
       ],
     );
   }
 
-  Widget _displayToggle(TextTheme tt, ColorScheme cs, String label, IconData icon,
-      bool value, ValueChanged<bool> onChanged) {
+  Widget _displayToggle(TextTheme tt, ColorScheme cs, String label,
+      IconData icon, bool value, ValueChanged<bool> onChanged) {
     return SwitchListTile(
       contentPadding: EdgeInsets.zero,
       activeTrackColor: cs.primary,

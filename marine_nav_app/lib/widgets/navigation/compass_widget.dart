@@ -77,8 +77,7 @@ class CompassWidget extends StatelessWidget {
       child: CircularProgressIndicator(
         value: 1,
         strokeWidth: 2,
-        valueColor:
-            AlwaysStoppedAnimation<Color>(colorScheme.onSurfaceVariant),
+        valueColor: AlwaysStoppedAnimation<Color>(colorScheme.onSurfaceVariant),
         backgroundColor: colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
       ),
     );
@@ -93,7 +92,10 @@ class CompassWidget extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(4),
           gradient: LinearGradient(
-            colors: [colorScheme.primary, colorScheme.primary.withValues(alpha: 0.6)],
+            colors: [
+              colorScheme.primary,
+              colorScheme.primary.withValues(alpha: 0.6)
+            ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -116,8 +118,8 @@ class CompassWidget extends StatelessWidget {
         const SizedBox(height: OceanDimensions.spacingS),
         Text(
           '${speedKnots.toStringAsFixed(1)} kts',
-          style:
-              OceanTextStyles.body.copyWith(color: colorScheme.onSurfaceVariant),
+          style: OceanTextStyles.body
+              .copyWith(color: colorScheme.onSurfaceVariant),
           overflow: TextOverflow.ellipsis,
         ),
       ],
@@ -129,8 +131,8 @@ class CompassWidget extends StatelessWidget {
       children: [
         Text(
           'Wind',
-          style:
-              OceanTextStyles.label.copyWith(color: colorScheme.onSurfaceVariant),
+          style: OceanTextStyles.label
+              .copyWith(color: colorScheme.onSurfaceVariant),
           overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: OceanDimensions.spacingXS),
@@ -150,8 +152,7 @@ class CompassWidget extends StatelessWidget {
       onPressed: onToggleVr,
       icon: Icon(
         isVrEnabled ? Icons.vrpano : Icons.vrpano_outlined,
-        color:
-            isVrEnabled ? colorScheme.primary : colorScheme.onSurfaceVariant,
+        color: isVrEnabled ? colorScheme.primary : colorScheme.onSurfaceVariant,
       ),
       tooltip: 'Toggle VR',
     );

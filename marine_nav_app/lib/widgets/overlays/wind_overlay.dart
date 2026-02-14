@@ -161,8 +161,8 @@ class _WindHeatmapPainter extends CustomPainter {
         final c = _windColor(speed);
         paint.color = c.withValues(alpha: _kHeatmapAlpha);
         canvas.drawRect(
-          Rect.fromLTWH(px.toDouble(), py.toDouble(),
-              _kGridStep.toDouble(), _kGridStep.toDouble()),
+          Rect.fromLTWH(px.toDouble(), py.toDouble(), _kGridStep.toDouble(),
+              _kGridStep.toDouble()),
           paint,
         );
       }
@@ -243,8 +243,8 @@ class _WindHeatmapPainter extends CustomPainter {
       final c = _windColor(speed).withValues(alpha: alpha);
 
       // Trail line.
-      final dist = math.sqrt(
-          (p.x - prevX) * (p.x - prevX) + (p.y - prevY) * (p.y - prevY));
+      final dist = math
+          .sqrt((p.x - prevX) * (p.x - prevX) + (p.y - prevY) * (p.y - prevY));
       if (dist < 20) {
         trailPaint.color = c.withValues(alpha: alpha * 0.4);
         canvas.drawLine(Offset(prevX, prevY), Offset(p.x, p.y), trailPaint);

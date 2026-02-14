@@ -43,8 +43,7 @@ class BoatPosition {
   int get hashCode => Object.hash(position, timestamp);
 
   @override
-  String toString() =>
-      'BoatPosition(${position.latitude.toStringAsFixed(5)}, '
+  String toString() => 'BoatPosition(${position.latitude.toStringAsFixed(5)}, '
       '${position.longitude.toStringAsFixed(5)}, '
       '${speedKnots?.toStringAsFixed(1) ?? "?"}kn)';
 }

@@ -79,8 +79,7 @@ class _NavigationSidebarState extends State<NavigationSidebar> {
           alignment: Alignment.topCenter,
           child: _isExpanded
               ? Padding(
-                  padding:
-                      const EdgeInsets.only(top: OceanDimensions.spacingS),
+                  padding: const EdgeInsets.only(top: OceanDimensions.spacingS),
                   child: _buildFullSidebar(),
                 )
               : const SizedBox.shrink(),
@@ -130,8 +129,7 @@ class _NavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final color =
-        isActive ? colorScheme.primary : colorScheme.onSurfaceVariant;
+    final color = isActive ? colorScheme.primary : colorScheme.onSurfaceVariant;
 
     return InkWell(
       onTap: onTap,

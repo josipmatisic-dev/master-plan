@@ -107,8 +107,7 @@ class NMEAConnectionIndicator extends StatelessWidget {
               const SizedBox(height: OceanDimensions.spacingS),
               Text(
                 'Error: ${nmea.lastError!.message}',
-                style:
-                    OceanTextStyles.body.copyWith(color: colorScheme.error),
+                style: OceanTextStyles.body.copyWith(color: colorScheme.error),
               ),
             ],
             if (nmea.lastUpdateTime != null) ...[

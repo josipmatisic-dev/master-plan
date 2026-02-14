@@ -105,9 +105,15 @@ class _HolographicCardState extends State<HolographicCard> {
 
     return RepaintBoundary(
       child: GestureDetector(
-        onTapDown: widget.enableHover ? (_) => setState(() => _isPressed = true) : null,
-        onTapUp: widget.enableHover ? (_) => setState(() => _isPressed = false) : null,
-        onTapCancel: widget.enableHover ? () => setState(() => _isPressed = false) : null,
+        onTapDown: widget.enableHover
+            ? (_) => setState(() => _isPressed = true)
+            : null,
+        onTapUp: widget.enableHover
+            ? (_) => setState(() => _isPressed = false)
+            : null,
+        onTapCancel: widget.enableHover
+            ? () => setState(() => _isPressed = false)
+            : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOut,

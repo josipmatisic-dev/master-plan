@@ -106,24 +106,33 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
               children: [
                 Flexible(
                   child: DataOrb(
-                    label: 'SOG', value: sog, unit: 'kts',
+                    label: 'SOG',
+                    value: sog,
+                    unit: 'kts',
                     size: orbSize,
-                    state: connected ? DataOrbState.normal : DataOrbState.inactive,
+                    state:
+                        connected ? DataOrbState.normal : DataOrbState.inactive,
                     heroTag: 'nav-orb-sog',
                   ),
                 ),
                 Flexible(
                   child: DataOrb(
-                    label: 'COG', value: cog, unit: '°',
+                    label: 'COG',
+                    value: cog,
+                    unit: '°',
                     size: orbSize,
-                    state: connected ? DataOrbState.normal : DataOrbState.inactive,
+                    state:
+                        connected ? DataOrbState.normal : DataOrbState.inactive,
                     heroTag: 'nav-orb-cog',
                   ),
                 ),
                 Flexible(
                   child: DataOrb(
-                    label: 'DEPTH', value: depth, unit: 'm',
-                    size: orbSize, state: depthState,
+                    label: 'DEPTH',
+                    value: depth,
+                    unit: 'm',
+                    size: orbSize,
+                    state: depthState,
                     heroTag: 'nav-orb-depth',
                   ),
                 ),
@@ -209,7 +218,8 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
             runSpacing: OceanDimensions.spacingS,
             alignment: WrapAlignment.spaceEvenly,
             children: [
-              _btn('+ Route', cs, () => _snack(context, 'Route creation coming soon')),
+              _btn('+ Route', cs,
+                  () => _snack(context, 'Route creation coming soon')),
               _btn('Mark', cs, () => _markPosition(context)),
               _btn('Track', cs, () => _snack(context, 'Tracking toggled')),
               _btn('Alerts', cs, () => _snack(context, 'No active alerts')),

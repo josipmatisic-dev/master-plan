@@ -55,15 +55,19 @@ class DashboardScreen extends StatelessWidget {
             glowStyle: GlowTextStyle.heading, color: cs.primary),
       ),
       Container(
-        width: 10, height: 10,
+        width: 10,
+        height: 10,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: connected ? Colors.green : Colors.red,
         ),
       ),
       const SizedBox(width: 8),
-      Text(time, style: Theme.of(context).textTheme.bodyMedium
-          ?.copyWith(color: cs.onSurface)),
+      Text(time,
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(color: cs.onSurface)),
     ]);
   }
 
@@ -72,18 +76,27 @@ class DashboardScreen extends StatelessWidget {
     final cog = data?.courseOverGroundDegrees as double?;
     final depth = data?.depthMeters as double?;
     return Row(children: [
-      Expanded(child: DataOrb(
-        label: 'SOG', value: sog?.toStringAsFixed(1) ?? '--', unit: 'kts',
+      Expanded(
+          child: DataOrb(
+        label: 'SOG',
+        value: sog?.toStringAsFixed(1) ?? '--',
+        unit: 'kts',
         size: DataOrbSize.medium,
         state: sog != null ? DataOrbState.normal : DataOrbState.inactive,
       )),
-      Expanded(child: DataOrb(
-        label: 'COG', value: cog?.toStringAsFixed(0) ?? '--', unit: '°',
+      Expanded(
+          child: DataOrb(
+        label: 'COG',
+        value: cog?.toStringAsFixed(0) ?? '--',
+        unit: '°',
         size: DataOrbSize.medium,
         state: cog != null ? DataOrbState.normal : DataOrbState.inactive,
       )),
-      Expanded(child: DataOrb(
-        label: 'DEPTH', value: depth?.toStringAsFixed(1) ?? '--', unit: 'm',
+      Expanded(
+          child: DataOrb(
+        label: 'DEPTH',
+        value: depth?.toStringAsFixed(1) ?? '--',
+        unit: 'm',
         size: DataOrbSize.medium,
         state: depth != null
             ? (depth < 3.0 ? DataOrbState.critical : DataOrbState.normal)
@@ -106,7 +119,8 @@ class DashboardScreen extends StatelessWidget {
         Row(children: [
           Icon(Icons.location_on, size: 16, color: cs.primary),
           const SizedBox(width: 6),
-          Expanded(child: Text(
+          Expanded(
+              child: Text(
             lat != null && lng != null
                 ? '${lat.toStringAsFixed(4)}° N, ${lng.toStringAsFixed(4)}° E'
                 : 'No fix',
@@ -132,9 +146,9 @@ class DashboardScreen extends StatelessWidget {
 
     final (String label, Color color) = switch (true) {
       _ when weather.isLoading => ('Loading…', cs.onSurfaceVariant),
-      _ when weather.isStale   => ('Stale', Colors.orange),
-      _ when weather.hasData   => ('Current', Colors.green),
-      _                        => ('No data', cs.onSurfaceVariant),
+      _ when weather.isStale => ('Stale', Colors.orange),
+      _ when weather.hasData => ('Current', Colors.green),
+      _ => ('No data', cs.onSurfaceVariant),
     };
 
     return GlassCard(
@@ -153,7 +167,10 @@ class DashboardScreen extends StatelessWidget {
             Icon(Icons.air, size: 24, color: cs.onSurfaceVariant),
           const SizedBox(width: 12),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(windSpd != null ? '${windSpd.toStringAsFixed(1)} kts' : '-- kts',
+            Text(
+                windSpd != null
+                    ? '${windSpd.toStringAsFixed(1)} kts'
+                    : '-- kts',
                 style: tt.bodyLarge?.copyWith(color: cs.onSurface)),
             Text(windDir != null ? '${windDir.toStringAsFixed(0)}°' : '--°',
                 style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
@@ -165,8 +182,7 @@ class DashboardScreen extends StatelessWidget {
               color: color.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(8),
             ),
-            child: Text(label,
-                style: tt.labelSmall?.copyWith(color: color)),
+            child: Text(label, style: tt.labelSmall?.copyWith(color: color)),
           ),
         ]),
       ]),
@@ -175,17 +191,17 @@ class DashboardScreen extends StatelessWidget {
 
   Widget _buildQuickActions(BuildContext context, ColorScheme cs) {
     Widget btn(IconData icon, String label, String route) => Expanded(
-      child: ElevatedButton.icon(
-        onPressed: () => Navigator.pushNamed(context, route),
-        icon: Icon(icon, size: 18),
-        label: Text(label),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: cs.primaryContainer,
-          foregroundColor: cs.onPrimaryContainer,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-        ),
-      ),
-    );
+          child: ElevatedButton.icon(
+            onPressed: () => Navigator.pushNamed(context, route),
+            icon: Icon(icon, size: 18),
+            label: Text(label),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: cs.primaryContainer,
+              foregroundColor: cs.onPrimaryContainer,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+            ),
+          ),
+        );
     return Row(children: [
       btn(Icons.map, 'Map', '/map'),
       const SizedBox(width: 8),
@@ -200,17 +216,20 @@ class DashboardScreen extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
 
     Widget row(String label, String value, Color c) => Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(children: [
-        Container(width: 8, height: 8,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: c)),
-        const SizedBox(width: 8),
-        Text(label, style: tt.bodyMedium?.copyWith(color: cs.onSurface)),
-        const Spacer(),
-        Text(value, style: tt.bodySmall
-            ?.copyWith(color: c, fontWeight: FontWeight.w600)),
-      ]),
-    );
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(children: [
+            Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(shape: BoxShape.circle, color: c)),
+            const SizedBox(width: 8),
+            Text(label, style: tt.bodyMedium?.copyWith(color: cs.onSurface)),
+            const Spacer(),
+            Text(value,
+                style: tt.bodySmall
+                    ?.copyWith(color: c, fontWeight: FontWeight.w600)),
+          ]),
+        );
 
     return GlassCard(
       padding: GlassCardPadding.medium,
@@ -220,7 +239,8 @@ class DashboardScreen extends StatelessWidget {
         const SizedBox(height: 8),
         row('NMEA', nmea.status.name.toUpperCase(),
             nmea.isConnected ? Colors.green : Colors.red),
-        row('Weather',
+        row(
+            'Weather',
             weather.hasData ? (weather.isStale ? 'STALE' : 'OK') : 'NO DATA',
             weather.hasData
                 ? (weather.isStale ? Colors.orange : Colors.green)

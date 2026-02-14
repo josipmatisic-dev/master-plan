@@ -276,10 +276,14 @@ void main() {
       final frame = WeatherFrame(
         time: testTime,
         wind: const WindDataPoint(
-          position: position, speedKnots: 15.0, directionDegrees: 270.0,
+          position: position,
+          speedKnots: 15.0,
+          directionDegrees: 270.0,
         ),
         wave: const WaveDataPoint(
-          position: position, heightMeters: 2.0, directionDegrees: 180.0,
+          position: position,
+          heightMeters: 2.0,
+          directionDegrees: 180.0,
         ),
       );
       expect(frame.hasWind, true);
@@ -290,7 +294,9 @@ void main() {
       final frame = WeatherFrame(
         time: testTime,
         wind: const WindDataPoint(
-          position: position, speedKnots: 10.0, directionDegrees: 90.0,
+          position: position,
+          speedKnots: 10.0,
+          directionDegrees: 90.0,
         ),
       );
       expect(frame.hasWind, true);
@@ -301,13 +307,17 @@ void main() {
       final a = WeatherFrame(
         time: testTime,
         wind: const WindDataPoint(
-          position: position, speedKnots: 15.0, directionDegrees: 270.0,
+          position: position,
+          speedKnots: 15.0,
+          directionDegrees: 270.0,
         ),
       );
       final b = WeatherFrame(
         time: testTime,
         wind: const WindDataPoint(
-          position: position, speedKnots: 15.0, directionDegrees: 270.0,
+          position: position,
+          speedKnots: 15.0,
+          directionDegrees: 270.0,
         ),
       );
       expect(a, equals(b));

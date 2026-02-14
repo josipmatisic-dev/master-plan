@@ -70,9 +70,9 @@ class TimelineScrubber extends StatelessWidget {
                   timeline.activeTimeLabel,
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w600,
-                  ),
+                        color: cs.onSurface,
+                        fontWeight: FontWeight.w600,
+                      ),
                 ),
               ),
             ],

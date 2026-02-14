@@ -33,8 +33,8 @@ class WelcomeCard extends StatelessWidget {
             shadows: isHolographic
                 ? [
                     Shadow(
-                      color: HolographicColors.electricBlue
-                          .withValues(alpha: 0.6),
+                      color:
+                          HolographicColors.electricBlue.withValues(alpha: 0.6),
                       blurRadius: 12,
                     ),
                   ]
@@ -42,9 +42,7 @@ class WelcomeCard extends StatelessWidget {
           ),
           const SizedBox(height: OceanDimensions.spacingM),
           Text(
-            isHolographic
-                ? 'Holographic Cyberpunk'
-                : 'Ocean Glass Design',
+            isHolographic ? 'Holographic Cyberpunk' : 'Ocean Glass Design',
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w600,
