@@ -117,8 +117,9 @@ class _ParticleBackgroundState extends State<ParticleBackground>
 
   // --- Touch handlers ---
   void _onPointerDown(PointerDownEvent e) {
-    if (_activePointers.length < _maxPointers)
+    if (_activePointers.length < _maxPointers) {
       _activePointers[e.pointer] = e.localPosition;
+    }
   }
 
   void _onPointerMove(PointerMoveEvent e) {
@@ -203,9 +204,10 @@ class _ParticleBackgroundState extends State<ParticleBackground>
         final keep =
             _particles.where((p) => !p.isTrail).take(_currentParticleCount);
         _particles = [...keep, ..._particles.where((p) => p.isTrail)];
-        if (widget.debugMode)
+        if (widget.debugMode) {
           debugPrint(
               'ParticleBackground: FPS=$_fps, reducing to $_currentParticleCount');
+        }
       }
     }
     setState(() {});
