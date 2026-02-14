@@ -33,6 +33,18 @@ enum DistanceUnit {
   miles,
 }
 
+/// Unit types for depth measurement
+enum DepthUnit {
+  /// Meters
+  meters,
+
+  /// Feet
+  feet,
+
+  /// Fathoms
+  fathoms,
+}
+
 /// Settings Provider - Manages user preferences
 ///
 /// Layer 0 provider with no dependencies.
@@ -43,8 +55,15 @@ class SettingsProvider extends ChangeNotifier {
   SharedPreferences? _prefs;
   SpeedUnit _speedUnit = SpeedUnit.knots;
   DistanceUnit _distanceUnit = DistanceUnit.nauticalMiles;
+  DepthUnit _depthUnit = DepthUnit.meters;
   String _language = 'en';
   int _mapRefreshRate = 5000; // milliseconds
+
+  // Display preferences
+  bool _showCompass = true;
+  bool _showDataOrbs = true;
+  bool _showSpeedArc = true;
+  bool _showWaveAnimation = true;
 
   // NMEA Configuration
   String _nmeaHost = 'localhost';
@@ -62,6 +81,21 @@ class SettingsProvider extends ChangeNotifier {
 
   /// Current distance unit preference
   DistanceUnit get distanceUnit => _distanceUnit;
+
+  /// Current depth unit preference
+  DepthUnit get depthUnit => _depthUnit;
+
+  /// Whether to show compass
+  bool get showCompass => _showCompass;
+
+  /// Whether to show data orbs
+  bool get showDataOrbs => _showDataOrbs;
+
+  /// Whether to show speed arc
+  bool get showSpeedArc => _showSpeedArc;
+
+  /// Whether to show wave animation
+  bool get showWaveAnimation => _showWaveAnimation;
 
   /// Current language code
   String get language => _language;
@@ -118,6 +152,16 @@ class SettingsProvider extends ChangeNotifier {
         _distanceUnit = DistanceUnit.values[distanceUnitIndex];
       }
 
+      final depthUnitIndex = _prefs!.getInt('depthUnit');
+      if (depthUnitIndex != null) {
+        _depthUnit = DepthUnit.values[depthUnitIndex];
+      }
+
+      _showCompass = _prefs!.getBool('display_showCompass') ?? true;
+      _showDataOrbs = _prefs!.getBool('display_showDataOrbs') ?? true;
+      _showSpeedArc = _prefs!.getBool('display_showSpeedArc') ?? true;
+      _showWaveAnimation = _prefs!.getBool('display_showWaveAnimation') ?? true;
+
       _language = _prefs!.getString('language') ?? 'en';
       _mapRefreshRate = _prefs!.getInt('mapRefreshRate') ?? 5000;
 
@@ -160,6 +204,41 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setDistanceUnit(DistanceUnit unit) async {
     _distanceUnit = unit;
     await _prefs?.setInt('distanceUnit', unit.index);
+    notifyListeners();
+  }
+
+  /// Update depth unit preference
+  Future<void> setDepthUnit(DepthUnit unit) async {
+    _depthUnit = unit;
+    await _prefs?.setInt('depthUnit', unit.index);
+    notifyListeners();
+  }
+
+  /// Update show compass preference
+  Future<void> setShowCompass(bool value) async {
+    _showCompass = value;
+    await _prefs?.setBool('display_showCompass', value);
+    notifyListeners();
+  }
+
+  /// Update show data orbs preference
+  Future<void> setShowDataOrbs(bool value) async {
+    _showDataOrbs = value;
+    await _prefs?.setBool('display_showDataOrbs', value);
+    notifyListeners();
+  }
+
+  /// Update show speed arc preference
+  Future<void> setShowSpeedArc(bool value) async {
+    _showSpeedArc = value;
+    await _prefs?.setBool('display_showSpeedArc', value);
+    notifyListeners();
+  }
+
+  /// Update show wave animation preference
+  Future<void> setShowWaveAnimation(bool value) async {
+    _showWaveAnimation = value;
+    await _prefs?.setBool('display_showWaveAnimation', value);
     notifyListeners();
   }
 
@@ -221,6 +300,7 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> resetToDefaults() async {
     _speedUnit = SpeedUnit.knots;
     _distanceUnit = DistanceUnit.nauticalMiles;
+    _depthUnit = DepthUnit.meters;
     _language = 'en';
     _mapRefreshRate = 5000;
     _nmeaHost = 'localhost';
@@ -228,6 +308,10 @@ class SettingsProvider extends ChangeNotifier {
     _nmeaConnectionType = ConnectionType.tcp;
     _autoConnectNMEA = false;
     _mapTilerApiKey = '';
+    _showCompass = true;
+    _showDataOrbs = true;
+    _showSpeedArc = true;
+    _showWaveAnimation = true;
 
     await _prefs?.clear();
     notifyListeners();

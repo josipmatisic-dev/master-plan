@@ -1,32 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../theme/theme_variant.dart';
 import '../widgets/common/glow_text.dart';
 import '../widgets/glass/glass_card.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
+  static const _speedLabels = {
+    'Knots': SpeedUnit.knots,
+    'mph': SpeedUnit.mph,
+    'km/h': SpeedUnit.kph,
+  };
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  // TODO: persist these via a SettingsProvider when one is created
-  String _speedUnit = 'Knots';
-  String _depthUnit = 'Meters';
-  String _distanceUnit = 'Nautical Miles';
-  bool _showCompass = true;
-  bool _showDataOrbs = true;
-  bool _showSpeedArc = true;
-  bool _showWaveAnimation = true;
+  static const _depthLabels = {
+    'Meters': DepthUnit.meters,
+    'Feet': DepthUnit.feet,
+    'Fathoms': DepthUnit.fathoms,
+  };
+
+  static const _distanceLabels = {
+    'Nautical Miles': DistanceUnit.nauticalMiles,
+    'Miles': DistanceUnit.miles,
+    'Kilometers': DistanceUnit.kilometers,
+  };
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final themeProvider = context.watch<ThemeProvider>();
+    final settings = context.watch<SettingsProvider>();
+
+    final speedLabel = _speedLabels.entries
+        .firstWhere((e) => e.value == settings.speedUnit)
+        .key;
+    final depthLabel = _depthLabels.entries
+        .firstWhere((e) => e.value == settings.depthUnit)
+        .key;
+    final distanceLabel = _distanceLabels.entries
+        .firstWhere((e) => e.value == settings.distanceUnit)
+        .key;
 
     return Scaffold(
       appBar: AppBar(
@@ -73,7 +89,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
 
           // — Theme Selection —
-          _sectionTitle(tt, cs, 'Appearance'),
+          _sectionTitle(cs, 'Appearance'),
           const SizedBox(height: 8),
           GlassCard(
             padding: GlassCardPadding.medium,
@@ -90,51 +106,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 16),
 
           // — Unit Preferences —
-          _sectionTitle(tt, cs, 'Units'),
+          _sectionTitle(cs, 'Units'),
           const SizedBox(height: 8),
           GlassCard(
             padding: GlassCardPadding.medium,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // TODO: wire to a SettingsProvider for persistence
-                _unitDropdown(tt, cs, 'Speed', _speedUnit, ['Knots', 'mph', 'km/h'],
-                    (v) => setState(() => _speedUnit = v!)),
+                _unitDropdown(tt, cs, 'Speed', speedLabel, _speedLabels.keys.toList(),
+                    (v) => settings.setSpeedUnit(_speedLabels[v!]!)),
                 const Divider(height: 24),
-                _unitDropdown(tt, cs, 'Depth', _depthUnit, ['Meters', 'Feet'],
-                    (v) => setState(() => _depthUnit = v!)),
+                _unitDropdown(tt, cs, 'Depth', depthLabel, _depthLabels.keys.toList(),
+                    (v) => settings.setDepthUnit(_depthLabels[v!]!)),
                 const Divider(height: 24),
-                _unitDropdown(tt, cs, 'Distance', _distanceUnit,
-                    ['Nautical Miles', 'Miles', 'Kilometers'],
-                    (v) => setState(() => _distanceUnit = v!)),
+                _unitDropdown(tt, cs, 'Distance', distanceLabel, _distanceLabels.keys.toList(),
+                    (v) => settings.setDistanceUnit(_distanceLabels[v!]!)),
               ],
             ),
           ),
           const SizedBox(height: 16),
 
           // — Display Preferences —
-          _sectionTitle(tt, cs, 'Display'),
+          _sectionTitle(cs, 'Display'),
           const SizedBox(height: 8),
           GlassCard(
             padding: GlassCardPadding.medium,
             child: Column(
               children: [
-                // TODO: wire to a SettingsProvider for persistence
-                _displayToggle(tt, cs, 'Show Compass', Icons.explore, _showCompass,
-                    (v) => setState(() => _showCompass = v)),
-                _displayToggle(tt, cs, 'Show Data Orbs', Icons.blur_circular, _showDataOrbs,
-                    (v) => setState(() => _showDataOrbs = v)),
-                _displayToggle(tt, cs, 'Show Speed Arc', Icons.speed, _showSpeedArc,
-                    (v) => setState(() => _showSpeedArc = v)),
-                _displayToggle(tt, cs, 'Show Wave Animation', Icons.waves, _showWaveAnimation,
-                    (v) => setState(() => _showWaveAnimation = v)),
+                _displayToggle(tt, cs, 'Show Compass', Icons.explore, settings.showCompass,
+                    (v) => settings.setShowCompass(v)),
+                _displayToggle(tt, cs, 'Show Data Orbs', Icons.blur_circular, settings.showDataOrbs,
+                    (v) => settings.setShowDataOrbs(v)),
+                _displayToggle(tt, cs, 'Show Speed Arc', Icons.speed, settings.showSpeedArc,
+                    (v) => settings.setShowSpeedArc(v)),
+                _displayToggle(tt, cs, 'Show Wave Animation', Icons.waves, settings.showWaveAnimation,
+                    (v) => settings.setShowWaveAnimation(v)),
               ],
             ),
           ),
           const SizedBox(height: 16),
 
           // — About —
-          _sectionTitle(tt, cs, 'About'),
+          _sectionTitle(cs, 'About'),
           const SizedBox(height: 8),
           GlassCard(
             padding: GlassCardPadding.medium,
@@ -159,7 +172,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   // — Helper builders —
 
-  Widget _sectionTitle(TextTheme tt, ColorScheme cs, String title) {
+  Widget _sectionTitle(ColorScheme cs, String title) {
     return GlowText(title, glowStyle: GlowTextStyle.subtle, color: cs.primary);
   }
 

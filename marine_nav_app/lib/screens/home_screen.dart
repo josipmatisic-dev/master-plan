@@ -13,7 +13,9 @@ import '../theme/dimensions.dart';
 import '../theme/holographic_colors.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/effects/holographic_shimmer.dart';
 import '../widgets/effects/particle_background.dart';
+import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/effects/scroll_reveal.dart';
 import '../widgets/home/cache_info_card.dart';
 import '../widgets/home/navigation_shortcuts.dart';
@@ -51,10 +53,12 @@ class HomeScreen extends StatelessWidget {
                       ),
               ),
             ),
-            // Particle background (holographic only)
+            // Particle background (holographic only — interactive)
             if (isHolographic)
-              const IgnorePointer(
-                  child: RepaintBoundary(child: ParticleBackground())),
+              const RepaintBoundary(
+                  child: ParticleBackground(interactive: true)),
+            // Scan line effect (holographic only)
+            if (isHolographic) const ScanLineEffect(),
             // Content
             CustomScrollView(
               slivers: [
@@ -63,8 +67,11 @@ class HomeScreen extends StatelessWidget {
                   padding: EdgeInsets.all(context.responsiveSpacing),
                   sliver: SliverList(
                     delegate: SliverChildListDelegate([
-                      const ScrollReveal(
-                        child: WelcomeCard(),
+                      ScrollReveal(
+                        child: HolographicShimmer(
+                          enabled: isHolographic,
+                          child: const WelcomeCard(),
+                        ),
                       ),
                       OceanDimensions.spacingL.verticalSpace,
                       const ScrollReveal(

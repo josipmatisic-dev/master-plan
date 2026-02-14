@@ -1,150 +1,84 @@
-/// High-performance particle background system for holographic theme.
+/// High-performance particle background with optional multi-touch interactivity.
 ///
-/// Implements an efficient particle system using CustomPainter for 60 FPS
-/// performance with auto-adaptive density based on screen size and FPS.
+/// Auto-adaptive density based on screen size and FPS. Supports touch
+/// attraction, burst repulsion, and drag trail effects.
 library;
 
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-// ============ Particle Model ============
-
-/// Represents a single particle in the system with physics and animation
+/// A single particle with physics, animation, and optional trail behavior.
 class Particle {
-  /// Size in pixels (2.0-6.0 range)
-  final double size;
-
-  /// Color of the particle (from HolographicColors palette)
+  final double size, pulseSpeed, lifetime;
   final Color color;
+  final bool isTrail;
+  double x, y, vx, vy, age, opacity;
 
-  /// Pulsing frequency in Hz (0.5-2.0 range)
-  final double pulseSpeed;
-
-  /// Particle lifetime in seconds (5.0-10.0 range)
-  final double lifetime;
-
-  /// Current X position
-  double x;
-
-  /// Current Y position
-  double y;
-
-  /// X velocity (upward float, positive = right)
-  double vx;
-
-  /// Y velocity (upward float, negative = up)
-  double vy;
-
-  /// Age of particle in seconds
-  double age;
-
-  /// Current opacity (0.0-1.0)
-  double opacity;
-
-  /// Create a new Particle instance
   Particle({
-    required this.x,
-    required this.y,
-    required this.vx,
-    required this.vy,
-    required this.size,
-    required this.color,
-    required this.pulseSpeed,
-    required this.lifetime,
-  })  : age = 0,
-        opacity = 0.3;
+    required this.x, required this.y, required this.vx, required this.vy,
+    required this.size, required this.color,
+    required this.pulseSpeed, required this.lifetime, this.isTrail = false,
+  })  : age = 0, opacity = 0.3;
 
-  /// Check if particle has reached end of lifetime
   bool get isDead => age >= lifetime;
 
-  /// Update particle physics and animation for time delta (dt in seconds)
   void update(double dt) {
-    age += dt;
-
-    // Physics update
-    x += vx;
-    y += vy;
-
-    // Pulsing opacity (sine wave)
-    final pulsePhase = (age * pulseSpeed * 2 * math.pi);
-    opacity = 0.3 + 0.5 * (math.sin(pulsePhase) * 0.5 + 0.5);
+    age += dt; x += vx; y += vy;
+    if (isTrail) {
+      opacity = (1.0 - age / lifetime).clamp(0.0, 0.8);
+    } else {
+      opacity = 0.3 + 0.5 * (math.sin(age * pulseSpeed * 2 * math.pi) * 0.5 + 0.5);
+    }
   }
 
-  /// Reset particle to new random position and age
-  void reset(double screenWidth, double screenHeight, List<Color> colors) {
-    age = 0;
-    x = math.Random().nextDouble() * screenWidth;
-    y = screenHeight + 10; // Start below screen
-    vx = 0.5 + math.Random().nextDouble() * 1.0;
+  void reset(double w, double h, List<Color> colors) {
+    age = 0; opacity = 0.3;
+    x = math.Random().nextDouble() * w;
+    y = h + 10;
+    vx = 0.5 + math.Random().nextDouble();
     vy = -0.3 - math.Random().nextDouble() * 0.5;
-    opacity = 0.3;
   }
 }
 
-// ============ Particle Painter ============
-
-/// Paints particles to canvas for rendering
+/// Renders particles to a canvas.
 class ParticlePainter extends CustomPainter {
-  /// List of particles to render
   final List<Particle> particles;
-
-  /// Reusable paint object for performance
   final Paint _paint = Paint()..strokeCap = StrokeCap.round;
-
-  /// Create a new ParticlePainter
   ParticlePainter({required this.particles});
 
-  /// Paint particles to the canvas at the given size
   @override
   void paint(Canvas canvas, Size size) {
-    for (final particle in particles) {
-      if (particle.x >= 0 && particle.x <= size.width && particle.y >= -10) {
-        _paint
-          ..color = particle.color.withValues(alpha: particle.opacity)
-          ..style = PaintingStyle.fill;
-
-        canvas.drawCircle(
-          Offset(particle.x, particle.y),
-          particle.size / 2,
-          _paint,
-        );
+    for (final p in particles) {
+      if (p.x >= 0 && p.x <= size.width && p.y >= -10) {
+        _paint..color = p.color.withValues(alpha: p.opacity)..style = PaintingStyle.fill;
+        canvas.drawCircle(Offset(p.x, p.y), p.size / 2, _paint);
       }
     }
   }
 
-  /// Always repaint to update particle positions
   @override
   bool shouldRepaint(ParticlePainter oldDelegate) => true;
 }
 
-// ============ Particle Background Widget ============
-
-/// High-performance particle background for holographic theme
+/// High-performance particle background for holographic theme.
 ///
-/// Auto-adapts particle count based on screen size:
-/// - Desktop (>1200px): 80-120 particles
-/// - Tablet (600-1200px): 50-80 particles
-/// - Mobile (<600px): 30-50 particles
-/// - Low-end (FPS < 50): 20-30 particles
+/// Set [interactive] to `true` (default) to enable multi-touch attraction,
+/// burst repulsion, and drag trail effects. Use `false` for IgnorePointer screens.
 class ParticleBackground extends StatefulWidget {
-  /// Custom particle count (null = auto-detect based on screen size)
+  /// Custom particle count (null = auto-detect based on screen size).
   final int? particleCount;
-
-  /// Custom color palette (null = use HolographicColors.particleColors)
+  /// Custom color palette.
   final List<Color>? colors;
-
-  /// Debug mode (logs FPS metrics)
+  /// Debug mode (logs FPS metrics).
   final bool debugMode;
+  /// Whether touch events are captured for interactive effects.
+  final bool interactive;
 
-  /// Create a new ParticleBackground widget
   const ParticleBackground({
-    super.key,
-    this.particleCount,
-    this.colors,
-    this.debugMode = false,
+    super.key, this.particleCount, this.colors,
+    this.debugMode = false, this.interactive = true,
   });
 
-  /// Create the mutable state for ParticleBackground
   @override
   State<ParticleBackground> createState() => _ParticleBackgroundState();
 }
@@ -154,157 +88,141 @@ class _ParticleBackgroundState extends State<ParticleBackground>
   late AnimationController _controller;
   late List<Particle> _particles;
   late List<Color> _colors;
-
-  int _targetParticleCount = 50;
-  int _currentParticleCount = 50;
+  final _rng = math.Random();
+  int _targetParticleCount = 50, _currentParticleCount = 50, _frameCount = 0;
   double _fps = 60;
   Stopwatch? _frameTimer;
-  int _frameCount = 0;
 
-  /// Called whenever a particle updates on animation frame
-  void _onAnimationUpdate() {
-    if (!mounted) return;
+  final Map<int, Offset> _activePointers = {};
+  static const _maxPointers = 5, _attractR = 80.0, _burstR = 60.0;
 
-    final size = MediaQuery.of(context).size;
-    const dt = 1.0 / 60.0; // Assume 60 FPS
+  // --- Touch handlers ---
+  void _onPointerDown(PointerDownEvent e) {
+    if (_activePointers.length < _maxPointers) _activePointers[e.pointer] = e.localPosition;
+  }
+  void _onPointerMove(PointerMoveEvent e) {
+    if (!_activePointers.containsKey(e.pointer)) return;
+    _activePointers[e.pointer] = e.localPosition;
+    _spawnTrail(e.localPosition);
+  }
+  void _onPointerUp(PointerUpEvent e) {
+    final pos = _activePointers.remove(e.pointer);
+    if (pos != null) _applyBurst(pos);
+  }
+  void _onPointerCancel(PointerCancelEvent e) => _activePointers.remove(e.pointer);
 
-    // Check if animations are disabled (accessibility)
-    if (MediaQuery.of(context).disableAnimations) {
-      return;
+  void _spawnTrail(Offset pos) {
+    for (int i = 0, n = 2 + _rng.nextInt(2); i < n; i++) {
+      _particles.add(Particle(
+        x: pos.dx + _rng.nextDouble() * 6 - 3, y: pos.dy + _rng.nextDouble() * 6 - 3,
+        vx: _rng.nextDouble() * 0.6 - 0.3, vy: _rng.nextDouble() * 0.6 - 0.3,
+        size: 1.0 + _rng.nextDouble(), color: _colors[_rng.nextInt(_colors.length)],
+        pulseSpeed: 1.0, lifetime: 1.0 + _rng.nextDouble(), isTrail: true,
+      ));
     }
+  }
 
-    // Update particles
-    for (final particle in _particles) {
-      particle.update(dt);
-
-      if (particle.isDead) {
-        particle.reset(size.width, size.height, _colors);
+  void _applyBurst(Offset pos) {
+    for (final p in _particles) {
+      if (p.isTrail) continue;
+      final dx = p.x - pos.dx, dy = p.y - pos.dy;
+      final d = math.sqrt(dx * dx + dy * dy);
+      if (d < _burstR && d > 0.1) {
+        final s = (1.0 - d / _burstR) * 4.0;
+        p.vx += (dx / d) * s; p.vy += (dy / d) * s;
       }
     }
+  }
 
-    // Adaptive FPS monitoring
-    _frameCount++;
-    if (_frameTimer!.elapsedMilliseconds >= 1000) {
-      _fps = _frameCount.toDouble();
-      _frameCount = 0;
-      _frameTimer!.reset();
-
-      // Auto-reduce particle count if FPS drops below 50
-      if (_fps < 50 && _currentParticleCount > 20) {
-        _currentParticleCount = (_currentParticleCount * 0.8).toInt();
-        _particles = _particles.take(_currentParticleCount).toList();
-
-        if (widget.debugMode) {
-          debugPrint(
-            'ParticleBackground: FPS=$_fps, reducing particles to $_currentParticleCount',
-          );
+  void _applyAttraction() {
+    if (_activePointers.isEmpty) return;
+    for (final p in _particles) {
+      if (p.isTrail) continue;
+      for (final pos in _activePointers.values) {
+        final dx = pos.dx - p.x, dy = pos.dy - p.y;
+        final d = math.sqrt(dx * dx + dy * dy);
+        if (d < _attractR && d > 0.1) {
+          final s = (1.0 - d / _attractR) * 0.3;
+          p.vx += (dx / d) * s; p.vy += (dy / d) * s;
         }
       }
     }
+  }
 
+  // --- Core loop ---
+  void _onAnimationUpdate() {
+    if (!mounted) return;
+    final size = MediaQuery.of(context).size;
+    if (MediaQuery.of(context).disableAnimations) return;
+    const dt = 1.0 / 60.0;
+    if (widget.interactive) _applyAttraction();
+    for (final p in _particles) {
+      p.update(dt);
+      if (p.isDead && !p.isTrail) p.reset(size.width, size.height, _colors);
+    }
+    _particles.removeWhere((p) => p.isTrail && p.isDead);
+    // Adaptive FPS monitoring
+    _frameCount++;
+    if (_frameTimer!.elapsedMilliseconds >= 1000) {
+      _fps = _frameCount.toDouble(); _frameCount = 0; _frameTimer!.reset();
+      if (_fps < 50 && _currentParticleCount > 20) {
+        _currentParticleCount = (_currentParticleCount * 0.8).toInt();
+        final keep = _particles.where((p) => !p.isTrail).take(_currentParticleCount);
+        _particles = [...keep, ..._particles.where((p) => p.isTrail)];
+        if (widget.debugMode) debugPrint('ParticleBackground: FPS=$_fps, reducing to $_currentParticleCount');
+      }
+    }
     setState(() {});
   }
 
   @override
   void initState() {
     super.initState();
-
-    // Determine colors
-    _colors = widget.colors ??
-        [
-          const Color(0xFF00D9FF), // Electric Blue
-          const Color(0xFF00FFFF), // Neon Cyan
-          const Color(0xFFFF00FF), // Neon Magenta
-        ];
-
-    // Initialize particles
+    _colors = widget.colors ?? const [Color(0xFF00D9FF), Color(0xFF00FFFF), Color(0xFFFF00FF)];
     _particles = [];
-
-    // Setup animation controller
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat();
-
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat();
     _controller.addListener(_onAnimationUpdate);
-
-    // Determine particle count based on screen size
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _updateParticleCount();
-      _spawnInitialParticles();
-    });
-
-    // Start FPS monitoring
+    WidgetsBinding.instance.addPostFrameCallback((_) { _updateParticleCount(); _spawnInitial(); });
     _frameTimer = Stopwatch()..start();
   }
 
-  /// Update particle count based on current screen size
   void _updateParticleCount() {
-    if (widget.particleCount != null) {
-      _targetParticleCount = widget.particleCount!;
-      return;
-    }
-
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    if (screenWidth > 1200) {
-      // Desktop: 80-120 particles
-      _targetParticleCount = 80 + math.Random().nextInt(41);
-    } else if (screenWidth > 600) {
-      // Tablet: 50-80 particles
-      _targetParticleCount = 50 + math.Random().nextInt(31);
-    } else {
-      // Mobile: 30-50 particles
-      _targetParticleCount = 30 + math.Random().nextInt(21);
-    }
-
+    if (widget.particleCount != null) { _targetParticleCount = widget.particleCount!; return; }
+    final w = MediaQuery.of(context).size.width;
+    _targetParticleCount = w > 1200 ? 80 + _rng.nextInt(41)
+        : w > 600 ? 50 + _rng.nextInt(31) : 30 + _rng.nextInt(21);
     _currentParticleCount = _targetParticleCount;
   }
 
-  /// Spawn initial particles on screen
-  void _spawnInitialParticles() {
+  void _spawnInitial() {
     if (!mounted) return;
-
-    final size = MediaQuery.of(context).size;
-
+    final sz = MediaQuery.of(context).size;
     for (int i = 0; i < _currentParticleCount; i++) {
-      final particle = Particle(
-        x: math.Random().nextDouble() * size.width,
-        y: math.Random().nextDouble() * size.height,
-        vx: 0.5 + math.Random().nextDouble() * 1.0,
-        vy: -0.3 - math.Random().nextDouble() * 0.5,
-        size: 2.0 + math.Random().nextDouble() * 4.0,
-        color: _colors[math.Random().nextInt(_colors.length)],
-        pulseSpeed: 0.5 + math.Random().nextDouble() * 1.5,
-        lifetime: 5.0 + math.Random().nextDouble() * 5.0,
-      );
-      _particles.add(particle);
+      _particles.add(Particle(
+        x: _rng.nextDouble() * sz.width, y: _rng.nextDouble() * sz.height,
+        vx: 0.5 + _rng.nextDouble(), vy: -0.3 - _rng.nextDouble() * 0.5,
+        size: 2.0 + _rng.nextDouble() * 4.0, color: _colors[_rng.nextInt(_colors.length)],
+        pulseSpeed: 0.5 + _rng.nextDouble() * 1.5, lifetime: 5.0 + _rng.nextDouble() * 5.0,
+      ));
     }
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    // Re-calculate particle count if screen size changes
-    _updateParticleCount();
-  }
+  void didChangeDependencies() { super.didChangeDependencies(); _updateParticleCount(); }
 
-  /// Dispose of animation controller
   @override
-  void dispose() {
-    _controller.dispose();
-    _frameTimer?.stop();
-    super.dispose();
-  }
+  void dispose() { _controller.dispose(); _frameTimer?.stop(); super.dispose(); }
 
-  /// Build the particle background widget
   @override
   Widget build(BuildContext context) {
+    final paint = CustomPaint(painter: ParticlePainter(particles: _particles), size: Size.infinite);
     return RepaintBoundary(
-      child: CustomPaint(
-        painter: ParticlePainter(particles: _particles),
-        size: Size.infinite,
-      ),
+      child: widget.interactive
+          ? Listener(
+              onPointerDown: _onPointerDown, onPointerMove: _onPointerMove,
+              onPointerUp: _onPointerUp, onPointerCancel: _onPointerCancel,
+              behavior: HitTestBehavior.translucent, child: paint)
+          : paint,
     );
   }
 }
