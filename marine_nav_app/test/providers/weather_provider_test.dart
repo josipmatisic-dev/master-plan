@@ -7,22 +7,35 @@ import 'package:marine_nav_app/providers/weather_provider.dart';
 import 'package:marine_nav_app/services/weather_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Sample API response for tests.
-const _sampleResponse = '''
+/// Sample Forecast API response for tests (wind).
+const _forecastResponse = '''
 {
   "latitude": 60.0,
   "longitude": 10.0,
   "current": {
     "wind_speed_10m": 12.5,
-    "wind_direction_10m": 225.0,
+    "wind_direction_10m": 225.0
+  },
+  "hourly": {
+    "time": ["2026-02-09T00:00", "2026-02-09T01:00"],
+    "wind_speed_10m": [10.0, 12.5],
+    "wind_direction_10m": [220.0, 225.0]
+  }
+}
+''';
+
+/// Sample Marine API response for tests (waves).
+const _marineResponse = '''
+{
+  "latitude": 60.0,
+  "longitude": 10.0,
+  "current": {
     "wave_height": 1.8,
     "wave_direction": 180.0,
     "wave_period": 6.5
   },
   "hourly": {
     "time": ["2026-02-09T00:00", "2026-02-09T01:00"],
-    "wind_speed_10m": [10.0, 12.5],
-    "wind_direction_10m": [220.0, 225.0],
     "wave_height": [1.5, 1.8],
     "wave_direction": [175.0, 180.0],
     "wave_period": [6.0, 6.5]
@@ -56,8 +69,11 @@ void main() {
     WeatherProvider createProvider({http.Client? client}) {
       final api = WeatherApiService(
           client: client ??
-              MockClient((_) async {
-                return http.Response(_sampleResponse, 200);
+              MockClient((request) async {
+                if (request.url.host == 'api.open-meteo.com') {
+                  return http.Response(_forecastResponse, 200);
+                }
+                return http.Response(_marineResponse, 200);
               }));
 
       weatherProvider = WeatherProvider(
@@ -183,8 +199,11 @@ void main() {
 
     test('refresh keeps stale data as fallback on error', () async {
       // First fetch succeeds
-      final successClient = MockClient((_) async {
-        return http.Response(_sampleResponse, 200);
+      final successClient = MockClient((request) async {
+        if (request.url.host == 'api.open-meteo.com') {
+          return http.Response(_forecastResponse, 200);
+        }
+        return http.Response(_marineResponse, 200);
       });
       createProvider(client: successClient);
       await weatherProvider.refresh(
@@ -246,9 +265,12 @@ void main() {
     test('fetchForViewport debounces rapid calls', () async {
       int callCount = 0;
       createProvider(
-        client: MockClient((_) async {
+        client: MockClient((request) async {
           callCount++;
-          return http.Response(_sampleResponse, 200);
+          if (request.url.host == 'api.open-meteo.com') {
+            return http.Response(_forecastResponse, 200);
+          }
+          return http.Response(_marineResponse, 200);
         }),
       );
 
@@ -265,8 +287,8 @@ void main() {
       // Wait for debounce
       await Future<void>.delayed(const Duration(milliseconds: 700));
 
-      // Should only have fired once (debounced)
-      expect(callCount, 1);
+      // Should only have fired once (debounced) — 2 calls = 1 fetch (dual endpoint)
+      expect(callCount, 2);
     });
 
     // ============ clearData ============
