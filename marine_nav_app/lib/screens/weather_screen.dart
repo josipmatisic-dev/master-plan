@@ -6,6 +6,7 @@ import '../providers/weather_provider.dart';
 import '../widgets/common/glow_text.dart';
 import '../widgets/data_displays/data_orb.dart';
 import '../widgets/glass/glass_card.dart';
+import '../widgets/weather/weather_map_view.dart';
 
 class WeatherScreen extends StatelessWidget {
   const WeatherScreen({super.key});
@@ -97,6 +98,12 @@ class WeatherScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       children: [
+        // Weather map with timeline scrubber
+        ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: const WeatherMapView(height: 240),
+        ),
+        const SizedBox(height: 16),
         _buildCurrentConditions(wind, wave, cs, tt),
         const SizedBox(height: 16),
         if (wind != null) ...[_buildWindCard(wind, cs, tt), const SizedBox(height: 12)],

@@ -1,15 +1,19 @@
 /// Map WebView placeholder widget.
 library;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Viewport;
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../providers/map_provider.dart';
+import '../../providers/timeline_provider.dart';
+import '../../providers/weather_provider.dart';
 import '../../theme/colors.dart';
 import '../../theme/dimensions.dart';
 import '../../theme/text_styles.dart';
 import '../../utils/responsive_utils.dart';
+import '../overlays/wave_overlay.dart';
+import '../overlays/wind_overlay.dart';
 
 /// WebView container for the MapTiler integration.
 class MapWebView extends StatefulWidget {
@@ -29,6 +33,7 @@ class MapWebView extends StatefulWidget {
 class _MapWebViewState extends State<MapWebView> {
   WebViewController? _controller;
   bool _webViewAvailable = true;
+  MapProvider? _mapProvider;
 
   @override
   void initState() {
@@ -38,7 +43,8 @@ class _MapWebViewState extends State<MapWebView> {
       return;
     }
 
-    final mapProvider = context.read<MapProvider>();
+    _mapProvider = context.read<MapProvider>();
+    _mapProvider!.addListener(_onViewportChanged);
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -46,20 +52,40 @@ class _MapWebViewState extends State<MapWebView> {
       ..addJavaScriptChannel(
         'MapBridge',
         onMessageReceived: (message) {
-          mapProvider.handleWebViewEvent(message.message);
+          _mapProvider!.handleWebViewEvent(message.message);
         },
       )
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (_) {
-          mapProvider.attachWebView(_controller!);
-          if (mapProvider.settingsProvider.hasMapTilerApiKey) {
-            mapProvider.initializeMap(
-              mapProvider.settingsProvider.mapTilerApiKey,
+          _mapProvider!.attachWebView(_controller!);
+          if (_mapProvider!.settingsProvider.hasMapTilerApiKey) {
+            _mapProvider!.initializeMap(
+              _mapProvider!.settingsProvider.mapTilerApiKey,
             );
           }
         },
       ))
       ..loadFlutterAsset('assets/map.html');
+  }
+
+  /// Trigger weather fetch when viewport changes.
+  void _onViewportChanged() {
+    final weather = context.read<WeatherProvider>();
+    final vp = _mapProvider!.viewport;
+    if (vp.size.isEmpty) return;
+    final b = vp.bounds;
+    weather.fetchForViewport(
+      south: b.south,
+      north: b.north,
+      west: b.west,
+      east: b.east,
+    );
+  }
+
+  @override
+  void dispose() {
+    _mapProvider?.removeListener(_onViewportChanged);
+    super.dispose();
   }
 
   @override
@@ -89,6 +115,33 @@ class _MapWebViewState extends State<MapWebView> {
                         WebViewWidget(controller: _controller!)
                       else
                         _buildFallback(),
+                      // Weather overlays — use timeline frame if available
+                      Consumer2<WeatherProvider, TimelineProvider>(
+                        builder: (context, weather, timeline, _) {
+                          if (!weather.hasData) {
+                            return const SizedBox.shrink();
+                          }
+                          // Use timeline's active frame data when available.
+                          final windPts = timeline.hasFrames
+                              ? timeline.activeWindPoints
+                              : weather.data.windPoints;
+                          final wavePts = timeline.hasFrames
+                              ? timeline.activeWavePoints
+                              : weather.data.wavePoints;
+                          return Stack(children: [
+                            if (weather.isWindVisible && windPts.isNotEmpty)
+                              WindOverlay(
+                                windPoints: windPts,
+                                viewport: mapProvider.viewport,
+                              ),
+                            if (weather.isWaveVisible && wavePts.isNotEmpty)
+                              WaveOverlay(
+                                wavePoints: wavePts,
+                                viewport: mapProvider.viewport,
+                              ),
+                          ]);
+                        },
+                      ),
                     ],
                   ),
                 ),

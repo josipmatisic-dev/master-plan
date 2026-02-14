@@ -3,12 +3,10 @@ library;
 
 // ignore_for_file: public_member_api_docs, prefer_const_constructors, prefer_const_declarations
 
-import 'package:flutter/material.dart' hide Viewport;
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/map_provider.dart';
 import '../providers/nmea_provider.dart';
-import '../providers/weather_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
@@ -20,8 +18,7 @@ import '../widgets/glass/glass_card.dart';
 import '../widgets/map/map_webview.dart';
 import '../widgets/navigation/compass_widget.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
-import '../widgets/overlays/wave_overlay.dart';
-import '../widgets/overlays/wind_overlay.dart';
+import '../widgets/weather/timeline_scrubber.dart';
 
 /// Primary map screen with draggable layered glass UI.
 class MapScreen extends StatefulWidget {
@@ -67,8 +64,6 @@ class _MapScreenState extends State<MapScreen> {
           child: Stack(
             children: [
               const Positioned.fill(child: MapWebView(height: null)),
-              _buildWindOverlay(context),
-              _buildWaveOverlay(context),
               _buildDraggableTopBar(),
               _buildDraggableDataOrbs(context),
               _buildDraggableCompass(),
@@ -295,27 +290,7 @@ class _MapScreenState extends State<MapScreen> {
       initialPosition: Offset(16, MediaQuery.of(context).size.height - 140),
       child: SizedBox(
         width: MediaQuery.of(context).size.width - 48,
-        child: GlassCard(
-          padding: GlassCardPadding.small,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Icon(Icons.play_arrow, color: OceanColors.pureWhite),
-              const SizedBox(width: OceanDimensions.spacingS),
-              Flexible(
-                child: Text(
-                  'Forecast Timeline',
-                  style: OceanTextStyles.body.copyWith(
-                    color: OceanColors.pureWhite,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(width: OceanDimensions.spacingS),
-              const Icon(Icons.more_horiz, color: OceanColors.textSecondary),
-            ],
-          ),
-        ),
+        child: const TimelineScrubber(),
       ),
     );
   }
@@ -327,35 +302,5 @@ class _MapScreenState extends State<MapScreen> {
     const dirs = ['N','NNE','NE','ENE','E','ESE','SE','SSE',
                    'S','SSW','SW','WSW','W','WNW','NW','NNW'];
     return dirs[((degrees % 360) / 22.5).round() % 16];
-  }
-
-  // ============ Weather Overlays (non-draggable) ============
-
-  Widget _buildWindOverlay(BuildContext context) {
-    return Consumer2<WeatherProvider, MapProvider>(
-      builder: (_, weather, map, __) {
-        if (!weather.isWindVisible || !weather.hasData) {
-          return const SizedBox.shrink();
-        }
-        return WindOverlay(
-          windPoints: weather.data.windPoints,
-          viewport: map.viewport,
-        );
-      },
-    );
-  }
-
-  Widget _buildWaveOverlay(BuildContext context) {
-    return Consumer2<WeatherProvider, MapProvider>(
-      builder: (_, weather, map, __) {
-        if (!weather.isWaveVisible || !weather.hasData) {
-          return const SizedBox.shrink();
-        }
-        return WaveOverlay(
-          wavePoints: weather.data.wavePoints,
-          viewport: map.viewport,
-        );
-      },
-    );
   }
 }

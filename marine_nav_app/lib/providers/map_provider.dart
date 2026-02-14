@@ -239,6 +239,28 @@ class MapProvider extends ChangeNotifier {
     );
   }
 
+  // ============ Boat Marker & Track ============
+
+  /// Update the boat marker position and heading on the JS map.
+  Future<void> updateBoatMarker(
+    double lat, double lng, double headingDeg,
+  ) async {
+    await _runJs(
+      'window.mapBridge.updateBoatMarker($lat, $lng, $headingDeg)',
+    );
+  }
+
+  /// Update the track line on the JS map.
+  Future<void> updateTrackLine(List<List<num>> coords) async {
+    final json = coords.map((c) => '[${c[0]},${c[1]}]').join(',');
+    await _runJs('window.mapBridge.updateTrackLine([$json])');
+  }
+
+  /// Remove the track line from the JS map.
+  Future<void> clearTrackLine() async {
+    await _runJs('window.mapBridge.clearTrackLine()');
+  }
+
   /// Emit a map error.
   void reportError(MapError error) {
     _errorController.add(error);

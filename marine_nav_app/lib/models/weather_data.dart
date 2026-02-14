@@ -121,6 +121,9 @@ class WeatherData {
   /// Wave measurements at grid points.
   final List<WaveDataPoint> wavePoints;
 
+  /// Hourly forecast frames (time-indexed snapshots).
+  final List<WeatherFrame> frames;
+
   /// Timestamp when data was fetched.
   final DateTime fetchedAt;
 
@@ -132,6 +135,7 @@ class WeatherData {
     required this.windPoints,
     required this.wavePoints,
     required this.fetchedAt,
+    this.frames = const [],
     this.gridResolution = 0.25,
   });
 
@@ -151,6 +155,12 @@ class WeatherData {
   /// Whether this data has wave measurements.
   bool get hasWaves => wavePoints.isNotEmpty;
 
+  /// Whether this data has hourly forecast frames.
+  bool get hasFrames => frames.isNotEmpty;
+
+  /// Number of hourly forecast frames.
+  int get frameCount => frames.length;
+
   /// Age of this data since it was fetched.
   Duration get age => DateTime.now().difference(fetchedAt);
 
@@ -160,7 +170,51 @@ class WeatherData {
   @override
   String toString() => 'WeatherData(wind: ${windPoints.length} pts, '
       'wave: ${wavePoints.length} pts, '
+      'frames: ${frames.length}, '
       'age: ${age.inMinutes} min)';
+}
+
+/// A single hourly forecast frame (time-indexed weather snapshot).
+@immutable
+class WeatherFrame {
+  /// Forecast timestamp for this frame.
+  final DateTime time;
+
+  /// Wind data for this hour.
+  final WindDataPoint? wind;
+
+  /// Wave data for this hour.
+  final WaveDataPoint? wave;
+
+  /// Creates a forecast frame.
+  const WeatherFrame({
+    required this.time,
+    this.wind,
+    this.wave,
+  });
+
+  /// Whether this frame has wind data.
+  bool get hasWind => wind != null;
+
+  /// Whether this frame has wave data.
+  bool get hasWave => wave != null;
+
+  @override
+  String toString() => 'WeatherFrame($time, '
+      'wind: ${wind != null ? "${wind!.speedKnots.toStringAsFixed(1)} kts" : "n/a"}, '
+      'wave: ${wave != null ? "${wave!.heightMeters.toStringAsFixed(1)} m" : "n/a"})';
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is WeatherFrame &&
+        other.time == time &&
+        other.wind == wind &&
+        other.wave == wave;
+  }
+
+  @override
+  int get hashCode => Object.hash(time, wind, wave);
 }
 
 /// Default cache TTL for weather data (1 hour).

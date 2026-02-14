@@ -268,6 +268,74 @@ void main() {
     });
   });
 
+  group('WeatherFrame', () {
+    const position = LatLng(latitude: 59.91, longitude: 10.75);
+    final testTime = DateTime(2026, 2, 9, 12, 0);
+
+    test('constructs with wind and wave', () {
+      final frame = WeatherFrame(
+        time: testTime,
+        wind: const WindDataPoint(
+          position: position, speedKnots: 15.0, directionDegrees: 270.0,
+        ),
+        wave: const WaveDataPoint(
+          position: position, heightMeters: 2.0, directionDegrees: 180.0,
+        ),
+      );
+      expect(frame.hasWind, true);
+      expect(frame.hasWave, true);
+    });
+
+    test('constructs with only wind', () {
+      final frame = WeatherFrame(
+        time: testTime,
+        wind: const WindDataPoint(
+          position: position, speedKnots: 10.0, directionDegrees: 90.0,
+        ),
+      );
+      expect(frame.hasWind, true);
+      expect(frame.hasWave, false);
+    });
+
+    test('equality compares time, wind, wave', () {
+      final a = WeatherFrame(
+        time: testTime,
+        wind: const WindDataPoint(
+          position: position, speedKnots: 15.0, directionDegrees: 270.0,
+        ),
+      );
+      final b = WeatherFrame(
+        time: testTime,
+        wind: const WindDataPoint(
+          position: position, speedKnots: 15.0, directionDegrees: 270.0,
+        ),
+      );
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+  });
+
+  group('WeatherData frames', () {
+    test('hasFrames and frameCount work', () {
+      final data = WeatherData(
+        windPoints: const [],
+        wavePoints: const [],
+        frames: [
+          WeatherFrame(time: DateTime(2026, 2, 9, 0, 0)),
+          WeatherFrame(time: DateTime(2026, 2, 9, 1, 0)),
+        ],
+        fetchedAt: DateTime.now(),
+      );
+      expect(data.hasFrames, true);
+      expect(data.frameCount, 2);
+    });
+
+    test('empty data has no frames', () {
+      expect(WeatherData.empty.hasFrames, false);
+      expect(WeatherData.empty.frameCount, 0);
+    });
+  });
+
   group('Constants', () {
     test('weatherCacheTtl is 1 hour', () {
       expect(weatherCacheTtl, const Duration(hours: 1));

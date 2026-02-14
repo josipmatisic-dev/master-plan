@@ -7,12 +7,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/boat_provider.dart';
 import 'providers/cache_provider.dart';
 import 'providers/map_provider.dart';
 import 'providers/nmea_provider.dart';
 import 'providers/route_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/timeline_provider.dart';
 import 'providers/weather_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/home_screen.dart';
@@ -52,6 +54,13 @@ void main() async {
     settingsProvider: settingsProvider,
     cacheProvider: cacheProvider,
   );
+  final boatProvider = BoatProvider(
+    nmeaProvider: nmeaProvider,
+    mapProvider: mapProvider,
+  );
+  final timelineProvider = TimelineProvider(
+    weatherProvider: weatherProvider,
+  );
 
   // Initialize all providers
   await Future.wait([
@@ -70,6 +79,8 @@ void main() async {
       nmeaProvider: nmeaProvider,
       routeProvider: routeProvider,
       weatherProvider: weatherProvider,
+      boatProvider: boatProvider,
+      timelineProvider: timelineProvider,
     ),
   );
 }
@@ -102,6 +113,12 @@ class MarineNavigationApp extends StatelessWidget {
   /// The weather provider (Layer 2).
   final WeatherProvider weatherProvider;
 
+  /// The boat position provider (Layer 2).
+  final BoatProvider boatProvider;
+
+  /// The timeline provider (Layer 2).
+  final TimelineProvider timelineProvider;
+
   /// Creates a MarineNavigationApp with pre-initialized providers.
   const MarineNavigationApp({
     super.key,
@@ -112,6 +129,8 @@ class MarineNavigationApp extends StatelessWidget {
     required this.nmeaProvider,
     required this.routeProvider,
     required this.weatherProvider,
+    required this.boatProvider,
+    required this.timelineProvider,
   });
 
   @override
@@ -144,6 +163,12 @@ class MarineNavigationApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<WeatherProvider>.value(
           value: weatherProvider,
+        ),
+        ChangeNotifierProvider<BoatProvider>.value(
+          value: boatProvider,
+        ),
+        ChangeNotifierProvider<TimelineProvider>.value(
+          value: timelineProvider,
         ),
       ],
       child: Consumer<ThemeProvider>(

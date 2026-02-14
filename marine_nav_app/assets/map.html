@@ -181,6 +181,81 @@
           });
           this._suppressEvents = false;
         },
+
+        // ============ Boat Marker ============
+        _boatMarker: null,
+        _boatEl: null,
+
+        updateBoatMarker: function (lat, lng, headingDeg) {
+          if (!this._map) return;
+
+          if (!this._boatEl) {
+            this._boatEl = document.createElement('div');
+            this._boatEl.innerHTML =
+              '<svg width="32" height="32" viewBox="0 0 32 32">' +
+              '<polygon points="16,2 26,28 16,22 6,28" ' +
+              'fill="#00D9FF" fill-opacity="0.85" ' +
+              'stroke="#00FFFF" stroke-width="1.5"/>' +
+              '</svg>';
+            this._boatEl.style.cssText =
+              'width:32px;height:32px;transition:transform 0.3s ease;' +
+              'filter:drop-shadow(0 0 6px #00D9FF) drop-shadow(0 0 12px #00D9FF80);';
+          }
+
+          this._boatEl.style.transform = 'rotate(' + headingDeg + 'deg)';
+
+          if (!this._boatMarker) {
+            this._boatMarker = new maplibregl.Marker({
+              element: this._boatEl,
+              anchor: 'center',
+              rotationAlignment: 'map',
+            })
+              .setLngLat([lng, lat])
+              .addTo(this._map);
+          } else {
+            this._boatMarker.setLngLat([lng, lat]);
+          }
+        },
+
+        // ============ Track Line ============
+
+        updateTrackLine: function (coords) {
+          if (!this._map) return;
+          var src = this._map.getSource('track-line');
+          var geojson = {
+            type: 'Feature',
+            geometry: { type: 'LineString', coordinates: coords },
+          };
+          if (src) {
+            src.setData(geojson);
+          } else {
+            this._map.addSource('track-line', {
+              type: 'geojson',
+              data: geojson,
+            });
+            this._map.addLayer({
+              id: 'track-line-layer',
+              type: 'line',
+              source: 'track-line',
+              paint: {
+                'line-color': '#00D9FF',
+                'line-width': 2,
+                'line-opacity': 0.6,
+              },
+            });
+          }
+        },
+
+        clearTrackLine: function () {
+          if (!this._map) return;
+          var src = this._map.getSource('track-line');
+          if (src) {
+            src.setData({
+              type: 'Feature',
+              geometry: { type: 'LineString', coordinates: [] },
+            });
+          }
+        },
       };
     </script>
   </body>
