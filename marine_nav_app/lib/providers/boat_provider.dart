@@ -146,13 +146,16 @@ class BoatProvider extends ChangeNotifier {
 
   void _startPhoneGps() {
     _gpsSub = _locationService.positionStream.listen(_onPhoneGpsUpdate);
-    _gpsStatusSub = _locationService.statusStream.listen((_) {
+    _gpsStatusSub = _locationService.statusStream.listen((status) {
+      debugPrint('BoatProvider: GPS status → $status');
       notifyListeners();
     });
+    debugPrint('BoatProvider: Starting phone GPS...');
     _locationService.start();
   }
 
   void _onPhoneGpsUpdate(geo.Position geoPos) {
+    debugPrint('BoatProvider: 📍 GPS fix ${geoPos.latitude},${geoPos.longitude} acc=${geoPos.accuracy}m');
     // Skip phone GPS when NMEA is active
     if (_nmeaProvider.isConnected) return;
 
@@ -236,6 +239,7 @@ class BoatProvider extends ChangeNotifier {
   void _syncBoatToMap() {
     final pos = _currentPosition;
     if (pos == null) return;
+    debugPrint('BoatProvider: 🚤 Syncing boat to map → ${pos.position.latitude},${pos.position.longitude}');
     _mapProvider.updateBoatMarker(
       pos.position.latitude,
       pos.position.longitude,

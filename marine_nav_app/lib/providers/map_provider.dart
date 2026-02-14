@@ -114,9 +114,12 @@ class MapProvider extends ChangeNotifier {
       switch (type) {
         case 'mapReady':
           _isMapReady = true;
+          debugPrint('MapProvider: ✅ Map is READY');
           notifyListeners();
 
         case 'viewportChanged':
+          debugPrint(
+              'MapProvider: viewport changed → zoom=${data['zoom']}, center=${data['latitude']},${data['longitude']}');
           _handleViewportFromJs(data);
 
         case 'error':
