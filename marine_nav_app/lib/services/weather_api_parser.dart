@@ -165,7 +165,7 @@ List<WeatherFrame> _parseHourlyFrames(
   final waveDirs = marineHourly?['wave_direction'] as List<dynamic>?;
   final wavePeriods = marineHourly?['wave_period'] as List<dynamic>?;
 
-  final pos = const LatLng(latitude: 0, longitude: 0);
+  const pos = LatLng(latitude: 0, longitude: 0);
 
   for (var i = 0; i < times.length; i++) {
     final timeStr = times[i] as String?;

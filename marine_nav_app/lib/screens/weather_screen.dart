@@ -6,28 +6,14 @@ import '../providers/weather_provider.dart';
 import '../widgets/common/glow_text.dart';
 import '../widgets/data_displays/data_orb.dart';
 import '../widgets/glass/glass_card.dart';
+import '../widgets/weather/forecast_timeline.dart';
+import '../widgets/weather/weather_detail_cards.dart';
 import '../widgets/weather/weather_map_view.dart';
 
 /// Screen displaying current weather conditions and forecasts.
 class WeatherScreen extends StatelessWidget {
   /// Creates a [WeatherScreen].
   const WeatherScreen({super.key});
-
-  static const _beaufortLabels = [
-    'Calm',
-    'Light Air',
-    'Light Breeze',
-    'Gentle Breeze',
-    'Moderate Breeze',
-    'Fresh Breeze',
-    'Strong Breeze',
-    'Near Gale',
-    'Gale',
-    'Strong Gale',
-    'Storm',
-    'Violent Storm',
-    'Hurricane',
-  ];
 
   static String _compassDirection(double degrees) {
     const dirs = [
@@ -144,17 +130,17 @@ class WeatherScreen extends StatelessWidget {
         _buildCurrentConditions(wind, wave, cs, tt),
         const SizedBox(height: 16),
         if (wind != null) ...[
-          _buildWindCard(wind, cs, tt),
+          WindDetailCard(wind: wind),
           const SizedBox(height: 12)
         ],
         if (wave != null) ...[
-          _buildWaveCard(wave, cs, tt),
+          WaveDetailCard(wave: wave),
           const SizedBox(height: 12)
         ],
         _buildLayerToggles(context, weather, cs, tt),
         const SizedBox(height: 12),
         if (data.hasFrames) ...[
-          _buildForecast(data, cs, tt),
+          ForecastTimeline(data: data),
           const SizedBox(height: 16)
         ],
       ],
@@ -202,88 +188,6 @@ class WeatherScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildWindCard(WindDataPoint wind, ColorScheme cs, TextTheme tt) {
-    final beaufort = wind.beaufortScale.clamp(0, 12);
-    return GlassCard(
-      padding: GlassCardPadding.medium,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(Icons.air, color: cs.primary, size: 20),
-          const SizedBox(width: 8),
-          GlowText('Wind Details',
-              glowStyle: GlowTextStyle.heading,
-              color: cs.primary,
-              textStyle: tt.titleMedium),
-        ]),
-        const SizedBox(height: 12),
-        _detailRow(
-            'Speed', '${wind.speedKnots.toStringAsFixed(1)} kts', cs, tt),
-        _detailRow(
-            'Direction',
-            '${_compassDirection(wind.directionDegrees)} (${wind.directionDegrees.round()}°)',
-            cs,
-            tt),
-        _detailRow(
-            'Beaufort', 'F$beaufort – ${_beaufortLabels[beaufort]}', cs, tt),
-        const SizedBox(height: 8),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: beaufort / 12.0,
-            minHeight: 6,
-            backgroundColor: cs.onSurface.withValues(alpha: 0.1),
-            valueColor: AlwaysStoppedAnimation(
-              beaufort >= 8
-                  ? cs.error
-                  : beaufort >= 5
-                      ? cs.primary
-                      : cs.primary.withValues(alpha: 0.6),
-            ),
-          ),
-        ),
-      ]),
-    );
-  }
-
-  Widget _buildWaveCard(WaveDataPoint wave, ColorScheme cs, TextTheme tt) {
-    return GlassCard(
-      padding: GlassCardPadding.medium,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Icon(Icons.waves, color: cs.primary, size: 20),
-          const SizedBox(width: 8),
-          GlowText('Wave Details',
-              glowStyle: GlowTextStyle.heading,
-              color: cs.primary,
-              textStyle: tt.titleMedium),
-        ]),
-        const SizedBox(height: 12),
-        _detailRow(
-            'Height', '${wave.heightMeters.toStringAsFixed(1)} m', cs, tt),
-        _detailRow(
-            'Direction',
-            '${_compassDirection(wave.directionDegrees)} (${wave.directionDegrees.round()}°)',
-            cs,
-            tt),
-        if (wave.periodSeconds != null)
-          _detailRow(
-              'Period', '${wave.periodSeconds!.toStringAsFixed(1)} s', cs, tt),
-      ]),
-    );
-  }
-
-  Widget _detailRow(String label, String value, ColorScheme cs, TextTheme tt) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(label, style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
-        Text(value,
-            style: tt.bodyLarge
-                ?.copyWith(color: cs.onSurface, fontWeight: FontWeight.w600)),
-      ]),
-    );
-  }
-
   Widget _buildLayerToggles(BuildContext context, WeatherProvider weather,
       ColorScheme cs, TextTheme tt) {
     return GlassCard(
@@ -314,58 +218,6 @@ class WeatherScreen extends StatelessWidget {
           value: weather.isWaveVisible,
           onChanged: (_) => weather.toggleLayer(WeatherLayer.wave),
         ),
-      ]),
-    );
-  }
-
-  Widget _buildForecast(WeatherData data, ColorScheme cs, TextTheme tt) {
-    return GlassCard(
-      padding: GlassCardPadding.medium,
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        GlowText('Hourly Forecast',
-            glowStyle: GlowTextStyle.heading,
-            color: cs.primary,
-            textStyle: tt.titleMedium),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 110,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: data.frames.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 8),
-            itemBuilder: (context, i) =>
-                _buildFrameTile(data.frames[i], cs, tt),
-          ),
-        ),
-      ]),
-    );
-  }
-
-  Widget _buildFrameTile(WeatherFrame frame, ColorScheme cs, TextTheme tt) {
-    final hour = '${frame.time.hour.toString().padLeft(2, '0')}:00';
-    return Container(
-      width: 80,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: cs.onSurface.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-        Text(hour,
-            style: tt.bodySmall?.copyWith(
-                color: cs.onSurfaceVariant, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 6),
-        if (frame.hasWind)
-          Text('${frame.wind!.speedKnots.toStringAsFixed(0)} kts',
-              style: tt.bodySmall?.copyWith(color: cs.onSurface)),
-        if (frame.hasWind)
-          Text(_compassDirection(frame.wind!.directionDegrees),
-              style: tt.bodySmall
-                  ?.copyWith(color: cs.onSurfaceVariant, fontSize: 10)),
-        const SizedBox(height: 4),
-        if (frame.hasWave)
-          Text('${frame.wave!.heightMeters.toStringAsFixed(1)} m',
-              style: tt.bodySmall?.copyWith(color: cs.primary)),
       ]),
     );
   }

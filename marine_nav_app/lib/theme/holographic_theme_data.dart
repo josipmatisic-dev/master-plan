@@ -1,8 +1,7 @@
-/// Ocean Glass Design System - App Theme
+/// Holographic Cyberpunk Theme Data
 ///
-/// Main theme configuration for the Marine Navigation App.
-/// Provides ThemeData for both dark and light modes following
-/// the Ocean Glass design language.
+/// ThemeData definitions for the Holographic Cyberpunk theme variant
+/// in both dark and light modes.
 library;
 
 import 'package:flutter/material.dart';
@@ -10,66 +9,55 @@ import 'package:flutter/services.dart';
 
 import 'colors.dart';
 import 'dimensions.dart';
-import 'holographic_theme_data.dart';
+import 'holographic_colors.dart';
 import 'text_styles.dart';
-import 'theme_variant.dart';
 
-/// App theme configuration with Ocean Glass design system
-class AppTheme {
-  AppTheme._();
+/// Holographic theme data builder.
+class HolographicThemeData {
+  HolographicThemeData._();
 
-  /// Get ThemeData for specific variant and brightness
-  static ThemeData getThemeForVariant(bool isDark, ThemeVariant variant) {
-    switch (variant) {
-      case ThemeVariant.oceanGlass:
-        return isDark ? darkTheme : lightTheme;
-      case ThemeVariant.holographicCyberpunk:
-        return isDark ? HolographicThemeData.dark : HolographicThemeData.light;
-    }
-  }
-
-  /// Dark theme following Ocean Glass design language
-  static ThemeData get darkTheme {
+  /// Holographic Cyberpunk dark theme with neon effects.
+  static ThemeData get dark {
     return ThemeData(
       brightness: Brightness.dark,
       colorScheme: const ColorScheme.dark(
-        primary: OceanColors.seafoamGreen,
-        secondary: OceanColors.teal,
-        surface: OceanColors.surface,
-        error: OceanColors.error,
-        onPrimary: OceanColors.pureWhite,
-        onSecondary: OceanColors.pureWhite,
-        onSurface: OceanColors.textPrimary,
-        onError: OceanColors.pureWhite,
+        primary: HolographicColors.electricBlue,
+        secondary: HolographicColors.neonCyan,
+        surface: HolographicColors.surface,
+        error: HolographicColors.error,
+        onPrimary: HolographicColors.pureWhite,
+        onSecondary: HolographicColors.cosmicBlack,
+        onSurface: HolographicColors.textPrimary,
+        onError: HolographicColors.pureWhite,
       ),
-      scaffoldBackgroundColor: OceanColors.background,
-      textTheme: _buildTextTheme(OceanColors.textPrimary),
+      scaffoldBackgroundColor: HolographicColors.background,
+      textTheme: _buildTextTheme(HolographicColors.textPrimary),
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         systemOverlayStyle: SystemUiOverlayStyle.light,
         titleTextStyle: TextStyle(
-          color: OceanColors.textPrimary,
+          color: HolographicColors.textPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
           fontFamily: OceanTextStyles.fontFamily,
         ),
-        iconTheme: IconThemeData(color: OceanColors.textPrimary),
+        iconTheme: IconThemeData(color: HolographicColors.textPrimary),
       ),
       cardTheme: CardThemeData(
-        color: OceanColors.surface,
+        color: HolographicColors.surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(OceanDimensions.radius),
         ),
       ),
       iconTheme: const IconThemeData(
-        color: OceanColors.textPrimary,
+        color: HolographicColors.textPrimary,
         size: OceanDimensions.icon,
       ),
       dividerTheme: DividerThemeData(
-        color: OceanColors.textDisabled.withValues(alpha: 0.2),
+        color: HolographicColors.textDisabled.withValues(alpha: 0.2),
         thickness: 1,
         space: OceanDimensions.spacingM,
       ),
@@ -77,19 +65,19 @@ class AppTheme {
     );
   }
 
-  /// Light theme for daytime use
-  static ThemeData get lightTheme {
+  /// Holographic Cyberpunk light theme (for day use).
+  static ThemeData get light {
     return ThemeData(
       brightness: Brightness.light,
       colorScheme: const ColorScheme.light(
-        primary: OceanColors.seafoamGreen,
-        secondary: OceanColors.teal,
+        primary: HolographicColors.electricBlue,
+        secondary: HolographicColors.cyberPurple,
         surface: OceanColors.surfaceLight,
-        error: OceanColors.error,
-        onPrimary: OceanColors.pureWhite,
-        onSecondary: OceanColors.pureWhite,
+        error: HolographicColors.error,
+        onPrimary: HolographicColors.pureWhite,
+        onSecondary: HolographicColors.pureWhite,
         onSurface: OceanColors.textPrimaryLight,
-        onError: OceanColors.pureWhite,
+        onError: HolographicColors.pureWhite,
       ),
       scaffoldBackgroundColor: OceanColors.backgroundLight,
       textTheme: _buildTextTheme(OceanColors.textPrimaryLight),
@@ -139,20 +127,4 @@ class AppTheme {
       labelSmall: OceanTextStyles.labelSmall.copyWith(color: textColor),
     );
   }
-}
-
-/// Responsive breakpoint helpers
-extension ResponsiveContext on BuildContext {
-  /// Check if current screen is mobile (<600px)
-  bool get isMobile =>
-      MediaQuery.of(this).size.width < OceanDimensions.breakpointMobile;
-
-  /// Check if current screen is tablet (600-1200px)
-  bool get isTablet =>
-      MediaQuery.of(this).size.width >= OceanDimensions.breakpointMobile &&
-      MediaQuery.of(this).size.width < OceanDimensions.breakpointTablet;
-
-  /// Check if current screen is desktop (>1200px)
-  bool get isDesktop =>
-      MediaQuery.of(this).size.width >= OceanDimensions.breakpointTablet;
 }

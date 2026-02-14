@@ -30,7 +30,7 @@ class DashboardScreen extends StatelessWidget {
           children: [
             _buildHeader(context, cs, nmea.isConnected),
             const SizedBox(height: 16),
-            _buildNavOrbs(data),
+            _buildNavOrbs(context, data),
             const SizedBox(height: 16),
             _buildPositionCard(context, cs, pos, boat),
             const SizedBox(height: 16),
@@ -72,10 +72,29 @@ class DashboardScreen extends StatelessWidget {
     ]);
   }
 
-  Widget _buildNavOrbs(dynamic data) {
+  Widget _buildNavOrbs(BuildContext context, dynamic data) {
     final sog = data?.speedOverGroundKnots as double?;
     final cog = data?.courseOverGroundDegrees as double?;
     final depth = data?.depthMeters as double?;
+    final hasAny = sog != null || cog != null || depth != null;
+
+    if (!hasAny) {
+      final cs = Theme.of(context).colorScheme;
+      final tt = Theme.of(context).textTheme;
+      return GlassCard(
+        padding: GlassCardPadding.medium,
+        child: Column(children: [
+          Icon(Icons.sensors_off, size: 48, color: cs.onSurfaceVariant),
+          const SizedBox(height: 8),
+          Text('Connect your instruments',
+              style: tt.titleMedium?.copyWith(color: cs.onSurface)),
+          const SizedBox(height: 4),
+          Text('NMEA data will appear here once connected',
+              style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+        ]),
+      );
+    }
+
     return Row(children: [
       Expanded(
           child: DataOrb(

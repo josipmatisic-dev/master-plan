@@ -9,16 +9,9 @@ import 'package:flutter/material.dart';
 
 /// A single particle with physics, animation, and optional trail behavior.
 class Particle {
-  /// The size of the particle, the speed of its pulse animation, and its total lifetime in seconds.
   final double size, pulseSpeed, lifetime;
-
-  /// The color of the particle.
   final Color color;
-
-  /// Whether this particle is a drag-trail particle.
   final bool isTrail;
-
-  /// The x position, y position, x velocity, y velocity, current age, and opacity of the particle.
   double x, y, vx, vy, age, opacity;
 
   /// Creates a [Particle].
@@ -64,11 +57,9 @@ class Particle {
 
 /// Renders particles to a canvas.
 class ParticlePainter extends CustomPainter {
-  /// The list of particles to render.
   final List<Particle> particles;
   final Paint _paint = Paint()..strokeCap = StrokeCap.round;
 
-  /// Creates a [ParticlePainter] with the given [particles].
   ParticlePainter({required this.particles});
 
   @override
@@ -92,13 +83,8 @@ class ParticlePainter extends CustomPainter {
 /// Set [interactive] to `true` (default) to enable multi-touch attraction,
 /// burst repulsion, and drag trail effects. Use `false` for IgnorePointer screens.
 class ParticleBackground extends StatefulWidget {
-  /// Custom particle count (null = auto-detect based on screen size).
   final int? particleCount;
-
-  /// Custom color palette.
   final List<Color>? colors;
-
-  /// Debug mode (logs FPS metrics).
   final bool debugMode;
 
   /// Whether touch events are captured for interactive effects.
@@ -130,7 +116,6 @@ class _ParticleBackgroundState extends State<ParticleBackground>
   final Map<int, Offset> _activePointers = {};
   static const _maxPointers = 5, _attractR = 80.0, _burstR = 60.0;
 
-  // --- Touch handlers ---
   void _onPointerDown(PointerDownEvent e) {
     if (_activePointers.length < _maxPointers) {
       _activePointers[e.pointer] = e.localPosition;

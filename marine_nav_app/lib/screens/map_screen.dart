@@ -10,6 +10,7 @@ import '../providers/nmea_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
+import '../utils/navigation_utils.dart';
 import '../utils/responsive_utils.dart';
 import '../widgets/common/draggable_overlay.dart';
 import '../widgets/controls/layer_toggle.dart';
@@ -182,7 +183,7 @@ class _MapScreenState extends State<MapScreen> {
         builder: (_, nmea, __) {
           final windDeg = nmea.currentData?.windDirectionDegrees;
           final windLabel = windDeg != null
-              ? '${_cardinalDirection(windDeg)} ${windDeg.toStringAsFixed(0)}°'
+              ? '${cardinalDirection(windDeg)} ${windDeg.toStringAsFixed(0)}°'
               : '--';
           return CompassWidget(
             headingDegrees: nmea.currentData?.courseOverGroundDegrees ?? 0,
@@ -259,7 +260,7 @@ class _MapScreenState extends State<MapScreen> {
                       ),
                       const SizedBox(height: OceanDimensions.spacingXS),
                       Text(
-                        _cardinalDirection(windDir),
+                        cardinalDirection(windDir),
                         style: OceanTextStyles.label.copyWith(
                           color: OceanColors.textSecondary,
                         ),
@@ -292,30 +293,5 @@ class _MapScreenState extends State<MapScreen> {
         child: const TimelineScrubber(),
       ),
     );
-  }
-
-  // ============ Helpers ============
-
-  String _cardinalDirection(double? degrees) {
-    if (degrees == null) return '--';
-    const dirs = [
-      'N',
-      'NNE',
-      'NE',
-      'ENE',
-      'E',
-      'ESE',
-      'SE',
-      'SSE',
-      'S',
-      'SSW',
-      'SW',
-      'WSW',
-      'W',
-      'WNW',
-      'NW',
-      'NNW'
-    ];
-    return dirs[((degrees % 360) / 22.5).round() % 16];
   }
 }
