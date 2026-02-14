@@ -76,6 +76,8 @@ class _MapWebViewState extends State<MapWebView> {
           }
           // Render active route if present
           _onRouteChanged();
+          // Trigger initial weather fetch for current viewport
+          _onViewportChanged();
         },
       ))
       ..loadFlutterAsset('assets/map.html');
