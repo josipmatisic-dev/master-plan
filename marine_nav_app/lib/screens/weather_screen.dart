@@ -7,6 +7,7 @@ import '../widgets/common/glow_text.dart';
 import '../widgets/data_displays/data_orb.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/weather/forecast_timeline.dart';
+import '../widgets/weather/timeline_scrubber.dart';
 import '../widgets/weather/weather_detail_cards.dart';
 import '../widgets/weather/weather_map_view.dart';
 
@@ -43,107 +44,25 @@ class WeatherScreen extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
+    final hasData = weather.hasData;
+
     return Scaffold(
       backgroundColor: cs.surface,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: GlowText('Weather',
-            glowStyle: GlowTextStyle.heading, color: cs.primary),
-        actions: [
-          if (weather.isLoading)
-            const Padding(
-              padding: EdgeInsets.only(right: 16),
-              child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2)),
-            )
-          else if (weather.isStale)
-            Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child:
-                  Icon(Icons.warning_amber_rounded, color: cs.error, size: 20),
+      body: Stack(
+        children: [
+          const Positioned.fill(
+            child: WeatherMapView(
+              height: null,
+              showScrubber: false,
             ),
-        ],
-      ),
-      body: SafeArea(
-        child: _buildBody(context, weather, cs, tt),
-      ),
-    );
-  }
-
-  Widget _buildBody(BuildContext context, WeatherProvider weather,
-      ColorScheme cs, TextTheme tt) {
-    if (weather.errorMessage != null && !weather.hasData) {
-      return Center(
-        child: GlassCard(
-          padding: GlassCardPadding.medium,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: cs.error),
-              const SizedBox(height: 12),
-              Text(weather.errorMessage!,
-                  style: tt.bodyLarge?.copyWith(color: cs.onSurface)),
-            ],
           ),
-        ),
-      );
-    }
-
-    if (!weather.hasData && !weather.isLoading) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.cloud_off_outlined,
-                size: 64, color: cs.onSurfaceVariant),
-            const SizedBox(height: 12),
-            Text('No weather data available',
-                style: tt.bodyLarge?.copyWith(color: cs.onSurfaceVariant)),
-          ],
-        ),
-      );
-    }
-
-    if (!weather.hasData && weather.isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    final data = weather.data;
-    final wind = data.windPoints.isNotEmpty ? data.windPoints.first : null;
-    final wave = data.wavePoints.isNotEmpty ? data.wavePoints.first : null;
-
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      children: [
-        // Weather map with timeline scrubber
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: const WeatherMapView(height: 240),
-        ),
-        const SizedBox(height: 16),
-        _buildCurrentConditions(wind, wave, cs, tt),
-        const SizedBox(height: 16),
-        if (wind != null) ...[
-          WindDetailCard(wind: wind),
-          const SizedBox(height: 12)
+          _buildTopBar(context, weather, cs),
+          if (!hasData)
+            _buildFallbackOverlay(context, weather, cs, tt)
+          else
+            _buildBottomSheet(context, weather, cs, tt),
         ],
-        if (wave != null) ...[
-          WaveDetailCard(wave: wave),
-          const SizedBox(height: 12)
-        ],
-        _buildLayerToggles(context, weather, cs, tt),
-        const SizedBox(height: 12),
-        if (data.hasFrames) ...[
-          ForecastTimeline(data: data),
-          const SizedBox(height: 16)
-        ],
-      ],
+      ),
     );
   }
 
@@ -185,6 +104,143 @@ class WeatherScreen extends StatelessWidget {
           ),
         ]),
       ]),
+    );
+  }
+
+  Widget _buildTopBar(
+      BuildContext context, WeatherProvider weather, ColorScheme cs) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            GlassCard(
+              padding: GlassCardPadding.small,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+                  const SizedBox(width: 8),
+                  GlowText('Weather',
+                      glowStyle: GlowTextStyle.heading, color: cs.primary),
+                ],
+              ),
+            ),
+            const Spacer(),
+            if (weather.isLoading)
+              const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2))
+            else if (weather.isStale)
+              Icon(Icons.warning_amber_rounded, color: cs.error, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBottomSheet(BuildContext context, WeatherProvider weather,
+      ColorScheme cs, TextTheme tt) {
+    final data = weather.data;
+    final wind = data.windPoints.isNotEmpty ? data.windPoints.first : null;
+    final wave = data.wavePoints.isNotEmpty ? data.wavePoints.first : null;
+
+    return DraggableScrollableSheet(
+      initialChildSize: 0.3,
+      minChildSize: 0.22,
+      maxChildSize: 0.65,
+      builder: (ctx, controller) {
+        return Container(
+          decoration: BoxDecoration(
+            color: cs.surface.withValues(alpha: 0.92),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+            boxShadow: const [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 16,
+                offset: Offset(0, -4),
+              ),
+            ],
+          ),
+          child: ListView(
+            controller: controller,
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            children: [
+              Center(
+                child: Container(
+                  width: 48,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: cs.outlineVariant,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              const TimelineScrubber(),
+              const SizedBox(height: 12),
+              _buildCurrentConditions(wind, wave, cs, tt),
+              const SizedBox(height: 12),
+              if (wind != null) ...[
+                WindDetailCard(wind: wind),
+                const SizedBox(height: 12)
+              ],
+              if (wave != null) ...[
+                WaveDetailCard(wave: wave),
+                const SizedBox(height: 12)
+              ],
+              _buildLayerToggles(context, weather, cs, tt),
+              const SizedBox(height: 12),
+              if (data.hasFrames) ...[
+                ForecastTimeline(data: data),
+                const SizedBox(height: 4),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFallbackOverlay(BuildContext context, WeatherProvider weather,
+      ColorScheme cs, TextTheme tt) {
+    if (weather.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (weather.errorMessage != null) {
+      return Center(
+        child: GlassCard(
+          padding: GlassCardPadding.medium,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.error_outline, size: 48, color: cs.error),
+              const SizedBox(height: 12),
+              Text(weather.errorMessage!,
+                  style: tt.bodyLarge?.copyWith(color: cs.onSurface)),
+            ],
+          ),
+        ),
+      );
+    }
+    return Center(
+      child: GlassCard(
+        padding: GlassCardPadding.medium,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.cloud_off_outlined,
+                size: 48, color: cs.onSurfaceVariant),
+            const SizedBox(height: 8),
+            Text('No weather data available',
+                style: tt.bodyLarge?.copyWith(color: cs.onSurfaceVariant)),
+          ],
+        ),
+      ),
     );
   }
 
