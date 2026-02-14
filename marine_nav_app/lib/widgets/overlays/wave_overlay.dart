@@ -1,7 +1,6 @@
-/// Wave overlay widget for rendering wave height on the map.
-///
-/// Uses [ProjectionService] to convert geographic coordinates to screen
-/// pixels. Draws directional arrows with height-based blue gradient.
+/// Wave overlay widget rendering a Windy.com-style smooth color gradient
+/// heatmap using IDW interpolation, with animated ripple rings for
+/// high-wave areas.
 library;
 
 import 'dart:math' as math;
@@ -12,13 +11,7 @@ import '../../models/viewport.dart';
 import '../../models/weather_data.dart';
 import '../../services/projection_service.dart';
 
-/// Renders wave height and direction indicators at grid points.
-///
-/// Colors follow a blue gradient (0-8m):
-/// - Light blue: <1m
-/// - Blue: 1-3m
-/// - Dark blue: 3-5m
-/// - Deep blue/purple: >5m
+/// Renders a full-viewport wave height heatmap with animated ripples.
 ///
 /// Usage:
 /// ```dart
@@ -27,7 +20,7 @@ import '../../services/projection_service.dart';
 ///   viewport: mapProvider.viewport,
 /// )
 /// ```
-class WaveOverlay extends StatelessWidget {
+class WaveOverlay extends StatefulWidget {
   /// Wave data points to render.
   final List<WaveDataPoint> wavePoints;
 
@@ -42,128 +35,174 @@ class WaveOverlay extends StatelessWidget {
   });
 
   @override
+  State<WaveOverlay> createState() => _WaveOverlayState();
+}
+
+class _WaveOverlayState extends State<WaveOverlay>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _rippleController;
+
+  @override
+  void initState() {
+    super.initState();
+    _rippleController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _rippleController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (wavePoints.isEmpty) {
-      return const SizedBox.shrink();
-    }
+    if (widget.wavePoints.isEmpty) return const SizedBox.shrink();
 
     return RepaintBoundary(
-      child: CustomPaint(
-        painter: _WaveOverlayPainter(
-          wavePoints: wavePoints,
-          viewport: viewport,
+      child: AnimatedBuilder(
+        animation: _rippleController,
+        builder: (_, __) => CustomPaint(
+          painter: _WaveHeatmapPainter(
+            wavePoints: widget.wavePoints,
+            viewport: widget.viewport,
+            ripplePhase: _rippleController.value,
+          ),
+          size: widget.viewport.size,
         ),
-        size: viewport.size,
       ),
     );
   }
 }
 
-/// Custom painter for wave height indicators.
-class _WaveOverlayPainter extends CustomPainter {
+/// Color stops for the wave height gradient (meters → color).
+const _kColorStops = <(double, Color)>[
+  (0.0, Color(0xFFE0F7FA)),
+  (0.5, Color(0xFF80DEEA)),
+  (1.0, Color(0xFF26C6DA)),
+  (2.0, Color(0xFF0288D1)),
+  (3.0, Color(0xFF01579B)),
+  (5.0, Color(0xFF4A148C)),
+  (8.0, Color(0xFF880E4F)),
+];
+
+class _WaveHeatmapPainter extends CustomPainter {
   final List<WaveDataPoint> wavePoints;
   final Viewport viewport;
+  final double ripplePhase;
 
-  /// Base indicator size in logical pixels.
-  static const double _indicatorSize = 20.0;
+  static const int _step = 6;
+  static const double _heatmapAlpha = 0.30;
+  static const double _rippleAlpha = 0.4;
+  static const double _rippleThreshold = 2.0;
+  // IDW power parameter.
+  static const double _idwPower = 2.0;
 
-  _WaveOverlayPainter({
+  _WaveHeatmapPainter({
     required this.wavePoints,
     required this.viewport,
+    required this.ripplePhase,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (final point in wavePoints) {
-      final screenPos = ProjectionService.latLngToScreen(
-        point.position,
-        viewport,
-      );
+    // Pre-compute screen positions for all data points.
+    final screenPts = <(Offset, double)>[];
+    for (final pt in wavePoints) {
+      final pos = ProjectionService.latLngToScreen(pt.position, viewport);
+      screenPts.add((pos, pt.heightMeters));
+    }
 
-      // Cull points outside viewport.
-      if (!_isInViewport(screenPos, size)) continue;
+    _paintHeatmap(canvas, size, screenPts);
+    _paintRipples(canvas, size, screenPts);
+  }
 
-      _drawWaveIndicator(canvas, screenPos, point);
+  void _paintHeatmap(
+      Canvas canvas, Size size, List<(Offset, double)> screenPts) {
+    final paint = Paint()..style = PaintingStyle.fill;
+    final w = size.width.ceil();
+    final h = size.height.ceil();
+
+    for (int y = 0; y < h; y += _step) {
+      for (int x = 0; x < w; x += _step) {
+        final height = _idwInterpolate(x.toDouble(), y.toDouble(), screenPts);
+        final color = _colorForHeight(height);
+        paint.color = color.withValues(alpha: _heatmapAlpha);
+        canvas.drawRect(
+          Rect.fromLTWH(x.toDouble(), y.toDouble(), _step.toDouble(),
+              _step.toDouble()),
+          paint,
+        );
+      }
     }
   }
 
-  /// Checks if a screen position is within the visible viewport.
-  bool _isInViewport(Offset pos, Size size) {
-    const margin = _indicatorSize * 2;
-    return pos.dx >= -margin &&
-        pos.dx <= size.width + margin &&
-        pos.dy >= -margin &&
-        pos.dy <= size.height + margin;
+  /// IDW interpolation: weighted average of nearby data point heights.
+  double _idwInterpolate(
+      double px, double py, List<(Offset, double)> screenPts) {
+    double wSum = 0.0;
+    double vSum = 0.0;
+    for (final (pos, height) in screenPts) {
+      final dx = px - pos.dx;
+      final dy = py - pos.dy;
+      final distSq = dx * dx + dy * dy;
+      if (distSq < 1.0) return height;
+      final w = 1.0 / math.pow(distSq, _idwPower / 2.0);
+      wSum += w;
+      vSum += w * height;
+    }
+    return wSum > 0.0 ? vSum / wSum : 0.0;
   }
 
-  /// Draws a wave height indicator at a screen position.
-  void _drawWaveIndicator(
-    Canvas canvas,
-    Offset center,
-    WaveDataPoint point,
-  ) {
-    final color = _waveHeightColor(point.heightMeters);
+  /// Lerp between color stops based on wave height.
+  static Color _colorForHeight(double h) {
+    if (h <= _kColorStops.first.$1) return _kColorStops.first.$2;
+    for (int i = 1; i < _kColorStops.length; i++) {
+      if (h <= _kColorStops[i].$1) {
+        final t = (h - _kColorStops[i - 1].$1) /
+            (_kColorStops[i].$1 - _kColorStops[i - 1].$1);
+        return Color.lerp(_kColorStops[i - 1].$2, _kColorStops[i].$2, t)!;
+      }
+    }
+    return _kColorStops.last.$2;
+  }
 
-    // Filled circle sized by wave height (capped at 2× base size).
-    final radius =
-        (_indicatorSize * (point.heightMeters / 4.0).clamp(0.3, 2.0)) / 2;
-
-    final fillPaint = Paint()
-      ..color = color.withValues(alpha: 0.4)
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(center, radius, fillPaint);
-
-    final strokePaint = Paint()
-      ..color = color
+  /// Draw animated concentric ripple rings around high-wave points.
+  void _paintRipples(
+      Canvas canvas, Size size, List<(Offset, double)> screenPts) {
+    final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
-    canvas.drawCircle(center, radius, strokePaint);
 
-    // Direction arrow from center.
-    final radians =
-        (point.directionDegrees - 90) * math.pi / 180.0 + viewport.rotation;
-    final arrowLen = radius + 8.0;
-    final tipX = center.dx + arrowLen * math.cos(radians);
-    final tipY = center.dy + arrowLen * math.sin(radians);
+    for (final (pos, height) in screenPts) {
+      if (height < _rippleThreshold) continue;
+      // Skip off-screen points (with generous margin for ripple radius).
+      if (pos.dx < -120 ||
+          pos.dx > size.width + 120 ||
+          pos.dy < -120 ||
+          pos.dy > size.height + 120) {
+        continue;
+      }
 
-    final arrowPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(center, Offset(tipX, tipY), arrowPaint);
-
-    // Small arrow head.
-    const headAngle = 0.5;
-    const headLength = 5.0;
-    final headLeft = Offset(
-      tipX - headLength * math.cos(radians - headAngle),
-      tipY - headLength * math.sin(radians - headAngle),
-    );
-    final headRight = Offset(
-      tipX - headLength * math.cos(radians + headAngle),
-      tipY - headLength * math.sin(radians + headAngle),
-    );
-
-    final headPath = Path()
-      ..moveTo(tipX, tipY)
-      ..lineTo(headLeft.dx, headLeft.dy)
-      ..moveTo(tipX, tipY)
-      ..lineTo(headRight.dx, headRight.dy);
-    canvas.drawPath(headPath, arrowPaint);
-  }
-
-  /// Returns color based on wave height (blue gradient 0-8m).
-  Color _waveHeightColor(double heightMeters) {
-    if (heightMeters < 1) return const Color(0xFF81D4FA); // Light blue
-    if (heightMeters < 3) return const Color(0xFF42A5F5); // Blue
-    if (heightMeters < 5) return const Color(0xFF1565C0); // Dark blue
-    return const Color(0xFF7B1FA2); // Purple (dangerous)
+      final maxRadius = 20.0 + height * 8.0;
+      const ringCount = 3;
+      for (int i = 0; i < ringCount; i++) {
+        final phase = (ripplePhase + i / ringCount) % 1.0;
+        final radius = maxRadius * phase;
+        final opacity = _rippleAlpha * (1.0 - phase);
+        paint.color =
+            _colorForHeight(height).withValues(alpha: opacity);
+        canvas.drawCircle(pos, radius, paint);
+      }
+    }
   }
 
   @override
-  bool shouldRepaint(covariant _WaveOverlayPainter oldDelegate) {
-    return oldDelegate.wavePoints.length != wavePoints.length ||
+  bool shouldRepaint(covariant _WaveHeatmapPainter oldDelegate) {
+    return oldDelegate.ripplePhase != ripplePhase ||
+        oldDelegate.wavePoints.length != wavePoints.length ||
         oldDelegate.viewport != viewport;
   }
 }
