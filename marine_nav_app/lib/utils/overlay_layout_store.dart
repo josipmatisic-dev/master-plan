@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_classes_with_only_static_members
+
 /// Persistence for draggable overlay positions and scales.
 library;
 

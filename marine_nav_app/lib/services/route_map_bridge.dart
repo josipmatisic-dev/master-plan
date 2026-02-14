@@ -39,11 +39,13 @@ class RouteMapBridge {
     await _runJs('window.mapBridge.updateRouteLine([$coords])');
 
     // Build waypoint objects for markers (JSON-encoded to prevent injection)
-    final wps = jsonEncode(route.waypoints.map((wp) => {
-      'lat': wp.position.latitude,
-      'lng': wp.position.longitude,
-      'name': wp.name,
-    }).toList());
+    final wps = jsonEncode(route.waypoints
+        .map((wp) => {
+              'lat': wp.position.latitude,
+              'lng': wp.position.longitude,
+              'name': wp.name,
+            })
+        .toList());
     await _runJs('window.mapBridge.updateWaypointMarkers($wps)');
   }
 
