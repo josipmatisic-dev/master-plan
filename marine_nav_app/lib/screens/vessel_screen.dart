@@ -4,7 +4,9 @@ import '../widgets/glass/glass_card.dart';
 
 // TODO: Replace mock data with VesselProvider when available.
 
+/// Screen displaying vessel details and specifications.
 class VesselScreen extends StatelessWidget {
+  /// Creates a [VesselScreen].
   const VesselScreen({super.key});
 
   // -- Mock vessel data ------------------------------------------------

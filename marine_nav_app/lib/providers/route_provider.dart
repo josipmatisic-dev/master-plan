@@ -17,6 +17,7 @@ class RouteProvider extends ChangeNotifier {
   int _currentWaypointIndex = 0;
   LatLng? _currentPosition;
   List<Route> _savedRoutes = [];
+  Future<void>? _pendingPersist;
 
   /// Creates a new RouteProvider instance.
   RouteProvider();
@@ -229,6 +230,14 @@ class RouteProvider extends ChangeNotifier {
   }
 
   Future<void> _persistRoutes() async {
+    // Serialize writes to prevent race conditions
+    final prev = _pendingPersist;
+    _pendingPersist = _doPersist(prev);
+    await _pendingPersist;
+  }
+
+  Future<void> _doPersist(Future<void>? previous) async {
+    await previous;
     try {
       final prefs = await SharedPreferences.getInstance();
       final json = jsonEncode(_savedRoutes.map(_routeToJson).toList());

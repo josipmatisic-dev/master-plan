@@ -10,6 +10,7 @@ import '../widgets/glass/glass_card.dart';
 
 /// Main dashboard screen showing live marine navigation data.
 class DashboardScreen extends StatelessWidget {
+  /// Creates a [DashboardScreen].
   const DashboardScreen({super.key});
 
   @override

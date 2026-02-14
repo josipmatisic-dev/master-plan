@@ -64,6 +64,7 @@ class GlowText extends StatelessWidget {
   /// Use higher values for stronger glow
   final double intensity;
 
+  /// Creates a [GlowText].
   const GlowText(
     this.text, {
     super.key,
@@ -181,6 +182,7 @@ class PulsingGlowText extends StatefulWidget {
   /// Maximum intensity (1.0-3.0)
   final double maxIntensity;
 
+  /// Creates a [PulsingGlowText].
   const PulsingGlowText(
     this.text, {
     super.key,

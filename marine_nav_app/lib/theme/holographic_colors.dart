@@ -90,17 +90,29 @@ class HolographicColors {
 
   /// Electric Blue glow variants for multi-layer shadows
   static final Color glowInner = electricBlue.withValues(alpha: 0.5);
+
+  /// The middle-layer electric blue glow color.
   static final Color glowMiddle = electricBlue.withValues(alpha: 0.6);
+
+  /// The outer-layer electric blue glow color.
   static final Color glowOuter = electricBlue.withValues(alpha: 0.5);
 
   /// Magenta glow variants (for alerts)
   static final Color glowMagentaInner = neonMagenta.withValues(alpha: 0.5);
+
+  /// The middle-layer magenta glow color.
   static final Color glowMagentaMiddle = neonMagenta.withValues(alpha: 0.6);
+
+  /// The outer-layer magenta glow color.
   static final Color glowMagentaOuter = neonMagenta.withValues(alpha: 0.5);
 
   /// Cyan glow variants (for success)
   static final Color glowCyanInner = neonCyan.withValues(alpha: 0.5);
+
+  /// The middle-layer cyan glow color.
   static final Color glowCyanMiddle = neonCyan.withValues(alpha: 0.6);
+
+  /// The outer-layer cyan glow color.
   static final Color glowCyanOuter = neonCyan.withValues(alpha: 0.5);
 
   // ============ Gradient Definitions ============

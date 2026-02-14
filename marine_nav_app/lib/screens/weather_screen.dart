@@ -8,7 +8,9 @@ import '../widgets/data_displays/data_orb.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/weather/weather_map_view.dart';
 
+/// Screen displaying current weather conditions and forecasts.
 class WeatherScreen extends StatelessWidget {
+  /// Creates a [WeatherScreen].
   const WeatherScreen({super.key});
 
   static const _beaufortLabels = [

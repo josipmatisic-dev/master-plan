@@ -9,11 +9,19 @@ import 'package:flutter/material.dart';
 
 /// A single particle with physics, animation, and optional trail behavior.
 class Particle {
+  /// The size of the particle, the speed of its pulse animation, and its total lifetime in seconds.
   final double size, pulseSpeed, lifetime;
+
+  /// The color of the particle.
   final Color color;
+
+  /// Whether this particle is a drag-trail particle.
   final bool isTrail;
+
+  /// The x position, y position, x velocity, y velocity, current age, and opacity of the particle.
   double x, y, vx, vy, age, opacity;
 
+  /// Creates a [Particle].
   Particle({
     required this.x,
     required this.y,
@@ -27,8 +35,10 @@ class Particle {
   })  : age = 0,
         opacity = 0.3;
 
+  /// Whether this particle has exceeded its lifetime.
   bool get isDead => age >= lifetime;
 
+  /// Updates the particle state by the given time delta [dt].
   void update(double dt) {
     age += dt;
     x += vx;
@@ -41,6 +51,7 @@ class Particle {
     }
   }
 
+  /// Resets the particle to a new random position along the bottom edge.
   void reset(double w, double h, List<Color> colors) {
     age = 0;
     opacity = 0.3;
@@ -53,8 +64,11 @@ class Particle {
 
 /// Renders particles to a canvas.
 class ParticlePainter extends CustomPainter {
+  /// The list of particles to render.
   final List<Particle> particles;
   final Paint _paint = Paint()..strokeCap = StrokeCap.round;
+
+  /// Creates a [ParticlePainter] with the given [particles].
   ParticlePainter({required this.particles});
 
   @override
@@ -90,6 +104,7 @@ class ParticleBackground extends StatefulWidget {
   /// Whether touch events are captured for interactive effects.
   final bool interactive;
 
+  /// Creates a [ParticleBackground].
   const ParticleBackground({
     super.key,
     this.particleCount,

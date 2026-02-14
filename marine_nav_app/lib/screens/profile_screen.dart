@@ -6,7 +6,9 @@ import '../theme/theme_variant.dart';
 import '../widgets/common/glow_text.dart';
 import '../widgets/glass/glass_card.dart';
 
+/// Screen for viewing and editing the user profile and settings.
 class ProfileScreen extends StatelessWidget {
+  /// Creates a [ProfileScreen].
   const ProfileScreen({super.key});
 
   static const _speedLabels = {
@@ -102,9 +104,16 @@ class ProfileScreen extends StatelessWidget {
                 Text('Theme',
                     style: tt.titleMedium?.copyWith(color: cs.onSurface)),
                 const SizedBox(height: 8),
-                _themeRadio(themeProvider, tt, cs, ThemeVariant.oceanGlass),
-                _themeRadio(
-                    themeProvider, tt, cs, ThemeVariant.holographicCyberpunk),
+                RadioGroup<ThemeVariant>(
+                  groupValue: themeProvider.themeVariant,
+                  onChanged: (v) => themeProvider.setThemeVariant(v!),
+                  child: Column(
+                    children: [
+                      _themeRadio(tt, cs, ThemeVariant.oceanGlass),
+                      _themeRadio(tt, cs, ThemeVariant.holographicCyberpunk),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -201,12 +210,9 @@ class ProfileScreen extends StatelessWidget {
     return GlowText(title, glowStyle: GlowTextStyle.subtle, color: cs.primary);
   }
 
-  Widget _themeRadio(ThemeProvider provider, TextTheme tt, ColorScheme cs,
-      ThemeVariant variant) {
+  Widget _themeRadio(TextTheme tt, ColorScheme cs, ThemeVariant variant) {
     return RadioListTile<ThemeVariant>(
       value: variant,
-      groupValue: provider.themeVariant,
-      onChanged: (v) => provider.setThemeVariant(v!),
       fillColor: WidgetStateProperty.resolveWith((states) =>
           states.contains(WidgetState.selected) ? cs.primary : null),
       contentPadding: EdgeInsets.zero,

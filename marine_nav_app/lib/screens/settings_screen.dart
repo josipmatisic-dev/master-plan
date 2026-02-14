@@ -112,7 +112,7 @@ class SettingsScreen extends StatelessWidget {
           Consumer<ThemeProvider>(
             builder: (context, themeProvider, child) {
               return DropdownButtonFormField<ThemeVariant>(
-                value: themeProvider.themeVariant,
+                initialValue: themeProvider.themeVariant,
                 style: OceanTextStyles.body,
                 dropdownColor: OceanColors.surface,
                 decoration: InputDecoration(

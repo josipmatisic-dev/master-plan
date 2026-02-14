@@ -36,6 +36,7 @@ class _MapWebViewState extends State<MapWebView> {
   WebViewController? _controller;
   bool _webViewAvailable = true;
   MapProvider? _mapProvider;
+  WeatherProvider? _weatherProvider;
   RouteProvider? _routeProvider;
   RouteMapBridge? _routeBridge;
 
@@ -49,6 +50,8 @@ class _MapWebViewState extends State<MapWebView> {
 
     _mapProvider = context.read<MapProvider>();
     _mapProvider!.addListener(_onViewportChanged);
+
+    _weatherProvider = context.read<WeatherProvider>();
 
     _routeProvider = context.read<RouteProvider>();
     _routeProvider!.addListener(_onRouteChanged);
@@ -80,7 +83,8 @@ class _MapWebViewState extends State<MapWebView> {
 
   /// Trigger weather fetch when viewport changes.
   void _onViewportChanged() {
-    final weather = context.read<WeatherProvider>();
+    final weather = _weatherProvider;
+    if (weather == null) return;
     final vp = _mapProvider!.viewport;
     if (vp.size.isEmpty) return;
     final b = vp.bounds;

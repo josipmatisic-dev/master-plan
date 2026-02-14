@@ -5,10 +5,16 @@ import 'package:flutter/material.dart';
 
 /// Wraps any child widget with a press animation (scale + brightness flash).
 class AnimatedPressButton extends StatefulWidget {
+  /// The child widget to wrap with press animation.
   final Widget child;
+
+  /// The callback invoked when the button is pressed.
   final VoidCallback? onPressed;
+
+  /// The scale factor applied when the button is pressed.
   final double pressScale;
 
+  /// Creates an [AnimatedPressButton].
   const AnimatedPressButton({
     super.key,
     required this.child,

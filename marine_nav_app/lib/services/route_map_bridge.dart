@@ -5,6 +5,8 @@
 /// on the MapLibre GL JS map via WebView.
 library;
 
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -36,14 +38,13 @@ class RouteMapBridge {
         .join(',');
     await _runJs('window.mapBridge.updateRouteLine([$coords])');
 
-    // Build waypoint objects for markers
-    final wps = route.waypoints.map((wp) {
-      final name = wp.name.replaceAll("'", "\\'");
-      return '{lat:${wp.position.latitude},'
-          'lng:${wp.position.longitude},'
-          "name:'$name'}";
-    }).join(',');
-    await _runJs('window.mapBridge.updateWaypointMarkers([$wps])');
+    // Build waypoint objects for markers (JSON-encoded to prevent injection)
+    final wps = jsonEncode(route.waypoints.map((wp) => {
+      'lat': wp.position.latitude,
+      'lng': wp.position.longitude,
+      'name': wp.name,
+    }).toList());
+    await _runJs('window.mapBridge.updateWaypointMarkers($wps)');
   }
 
   /// Remove route line and waypoint markers from the map.
