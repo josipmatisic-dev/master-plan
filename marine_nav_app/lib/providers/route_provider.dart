@@ -1,32 +1,31 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/route.dart';
 import '../services/geo_utils.dart';
 
-/// Manages active route state and navigation progress.
+/// Manages active route state, saved routes, and navigation progress.
 ///
 /// Layer 2 Provider: Depends on GeoUtils service for calculations.
 /// Tracks current route, active waypoint, and computed navigation metrics.
-///
-/// Usage:
-/// ```dart
-/// Consumer<RouteProvider>(
-///   builder: (context, routeProvider, _) {
-///     return Text('Distance: ${routeProvider.distanceToNextWaypoint}nm');
-///   },
-/// );
-/// ```
+/// Persists saved routes to SharedPreferences.
 class RouteProvider extends ChangeNotifier {
   Route? _activeRoute;
   int _currentWaypointIndex = 0;
   LatLng? _currentPosition;
+  List<Route> _savedRoutes = [];
 
   /// Creates a new RouteProvider instance.
   RouteProvider();
 
   /// Currently active route, or null if no route is active.
   Route? get activeRoute => _activeRoute;
+
+  /// List of saved routes.
+  List<Route> get savedRoutes => List.unmodifiable(_savedRoutes);
 
   /// Index of the current waypoint in the active route.
   /// Returns -1 if no active route.
@@ -172,4 +171,105 @@ class RouteProvider extends ChangeNotifier {
     _currentPosition = null;
     notifyListeners();
   }
+
+  // ============ Route CRUD ============
+
+  /// Add a route to saved routes and persist.
+  Future<void> saveRoute(Route route) async {
+    final idx = _savedRoutes.indexWhere((r) => r.id == route.id);
+    if (idx >= 0) {
+      _savedRoutes[idx] = route.copyWith(updatedAt: DateTime.now());
+    } else {
+      _savedRoutes.add(route);
+    }
+    notifyListeners();
+    await _persistRoutes();
+  }
+
+  /// Delete a saved route by ID.
+  Future<void> deleteRoute(String routeId) async {
+    _savedRoutes.removeWhere((r) => r.id == routeId);
+    if (_activeRoute?.id == routeId) deactivateRoute();
+    notifyListeners();
+    await _persistRoutes();
+  }
+
+  /// Create a new route with given waypoints and save it.
+  Future<Route> createRoute({
+    required String name,
+    required List<Waypoint> waypoints,
+    String? description,
+  }) async {
+    final now = DateTime.now();
+    final route = Route(
+      id: 'route_${now.millisecondsSinceEpoch}',
+      name: name,
+      waypoints: waypoints,
+      createdAt: now,
+      updatedAt: now,
+      description: description,
+    );
+    await saveRoute(route);
+    return route;
+  }
+
+  /// Load saved routes from SharedPreferences.
+  Future<void> loadSavedRoutes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString('saved_routes');
+      if (json == null) return;
+      final list = jsonDecode(json) as List<dynamic>;
+      _savedRoutes = list.map((e) => _routeFromJson(e as Map<String, dynamic>)).toList();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('RouteProvider: Failed to load routes - $e');
+    }
+  }
+
+  Future<void> _persistRoutes() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = jsonEncode(_savedRoutes.map(_routeToJson).toList());
+      await prefs.setString('saved_routes', json);
+    } catch (e) {
+      debugPrint('RouteProvider: Failed to persist routes - $e');
+    }
+  }
+
+  static Map<String, dynamic> _routeToJson(Route r) => {
+    'id': r.id,
+    'name': r.name,
+    'description': r.description,
+    'isActive': r.isActive,
+    'createdAt': r.createdAt.toIso8601String(),
+    'updatedAt': r.updatedAt.toIso8601String(),
+    'waypoints': r.waypoints.map((w) => {
+      'id': w.id,
+      'name': w.name,
+      'description': w.description,
+      'lat': w.position.latitude,
+      'lng': w.position.longitude,
+      'timestamp': w.timestamp.toIso8601String(),
+    }).toList(),
+  };
+
+  static Route _routeFromJson(Map<String, dynamic> j) => Route(
+    id: j['id'] as String,
+    name: j['name'] as String,
+    description: j['description'] as String?,
+    isActive: j['isActive'] as bool? ?? false,
+    createdAt: DateTime.parse(j['createdAt'] as String),
+    updatedAt: DateTime.parse(j['updatedAt'] as String),
+    waypoints: (j['waypoints'] as List<dynamic>).map((w) {
+      final m = w as Map<String, dynamic>;
+      return Waypoint(
+        id: m['id'] as String,
+        name: m['name'] as String,
+        description: m['description'] as String?,
+        position: LatLng(m['lat'] as double, m['lng'] as double),
+        timestamp: DateTime.parse(m['timestamp'] as String),
+      );
+    }).toList(),
+  );
 }

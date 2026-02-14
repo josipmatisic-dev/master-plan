@@ -357,5 +357,62 @@ void main() {
         expect(eta2, lessThan(eta1));
       });
     });
+
+    group('Route CRUD (in-memory)', () {
+      test('savedRoutes starts empty', () {
+        expect(routeProvider.savedRoutes, isEmpty);
+      });
+
+      test('createRoute adds to savedRoutes and returns the route', () async {
+        final route = await routeProvider.createRoute(
+          name: 'New Route',
+          waypoints: testWaypoints,
+          description: 'A test route',
+        );
+
+        expect(route.name, equals('New Route'));
+        expect(route.waypoints.length, equals(3));
+        expect(route.description, equals('A test route'));
+        expect(routeProvider.savedRoutes.length, equals(1));
+        expect(routeProvider.savedRoutes.first.id, equals(route.id));
+      });
+
+      test('saveRoute updates existing route with same ID', () async {
+        await routeProvider.saveRoute(testRoute);
+        expect(routeProvider.savedRoutes.length, equals(1));
+
+        final updated = Route(
+          id: testRoute.id,
+          name: 'Updated Route',
+          waypoints: testWaypoints,
+          createdAt: testRoute.createdAt,
+          updatedAt: DateTime.now(),
+        );
+        await routeProvider.saveRoute(updated);
+
+        expect(routeProvider.savedRoutes.length, equals(1));
+        expect(routeProvider.savedRoutes.first.name, equals('Updated Route'));
+      });
+
+      test('deleteRoute removes from list', () async {
+        await routeProvider.saveRoute(testRoute);
+        expect(routeProvider.savedRoutes.length, equals(1));
+
+        await routeProvider.deleteRoute(testRoute.id);
+
+        expect(routeProvider.savedRoutes, isEmpty);
+      });
+
+      test('deleteRoute deactivates if the deleted route was active', () async {
+        await routeProvider.saveRoute(testRoute);
+        routeProvider.activateRoute(testRoute);
+        expect(routeProvider.activeRoute, isNotNull);
+
+        await routeProvider.deleteRoute(testRoute.id);
+
+        expect(routeProvider.activeRoute, isNull);
+        expect(routeProvider.savedRoutes, isEmpty);
+      });
+    });
   });
 }

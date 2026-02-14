@@ -6,8 +6,10 @@ import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../providers/map_provider.dart';
+import '../../providers/route_provider.dart';
 import '../../providers/timeline_provider.dart';
 import '../../providers/weather_provider.dart';
+import '../../services/route_map_bridge.dart';
 import '../../theme/colors.dart';
 import '../../theme/dimensions.dart';
 import '../../theme/text_styles.dart';
@@ -34,6 +36,8 @@ class _MapWebViewState extends State<MapWebView> {
   WebViewController? _controller;
   bool _webViewAvailable = true;
   MapProvider? _mapProvider;
+  RouteProvider? _routeProvider;
+  RouteMapBridge? _routeBridge;
 
   @override
   void initState() {
@@ -45,6 +49,9 @@ class _MapWebViewState extends State<MapWebView> {
 
     _mapProvider = context.read<MapProvider>();
     _mapProvider!.addListener(_onViewportChanged);
+
+    _routeProvider = context.read<RouteProvider>();
+    _routeProvider!.addListener(_onRouteChanged);
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -58,11 +65,14 @@ class _MapWebViewState extends State<MapWebView> {
       ..setNavigationDelegate(NavigationDelegate(
         onPageFinished: (_) {
           _mapProvider!.attachWebView(_controller!);
+          _routeBridge = RouteMapBridge(_controller);
           if (_mapProvider!.settingsProvider.hasMapTilerApiKey) {
             _mapProvider!.initializeMap(
               _mapProvider!.settingsProvider.mapTilerApiKey,
             );
           }
+          // Render active route if present
+          _onRouteChanged();
         },
       ))
       ..loadFlutterAsset('assets/map.html');
@@ -82,9 +92,21 @@ class _MapWebViewState extends State<MapWebView> {
     );
   }
 
+  /// Render route on map when RouteProvider changes.
+  void _onRouteChanged() {
+    if (_routeBridge == null) return;
+    final route = _routeProvider?.activeRoute;
+    if (route != null) {
+      _routeBridge!.renderRoute(route);
+    } else {
+      _routeBridge!.clearRoute();
+    }
+  }
+
   @override
   void dispose() {
     _mapProvider?.removeListener(_onViewportChanged);
+    _routeProvider?.removeListener(_onRouteChanged);
     super.dispose();
   }
 
