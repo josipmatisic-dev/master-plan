@@ -105,6 +105,18 @@ class RouteProvider extends ChangeNotifier {
     return 1.0 - (distanceRemaining / total).clamp(0.0, 1.0);
   }
 
+  /// Cross-track error in nautical miles (signed: + right, − left of track).
+  /// Returns 0 if no active route or position.
+  double get crossTrackError {
+    if (_activeRoute == null || _currentPosition == null) return 0.0;
+    if (_currentWaypointIndex >= _activeRoute!.waypoints.length - 1) {
+      return 0.0;
+    }
+    final from = _activeRoute!.waypoints[_currentWaypointIndex].position;
+    final to = _activeRoute!.waypoints[_currentWaypointIndex + 1].position;
+    return GeoUtils.crossTrackDistance(from, to, _currentPosition!);
+  }
+
   /// ETA to next waypoint in minutes, based on current speed.
   /// Returns 0 if no next waypoint or speed is 0.
   double getETAToNextWaypoint(double speedKnots) {

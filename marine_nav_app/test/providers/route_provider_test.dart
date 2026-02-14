@@ -414,5 +414,46 @@ void main() {
         expect(routeProvider.savedRoutes, isEmpty);
       });
     });
+
+    group('crossTrackError', () {
+      test('returns zero when no active route', () {
+        expect(routeProvider.crossTrackError, 0.0);
+      });
+
+      test('returns zero when no position set', () {
+        routeProvider.activateRoute(testRoute);
+        expect(routeProvider.crossTrackError, 0.0);
+      });
+
+      test('returns near-zero when on track', () {
+        routeProvider.activateRoute(testRoute);
+        // Position on the line from (0,0) to (1,0) — due north
+        routeProvider.updatePosition(const LatLng(0.5, 0.0));
+        expect(routeProvider.crossTrackError.abs(), lessThan(0.01));
+      });
+
+      test('returns positive when right of track', () {
+        routeProvider.activateRoute(testRoute);
+        // East of a north-bound track = right
+        routeProvider.updatePosition(const LatLng(0.5, 0.1));
+        expect(routeProvider.crossTrackError, greaterThan(0));
+      });
+
+      test('returns negative when left of track', () {
+        routeProvider.activateRoute(testRoute);
+        // West of a north-bound track = left
+        routeProvider.updatePosition(const LatLng(0.5, -0.1));
+        expect(routeProvider.crossTrackError, lessThan(0));
+      });
+
+      test('returns zero at last waypoint', () {
+        routeProvider.activateRoute(testRoute);
+        routeProvider.updatePosition(const LatLng(0.5, 0.0));
+        // Advance to last waypoint
+        routeProvider.advanceWaypoint(); // index 1
+        routeProvider.advanceWaypoint(); // index 2 (last)
+        expect(routeProvider.crossTrackError, 0.0);
+      });
+    });
   });
 }

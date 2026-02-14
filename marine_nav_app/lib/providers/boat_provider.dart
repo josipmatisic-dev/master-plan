@@ -18,6 +18,7 @@ import '../models/lat_lng.dart' as app;
 import '../services/location_service.dart';
 import 'map_provider.dart';
 import 'nmea_provider.dart';
+import 'route_provider.dart';
 
 /// Active position data source.
 enum PositionSource {
@@ -36,6 +37,7 @@ class BoatProvider extends ChangeNotifier {
   final NMEAProvider _nmeaProvider;
   final MapProvider _mapProvider;
   final LocationService _locationService;
+  final RouteProvider? _routeProvider;
 
   BoatPosition? _currentPosition;
   PositionSource _source = PositionSource.none;
@@ -64,9 +66,11 @@ class BoatProvider extends ChangeNotifier {
     required NMEAProvider nmeaProvider,
     required MapProvider mapProvider,
     LocationService? locationService,
+    RouteProvider? routeProvider,
   })  : _nmeaProvider = nmeaProvider,
         _mapProvider = mapProvider,
-        _locationService = locationService ?? LocationService() {
+        _locationService = locationService ?? LocationService(),
+        _routeProvider = routeProvider {
     _nmeaProvider.addListener(_onNmeaUpdate);
     _startPhoneGps();
   }
@@ -179,6 +183,7 @@ class BoatProvider extends ChangeNotifier {
     _source = src;
     _addTrackPoint(newPos);
     _syncBoatToMap();
+    _routeProvider?.updatePosition(newPos.position);
 
     if (_followBoat) {
       _mapProvider.setCenter(app.LatLng(

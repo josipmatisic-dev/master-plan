@@ -57,6 +57,7 @@ void main() async {
   final boatProvider = BoatProvider(
     nmeaProvider: nmeaProvider,
     mapProvider: mapProvider,
+    routeProvider: routeProvider,
   );
   final timelineProvider = TimelineProvider(
     weatherProvider: weatherProvider,
