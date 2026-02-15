@@ -1,5 +1,9 @@
 import 'package:latlong2/latlong.dart';
 
+import 'nmea_instrument_data.dart';
+
+export 'nmea_instrument_data.dart';
+
 /// Aggregate model containing all parsed NMEA 0183 sentence data.
 ///
 /// This immutable model consolidates navigation data from multiple NMEA sentence types,
@@ -32,6 +36,12 @@ class NMEAData {
   /// Depth data parsed from DPT sentence (null if not received)
   final DPTData? dpt;
 
+  /// Heading data parsed from HDG sentence (null if not received)
+  final HDGData? hdg;
+
+  /// Water temperature data parsed from MTW sentence (null if not received)
+  final MTWData? mtw;
+
   /// Timestamp when this aggregated data was last updated
   /// Used to track data staleness and synchronize UI updates
   final DateTime timestamp;
@@ -39,14 +49,16 @@ class NMEAData {
   /// Creates an immutable instance of [NMEAData] with optional NMEA sentence data.
   ///
   /// [timestamp] is required to track when this data was created/updated.
-  /// All sentence data ([gpgga], [gprmc], [gpvtg], [mwv], [dpt]) is optional
-  /// as sentences may arrive asynchronously or not at all.
+  /// All sentence data ([gpgga], [gprmc], [gpvtg], [mwv], [dpt], [hdg], [mtw])
+  /// is optional as sentences may arrive asynchronously or not at all.
   const NMEAData({
     this.gpgga,
     this.gprmc,
     this.gpvtg,
     this.mwv,
     this.dpt,
+    this.hdg,
+    this.mtw,
     required this.timestamp,
   });
 
@@ -87,6 +99,31 @@ class NMEAData {
   /// Returns null if MWV sentence has not been received.
   double? get windDirectionDegrees => mwv?.angleDegrees;
 
+  /// Returns the magnetic heading in degrees (0-359).
+  ///
+  /// Sourced from HDG sentence. Returns null if not received.
+  double? get headingMagnetic => hdg?.headingDegrees;
+
+  /// Returns the true heading in degrees (0-359).
+  ///
+  /// Computed from magnetic heading + deviation + variation (from HDG).
+  /// Falls back to COG from VTG/RMC if no compass heading available.
+  /// Returns null if no heading data is available.
+  double? get headingTrue {
+    if (hdg != null) {
+      final mag = hdg!.headingDegrees;
+      final dev = hdg!.deviationDegrees ?? 0;
+      final vari = hdg!.variationDegrees ?? 0;
+      return (mag + dev + vari) % 360;
+    }
+    return courseOverGroundDegrees;
+  }
+
+  /// Returns the water temperature in degrees Celsius.
+  ///
+  /// Returns null if MTW sentence has not been received.
+  double? get waterTempCelsius => mtw?.temperatureCelsius;
+
   /// Returns a copy of this [NMEAData] with specified fields replaced.
   ///
   /// Null arguments are not replaced, allowing selective updates.
@@ -97,6 +134,8 @@ class NMEAData {
     GPVTGData? gpvtg,
     MWVData? mwv,
     DPTData? dpt,
+    HDGData? hdg,
+    MTWData? mtw,
     DateTime? timestamp,
   }) {
     return NMEAData(
@@ -105,6 +144,8 @@ class NMEAData {
       gpvtg: gpvtg ?? this.gpvtg,
       mwv: mwv ?? this.mwv,
       dpt: dpt ?? this.dpt,
+      hdg: hdg ?? this.hdg,
+      mtw: mtw ?? this.mtw,
       timestamp: timestamp ?? this.timestamp,
     );
   }
@@ -205,57 +246,5 @@ class GPVTGData {
     this.trackMagnetic,
     this.speedKnots,
     this.speedKmh,
-  });
-}
-
-/// MWV - Wind Speed and Angle (NMEA 0183 sentence).
-///
-/// Provides wind direction and speed information. Wind can be relative to the vessel
-/// or absolute (true wind). Relative wind is calculated from the vessel's speed and
-/// heading; true wind must be calculated from multiple sources (speed, course, relative wind).
-///
-/// Reference: https://en.wikipedia.org/wiki/NMEA_0183#MWV
-class MWVData {
-  /// Wind angle (degrees 0-359 from reference direction)
-  /// Reference depends on [isRelative]: vessel bow if relative, true north if absolute
-  final double angleDegrees;
-
-  /// Wind reference frame (true=relative to vessel bow, false=true/absolute wind)
-  final bool isRelative;
-
-  /// Wind speed (knots)
-  final double speedKnots;
-
-  /// Data validity (true=valid, false=invalid/error)
-  final bool valid;
-
-  /// Creates an immutable instance of [MWVData] with wind information.
-  const MWVData({
-    required this.angleDegrees,
-    required this.isRelative,
-    required this.speedKnots,
-    required this.valid,
-  });
-}
-
-/// DPT - Depth of Water (NMEA 0183 sentence).
-///
-/// Provides water depth measurement from a sounder/transducer. The transducer is typically
-/// located at the lowest point of the hull. Offset can be used to calculate depth from
-/// a different reference point (e.g., surface, waterline).
-///
-/// Reference: https://en.wikipedia.org/wiki/NMEA_0183#DBT,_DBK,_DPT
-class DPTData {
-  /// Water depth below transducer (meters)
-  final double depthMeters;
-
-  /// Transducer offset from reference point (positive=below waterline, negative=above)
-  /// Used to calculate depth from different reference points (e.g., keel, waterline)
-  final double? offsetMeters;
-
-  /// Creates an immutable instance of [DPTData] with depth information.
-  const DPTData({
-    required this.depthMeters,
-    this.offsetMeters,
   });
 }

@@ -15,6 +15,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/weather_data.dart';
 import '../services/weather_api.dart';
+import '../services/wind_texture_generator.dart';
 import 'cache_provider.dart';
 import 'settings_provider.dart';
 
@@ -48,6 +49,12 @@ class WeatherProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   Timer? _debounceTimer;
+
+  /// Latest generated wind texture for WebGL rendering.
+  WindTextureData? _windTexture;
+
+  /// Latest generated wave GeoJSON for WebGL heatmap.
+  WaveTextureData? _waveTexture;
 
   /// Active overlay layers (all enabled by default).
   final Set<WeatherLayer> _activeLayers = {
@@ -95,6 +102,12 @@ class WeatherProvider extends ChangeNotifier {
 
   /// Whether data is stale (older than 1 hour).
   bool get isStale => _data.isStale;
+
+  /// Latest wind texture for WebGL layer (null if not yet generated).
+  WindTextureData? get windTexture => _windTexture;
+
+  /// Latest wave GeoJSON for WebGL heatmap (null if not yet generated).
+  WaveTextureData? get waveTexture => _waveTexture;
 
   /// Settings provider (read-only access for unit conversions).
   SettingsProvider get settings => _settings;
@@ -192,6 +205,16 @@ class WeatherProvider extends ChangeNotifier {
         'WeatherProvider: Fetched ${result.windPoints.length} wind, '
         '${result.wavePoints.length} wave points',
       );
+
+      // Generate WebGL textures in background
+      _generateTextures(
+        windPoints: result.windPoints,
+        wavePoints: result.wavePoints,
+        south: south,
+        north: north,
+        west: west,
+        east: east,
+      );
     } on WeatherApiException catch (e) {
       _errorMessage = e.message;
       debugPrint('WeatherProvider: API error - ${e.message}');
@@ -207,6 +230,38 @@ class WeatherProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Generates WebGL textures from fetched weather data.
+  Future<void> _generateTextures({
+    required List<WindDataPoint> windPoints,
+    required List<WaveDataPoint> wavePoints,
+    required double south,
+    required double north,
+    required double west,
+    required double east,
+  }) async {
+    try {
+      _windTexture = await WindTextureGenerator.generate(
+        windPoints: windPoints,
+        south: south,
+        north: north,
+        west: west,
+        east: east,
+      );
+      _waveTexture =
+          WindTextureGenerator.generateWaveGeoJson(wavePoints);
+
+      if (_windTexture != null || _waveTexture != null) {
+        debugPrint(
+          'WeatherProvider: Textures ready '
+          '(wind: ${_windTexture != null}, wave: ${_waveTexture != null})',
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('WeatherProvider: Texture generation failed - $e');
     }
   }
 

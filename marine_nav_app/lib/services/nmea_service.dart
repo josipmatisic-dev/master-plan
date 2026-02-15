@@ -263,6 +263,10 @@ class NMEAService {
       return base.copyWith(mwv: parsed, timestamp: DateTime.now());
     } else if (parsed is DPTData) {
       return base.copyWith(dpt: parsed, timestamp: DateTime.now());
+    } else if (parsed is HDGData) {
+      return base.copyWith(hdg: parsed, timestamp: DateTime.now());
+    } else if (parsed is MTWData) {
+      return base.copyWith(mtw: parsed, timestamp: DateTime.now());
     }
 
     return base;

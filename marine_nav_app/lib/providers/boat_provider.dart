@@ -138,7 +138,7 @@ class BoatProvider extends ChangeNotifier {
     final newPos = BoatPosition(
       position: position,
       timestamp: data.timestamp,
-      headingDegrees: data.courseOverGroundDegrees,
+      headingDegrees: data.headingTrue ?? data.courseOverGroundDegrees,
       speedKnots: data.speedOverGroundKnots,
       accuracyMeters: _hdopToMeters(data.gpgga?.hdop),
     );

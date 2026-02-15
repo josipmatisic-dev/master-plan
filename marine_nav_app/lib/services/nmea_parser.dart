@@ -1,14 +1,12 @@
 import 'package:latlong2/latlong.dart';
 import '../models/nmea_data.dart';
 import '../models/nmea_error.dart';
+import 'nmea_parser_instruments.dart';
 
 /// NMEA 0183 sentence parser
 /// Handles checksum validation and parsing of supported sentence types:
-/// - GPGGA: GPS Fix Data
-/// - GPRMC: Recommended Minimum Navigation Information
-/// - GPVTG: Track and Ground Speed
-/// - MWV: Wind Speed and Angle
-/// - DPT: Depth of Water
+/// - GPS: GPGGA, GPRMC, GPVTG
+/// - Instruments: MWV, DPT, HDG, MTW (via NMEAInstrumentParser)
 ///
 /// This utility class uses only static members to group NMEA parsing functionality.
 // ignore_for_file: avoid_classes_with_only_static_members
@@ -204,56 +202,17 @@ class NMEAParser {
     }
   }
 
-  /// Parse MWV sentence (Wind Speed and Angle)
-  /// Format: $WIMWV,x.x,a,x.x,a,A*hh
-  static MWVData? parseMWV(String sentence) {
-    try {
-      final fields = sentence.split(',');
-      if (fields.length < 6) return null;
+  /// Parse MWV — delegates to [NMEAInstrumentParser].
+  static MWVData? parseMWV(String s) => NMEAInstrumentParser.parseMWV(s);
 
-      final angleDegrees = double.tryParse(fields[1]);
-      if (angleDegrees == null) return null;
+  /// Parse DPT — delegates to [NMEAInstrumentParser].
+  static DPTData? parseDPT(String s) => NMEAInstrumentParser.parseDPT(s);
 
-      final isRelative = fields[2] == 'R'; // R = relative, T = true
-      final speedKnots = double.tryParse(fields[3]);
-      if (speedKnots == null) return null;
+  /// Parse HDG — delegates to [NMEAInstrumentParser].
+  static HDGData? parseHDG(String s) => NMEAInstrumentParser.parseHDG(s);
 
-      final valid = fields[5].startsWith('A');
-
-      return MWVData(
-        angleDegrees: angleDegrees,
-        isRelative: isRelative,
-        speedKnots: speedKnots,
-        valid: valid,
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Parse DPT sentence (Depth of Water)
-  /// Format: $SDDPT,x.x,x.x*hh
-  static DPTData? parseDPT(String sentence) {
-    try {
-      final fields = sentence.split(',');
-      if (fields.length < 3) return null;
-
-      final depthMeters = double.tryParse(fields[1]);
-      if (depthMeters == null) return null;
-
-      // Field 2 may contain checksum delimiter
-      final offsetField = fields[2].split('*')[0];
-      final offsetMeters =
-          offsetField.isEmpty ? null : double.tryParse(offsetField);
-
-      return DPTData(
-        depthMeters: depthMeters,
-        offsetMeters: offsetMeters,
-      );
-    } catch (e) {
-      return null;
-    }
-  }
+  /// Parse MTW — delegates to [NMEAInstrumentParser].
+  static MTWData? parseMTW(String s) => NMEAInstrumentParser.parseMTW(s);
 
   /// Parse any supported NMEA sentence
   /// Returns appropriate data type or null if unknown/malformed
@@ -287,6 +246,10 @@ class NMEAParser {
       return parseMWV(trimmed);
     } else if (trimmed.contains('DPT')) {
       return parseDPT(trimmed);
+    } else if (trimmed.contains('HDG')) {
+      return parseHDG(trimmed);
+    } else if (trimmed.contains('MTW')) {
+      return parseMTW(trimmed);
     } else {
       // Unknown sentence type - not an error, just ignore
       return null;
