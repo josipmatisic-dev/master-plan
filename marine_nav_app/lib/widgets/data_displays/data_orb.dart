@@ -79,8 +79,9 @@ class DataOrb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final dimension = _dimensionForSize(size);
-    final ringColor = _ringColorForState(state);
+    final ringColor = _ringColorForState(state, colorScheme);
     final inactive = state == DataOrbState.inactive;
 
     final orb = RepaintBoundary(
@@ -114,7 +115,7 @@ class DataOrb extends StatelessWidget {
                 ),
               ),
             ),
-            _buildContent(inactive),
+            _buildContent(inactive, colorScheme),
           ],
         ),
       ),
@@ -124,16 +125,16 @@ class DataOrb extends StatelessWidget {
     return Hero(tag: heroTag!, child: orb);
   }
 
-  Color _ringColorForState(DataOrbState state) {
+  Color _ringColorForState(DataOrbState state, ColorScheme colorScheme) {
     switch (state) {
       case DataOrbState.normal:
-        return OceanColors.seafoamGreen;
+        return colorScheme.primary;
       case DataOrbState.alert:
         return OceanColors.safetyOrange;
       case DataOrbState.critical:
-        return OceanColors.coralRed;
+        return colorScheme.error;
       case DataOrbState.inactive:
-        return OceanColors.textSecondary;
+        return colorScheme.onSurfaceVariant;
     }
   }
 
@@ -148,35 +149,42 @@ class DataOrb extends StatelessWidget {
     }
   }
 
-  Widget _buildContent(bool inactive) {
+  Widget _buildContent(bool inactive, ColorScheme colorScheme) {
     final valueStyle = OceanTextStyles.dataValue.copyWith(
       fontSize: _fontSizeForSize(size),
       color: inactive
-          ? OceanColors.textSecondary.withValues(alpha: 0.6)
-          : OceanColors.pureWhite,
+          ? colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
+          : colorScheme.onSurface,
     );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(value, style: valueStyle, textAlign: TextAlign.center),
+        Text(
+          value,
+          style: valueStyle,
+          textAlign: TextAlign.center,
+          overflow: TextOverflow.ellipsis,
+        ),
         const SizedBox(height: OceanDimensions.spacingS),
         Text(
           unit,
           style: OceanTextStyles.labelLarge.copyWith(
             color: inactive
-                ? OceanColors.textSecondary.withValues(alpha: 0.6)
-                : OceanColors.textSecondary,
+                ? colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
+                : colorScheme.onSurfaceVariant,
           ),
+          overflow: TextOverflow.ellipsis,
         ),
         Text(
           label,
           style: OceanTextStyles.label.copyWith(
             color: inactive
-                ? OceanColors.textSecondary.withValues(alpha: 0.6)
-                : OceanColors.textSecondary,
+                ? colorScheme.onSurfaceVariant.withValues(alpha: 0.6)
+                : colorScheme.onSurfaceVariant,
             letterSpacing: 0.5,
           ),
+          overflow: TextOverflow.ellipsis,
         ),
         if (subtitle != null) ...[
           const SizedBox(height: OceanDimensions.spacingXS),
@@ -184,9 +192,10 @@ class DataOrb extends StatelessWidget {
             subtitle!,
             style: OceanTextStyles.labelSmall.copyWith(
               color: inactive
-                  ? OceanColors.textSecondary.withValues(alpha: 0.5)
-                  : OceanColors.textSecondary,
+                  ? colorScheme.onSurfaceVariant.withValues(alpha: 0.5)
+                  : colorScheme.onSurfaceVariant,
             ),
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ],

@@ -25,9 +25,11 @@ class SettingsCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Settings',
-                style: OceanTextStyles.heading2,
+                style: OceanTextStyles.heading2.copyWith(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ),
               const SizedBox(height: OceanDimensions.spacing),
               SettingRow(

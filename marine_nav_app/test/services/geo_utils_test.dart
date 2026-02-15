@@ -244,5 +244,52 @@ void main() {
         expect(bearing, equals(0.0));
       });
     });
+
+    group('crossTrackDistance', () {
+      test('returns zero when on the track', () {
+        // Midpoint of a north-south line is on the line
+        const from = LatLng(0.0, 0.0);
+        const to = LatLng(2.0, 0.0);
+        const onTrack = LatLng(1.0, 0.0);
+
+        final xte = GeoUtils.crossTrackDistance(from, to, onTrack);
+
+        expect(xte.abs(), lessThan(0.01));
+      });
+
+      test('returns positive when right of track', () {
+        // Sailing north — position to the east (right)
+        const from = LatLng(0.0, 0.0);
+        const to = LatLng(2.0, 0.0);
+        const rightOfTrack = LatLng(1.0, 0.1);
+
+        final xte = GeoUtils.crossTrackDistance(from, to, rightOfTrack);
+
+        expect(xte, greaterThan(0));
+      });
+
+      test('returns negative when left of track', () {
+        // Sailing north — position to the west (left)
+        const from = LatLng(0.0, 0.0);
+        const to = LatLng(2.0, 0.0);
+        const leftOfTrack = LatLng(1.0, -0.1);
+
+        final xte = GeoUtils.crossTrackDistance(from, to, leftOfTrack);
+
+        expect(xte, lessThan(0));
+      });
+
+      test('magnitude matches approximate distance', () {
+        // 0.1° longitude at equator ≈ 6 nm
+        const from = LatLng(0.0, 0.0);
+        const to = LatLng(2.0, 0.0);
+        const offset = LatLng(1.0, 0.1);
+
+        final xte = GeoUtils.crossTrackDistance(from, to, offset);
+
+        expect(xte.abs(), greaterThan(4));
+        expect(xte.abs(), lessThan(8));
+      });
+    });
   });
 }

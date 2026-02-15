@@ -1,56 +1,65 @@
-/// Boat position model for vessel tracking.
+/// Boat position model for GPS tracking and navigation display.
 library;
 
 import 'package:flutter/foundation.dart';
 
 import 'lat_lng.dart';
 
-/// Immutable snapshot of the vessel's position and motion at a point in time.
-///
-/// Created from NMEA GPGGA/GPRMC data by [BoatProvider].
-/// Used for rendering the boat marker, track overlay, and MOB positions.
-///
-/// Usage:
-/// ```dart
-/// final pos = BoatPosition(
-///   position: LatLng(latitude: 59.91, longitude: 10.75),
-///   timestamp: DateTime.now(),
-///   accuracy: 5.0,
-/// );
-/// ```
+/// ISS-018: Maximum realistic speed for position-jump filtering (m/s).
+const double maxRealisticSpeedMps = 50.0;
+
+/// Maximum GPS accuracy considered trustworthy (meters).
+const double maxAccuracyThresholdMeters = 50.0;
+
+/// Maximum number of track history points to retain.
+const int maxTrackHistoryPoints = 1000;
+
+/// A single recorded boat position with navigation metadata.
 @immutable
 class BoatPosition {
-  /// Geographic position in WGS84 (latitude/longitude).
+  /// Geographic position (WGS84).
   final LatLng position;
 
-  /// Speed over ground in knots (null if unavailable).
-  final double? speedKnots;
-
-  /// Course over ground (true heading) in degrees 0–359 (null if unavailable).
-  final double? courseTrue;
-
-  /// Magnetic heading in degrees 0–359 (null if unavailable).
-  final double? heading;
-
-  /// UTC timestamp when this position was recorded.
+  /// Timestamp when this position was recorded.
   final DateTime timestamp;
 
-  /// Horizontal accuracy estimate in meters.
-  ///
-  /// Derived from HDOP × baseline. Used for ISS-018 filtering:
-  /// positions with accuracy >50 m are candidates for jump rejection.
+  /// Speed over ground in knots. Null if unknown.
+  final double? speedKnots;
+
+  /// Course over ground in degrees (0-359) from GPS. Null if unknown.
+  final double? courseTrue;
+
+  /// Compass heading in degrees (0-359) from HDG/HDM sentence. Null if unknown.
+  final double? heading;
+
+  /// Horizontal accuracy estimate in meters. Defaults to 0.0.
   final double accuracy;
 
-  /// GPS fix quality indicator (0 = invalid, 1 = GPS, 2 = DGPS, etc.).
+  /// GPS fix quality (0 = invalid, 1 = GPS, 2 = DGPS, etc.).
   final int fixQuality;
 
   /// Number of satellites used in fix.
   final int satellites;
 
-  /// Altitude above mean sea level in meters (null if unavailable).
+  /// Altitude above mean sea level in meters. Null if unavailable.
   final double? altitudeMeters;
 
-  /// Creates an immutable [BoatPosition] snapshot.
+  /// Latitude in degrees.
+  double get latitude => position.latitude;
+
+  /// Longitude in degrees.
+  double get longitude => position.longitude;
+
+  /// Whether this position has a valid GPS fix.
+  bool get isValid => fixQuality > 0;
+
+  /// Whether this position is within the accuracy threshold.
+  bool get isAccurate => accuracy <= maxAccuracyThresholdMeters;
+
+  /// Best available heading: prefers courseTrue over compass heading.
+  double? get bestHeading => courseTrue ?? heading;
+
+  /// Creates an immutable boat position record.
   const BoatPosition({
     required this.position,
     required this.timestamp,
@@ -63,25 +72,13 @@ class BoatPosition {
     this.altitudeMeters,
   });
 
-  /// Whether this fix is considered valid (fix quality > 0).
-  bool get isValid => fixQuality > 0;
-
-  /// Whether accuracy is within acceptable threshold (<= 50 m).
-  bool get isAccurate => accuracy <= 50.0;
-
-  /// Convenience getter for latitude.
-  double get latitude => position.latitude;
-
-  /// Convenience getter for longitude.
-  double get longitude => position.longitude;
-
-  /// Returns a copy with updated fields.
+  /// Creates a copy with the given fields replaced.
   BoatPosition copyWith({
     LatLng? position,
+    DateTime? timestamp,
     double? speedKnots,
     double? courseTrue,
     double? heading,
-    DateTime? timestamp,
     double? accuracy,
     int? fixQuality,
     int? satellites,
@@ -89,10 +86,10 @@ class BoatPosition {
   }) {
     return BoatPosition(
       position: position ?? this.position,
+      timestamp: timestamp ?? this.timestamp,
       speedKnots: speedKnots ?? this.speedKnots,
       courseTrue: courseTrue ?? this.courseTrue,
       heading: heading ?? this.heading,
-      timestamp: timestamp ?? this.timestamp,
       accuracy: accuracy ?? this.accuracy,
       fixQuality: fixQuality ?? this.fixQuality,
       satellites: satellites ?? this.satellites,
@@ -101,50 +98,55 @@ class BoatPosition {
   }
 
   @override
-  String toString() =>
-      'BoatPosition(${position.latitude}, ${position.longitude}, '
-      'SOG: ${speedKnots ?? "n/a"} kts, COG: ${courseTrue ?? "n/a"}°)';
-
-  @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is BoatPosition &&
         other.position == position &&
         other.timestamp == timestamp &&
         other.speedKnots == speedKnots &&
-        other.courseTrue == courseTrue &&
-        other.heading == heading &&
-        other.accuracy == accuracy &&
-        other.fixQuality == fixQuality &&
-        other.satellites == satellites &&
-        other.altitudeMeters == altitudeMeters;
+        other.courseTrue == courseTrue;
   }
 
   @override
-  int get hashCode => Object.hash(
-        position,
-        timestamp,
-        speedKnots,
-        courseTrue,
-        heading,
-        accuracy,
-        fixQuality,
-        satellites,
-        altitudeMeters,
-      );
+  int get hashCode => Object.hash(position, timestamp, speedKnots, courseTrue);
+
+  @override
+  String toString() => 'BoatPosition(${position.latitude.toStringAsFixed(5)}, '
+      '${position.longitude.toStringAsFixed(5)}, '
+      'SOG: ${speedKnots?.toStringAsFixed(1) ?? "n/a"} kn, '
+      'COG: ${courseTrue?.toStringAsFixed(1) ?? "n/a"}°)';
 }
 
-/// Maximum speed threshold in meters per second for ISS-018 filtering.
-///
-/// 50 m/s ≈ 97 knots — unrealistic for most vessels.
-/// Used by [BoatProvider] to reject position jumps on GPS reconnect.
-const double maxRealisticSpeedMps = 50.0;
+/// Lightweight track point for breadcrumb trail rendering.
+@immutable
+class TrackPoint {
+  /// Latitude in degrees.
+  final double lat;
 
-/// Maximum accuracy threshold in meters for ISS-018 filtering.
-///
-/// Positions with accuracy worse than this are candidates for rejection
-/// when combined with unrealistic speed.
-const double maxAccuracyThresholdMeters = 50.0;
+  /// Longitude in degrees.
+  final double lng;
 
-/// Maximum number of track history points before LRU eviction.
-const int maxTrackHistoryPoints = 1000;
+  /// Speed in knots at this point (for coloring).
+  final double speedKnots;
+
+  /// Milliseconds since epoch.
+  final int timestampMs;
+
+  /// Creates a compact track point.
+  const TrackPoint({
+    required this.lat,
+    required this.lng,
+    required this.speedKnots,
+    required this.timestampMs,
+  });
+
+  /// Create from a full BoatPosition.
+  factory TrackPoint.fromPosition(BoatPosition pos) {
+    return TrackPoint(
+      lat: pos.position.latitude,
+      lng: pos.position.longitude,
+      speedKnots: pos.speedKnots ?? 0,
+      timestampMs: pos.timestamp.millisecondsSinceEpoch,
+    );
+  }
+}

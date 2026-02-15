@@ -99,6 +99,23 @@ class GeoUtils {
     );
   }
 
+  /// Calculates cross-track distance (XTE) from [position] to the great-circle
+  /// path between [from] and [to].
+  ///
+  /// Returns signed distance in nautical miles:
+  /// positive = right of track, negative = left of track.
+  static double crossTrackDistance(LatLng from, LatLng to, LatLng position) {
+    final d13 = distanceBetween(from, position) * 1852.0; // nm → meters
+    final t13 = _degreesToRadians(bearingBetween(from, position));
+    final t12 = _degreesToRadians(bearingBetween(from, to));
+
+    final xte =
+        math.asin(math.sin(d13 / earthRadiusMeters) * math.sin(t13 - t12)) *
+            earthRadiusMeters;
+
+    return _metersToNauticalMiles(xte);
+  }
+
   /// Calculates bearing from current position to next waypoint.
   ///
   /// Returns 0 if no next waypoint exists.

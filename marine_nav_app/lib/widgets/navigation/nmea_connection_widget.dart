@@ -30,6 +30,7 @@ class NMEAConnectionIndicator extends StatelessWidget {
   /// Builds the connection indicator widget with color-coded status.
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Consumer<NMEAProvider>(
       builder: (context, nmea, child) {
         final isConnected = nmea.isConnected;
@@ -42,7 +43,7 @@ class NMEAConnectionIndicator extends StatelessWidget {
         String statusText;
 
         if (isConnected) {
-          indicatorColor = OceanColors.seafoamGreen;
+          indicatorColor = colorScheme.primary;
           indicatorIcon = Icons.link;
           statusText = 'NMEA Connected';
         } else if (isActive) {
@@ -50,11 +51,11 @@ class NMEAConnectionIndicator extends StatelessWidget {
           indicatorIcon = Icons.sync;
           statusText = 'Connecting...';
         } else if (lastError != null) {
-          indicatorColor = OceanColors.coralRed;
+          indicatorColor = colorScheme.error;
           indicatorIcon = Icons.link_off;
           statusText = 'Connection Error';
         } else {
-          indicatorColor = OceanColors.textDisabled;
+          indicatorColor = colorScheme.onSurfaceVariant.withValues(alpha: 0.4);
           indicatorIcon = Icons.link_off;
           statusText = 'NMEA Disconnected';
         }
@@ -87,11 +88,12 @@ class NMEAConnectionIndicator extends StatelessWidget {
   /// Show connection management dialog
   void _showConnectionDialog(BuildContext context) {
     final nmea = context.read<NMEAProvider>();
+    final colorScheme = Theme.of(context).colorScheme;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: OceanColors.surface,
+        backgroundColor: colorScheme.surface,
         title: const Text('NMEA Connection', style: OceanTextStyles.heading2),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -105,8 +107,7 @@ class NMEAConnectionIndicator extends StatelessWidget {
               const SizedBox(height: OceanDimensions.spacingS),
               Text(
                 'Error: ${nmea.lastError!.message}',
-                style:
-                    OceanTextStyles.body.copyWith(color: OceanColors.coralRed),
+                style: OceanTextStyles.body.copyWith(color: colorScheme.error),
               ),
             ],
             if (nmea.lastUpdateTime != null) ...[
@@ -143,7 +144,7 @@ class NMEAConnectionIndicator extends StatelessWidget {
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: OceanColors.coralRed,
+                backgroundColor: colorScheme.error,
               ),
               child: const Text('Disconnect'),
             ),

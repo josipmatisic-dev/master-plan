@@ -1,27 +1,27 @@
-/// MapScreen - SailStream primary map layout with glass overlays.
+/// MapScreen - SailStream primary map layout with draggable glass overlays.
 library;
 
 // ignore_for_file: public_member_api_docs, prefer_const_constructors, prefer_const_declarations
 
-import 'package:flutter/material.dart' hide Viewport;
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../providers/boat_provider.dart';
-import '../providers/map_provider.dart';
+import '../providers/nmea_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
 import '../theme/text_styles.dart';
+import '../utils/navigation_utils.dart';
 import '../utils/responsive_utils.dart';
+import '../widgets/common/draggable_overlay.dart';
+import '../widgets/controls/layer_toggle.dart';
 import '../widgets/data_displays/data_orb.dart';
-import '../widgets/data_displays/wind_widget.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/map/map_webview.dart';
 import '../widgets/navigation/compass_widget.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
-import '../widgets/overlays/boat_marker.dart';
-import '../widgets/overlays/track_overlay.dart';
+import '../widgets/weather/timeline_scrubber.dart';
 
-/// Primary map screen with layered glass UI.
+/// Primary map screen with draggable layered glass UI.
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
 
@@ -31,17 +31,28 @@ class MapScreen extends StatefulWidget {
 
 class _MapScreenState extends State<MapScreen> {
   bool isVr = false;
-  final List<Offset> _windOffsets = [const Offset(40, 200)];
 
   void _handleNavSelection(BuildContext context, int index) {
     switch (index) {
-      case 1:
-        // Map (current)
+      case 0:
+        Navigator.of(context).pushNamed('/dashboard');
         break;
+      case 1:
+        break; // already on map
       case 2:
         Navigator.of(context).pushNamed('/navigation');
         break;
-      default:
+      case 3:
+        Navigator.of(context).pushNamed('/weather');
+        break;
+      case 4:
+        Navigator.of(context).pushNamed('/settings');
+        break;
+      case 5:
+        Navigator.of(context).pushNamed('/profile');
+        break;
+      case 6:
+        Navigator.of(context).pushNamed('/vessel');
         break;
     }
   }
@@ -50,98 +61,144 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Stack(
-          children: [
-            const MapWebView(),
-            _buildTrackOverlay(context),
-            _buildBoatMarker(context),
-            _buildTopBar(),
-            _buildDataOrbs(context),
-            _buildCompass(context),
-            _buildNavigationSidebar(context),
-            _buildWindWidgets(),
-            _buildTimelineScrubber(context),
-          ],
+        child: SizedBox.expand(
+          child: Stack(
+            children: [
+              const Positioned.fill(child: MapWebView(height: null)),
+              _buildDraggableTopBar(),
+              _buildDraggableDataOrbs(context),
+              _buildDraggableCompass(),
+              _buildDraggableSidebar(context),
+              _buildDraggableWindWidget(),
+              _buildDraggableLayerToggle(),
+              _buildDraggableTimeline(),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildTopBar() {
-    return Positioned(
-      top: OceanDimensions.spacing,
-      left: OceanDimensions.spacing,
-      right: OceanDimensions.spacing,
-      child: GlassCard(
-        padding: GlassCardPadding.small,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Text('SailStream', style: OceanTextStyles.heading2),
-            Icon(Icons.search, color: OceanColors.textSecondary),
-          ],
+  // ============ Draggable Widgets ============
+
+  Widget _buildDraggableTopBar() {
+    return DraggableOverlay(
+      id: 'map_topBar',
+      initialPosition: const Offset(16, 8),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width - 80,
+        child: GlassCard(
+          padding: GlassCardPadding.small,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: Text(
+                  'SailStream',
+                  style: OceanTextStyles.heading2.copyWith(
+                    color: OceanColors.pureWhite,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const Icon(Icons.search, color: OceanColors.textSecondary),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildDataOrbs(BuildContext context) {
-    return Positioned(
-      top: context.isMobile ? 120 : 140,
-      left: 0,
-      right: 0,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
-          DataOrb(
-            label: 'SOG',
-            value: '12.4',
-            unit: 'kts',
-            size: DataOrbSize.medium,
-            heroTag: 'orb-sog',
-          ),
-          SizedBox(width: OceanDimensions.spacingL),
-          DataOrb(
-            label: 'COG',
-            value: '85',
-            unit: '°',
-            size: DataOrbSize.medium,
-            subtitle: 'E',
-            heroTag: 'orb-cog',
-          ),
-          SizedBox(width: OceanDimensions.spacingL),
-          DataOrb(
-            label: 'DEPTH',
-            value: '24',
-            unit: 'm',
-            size: DataOrbSize.medium,
-            state: DataOrbState.normal,
-            heroTag: 'orb-depth',
-          ),
-        ],
+  Widget _buildDraggableDataOrbs(BuildContext context) {
+    final orbSize = context.isMobile ? DataOrbSize.small : DataOrbSize.medium;
+
+    return DraggableOverlay(
+      id: 'map_dataOrbs',
+      initialPosition: const Offset(16, 70),
+      child: Consumer<NMEAProvider>(
+        builder: (_, nmea, __) {
+          final baseState =
+              nmea.isConnected ? DataOrbState.normal : DataOrbState.inactive;
+          final depth = nmea.currentData?.depthMeters;
+          final depthState = nmea.isConnected
+              ? (depth != null && depth < 5.0
+                  ? DataOrbState.alert
+                  : DataOrbState.normal)
+              : DataOrbState.inactive;
+
+          return SizedBox(
+            width: MediaQuery.of(context).size.width - 80,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Flexible(
+                  child: DataOrb(
+                    label: 'SOG',
+                    value: nmea.currentData?.speedOverGroundKnots
+                            ?.toStringAsFixed(1) ??
+                        '--',
+                    unit: 'kts',
+                    size: orbSize,
+                    state: baseState,
+                    heroTag: 'orb-sog',
+                  ),
+                ),
+                const SizedBox(width: OceanDimensions.spacingS),
+                Flexible(
+                  child: DataOrb(
+                    label: 'COG',
+                    value: nmea.currentData?.courseOverGroundDegrees
+                            ?.toStringAsFixed(0) ??
+                        '--',
+                    unit: '°',
+                    size: orbSize,
+                    state: baseState,
+                    heroTag: 'orb-cog',
+                  ),
+                ),
+                const SizedBox(width: OceanDimensions.spacingS),
+                Flexible(
+                  child: DataOrb(
+                    label: 'DEPTH',
+                    value: depth?.toStringAsFixed(1) ?? '--',
+                    unit: 'm',
+                    size: orbSize,
+                    state: depthState,
+                    heroTag: 'orb-depth',
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildCompass(BuildContext context) {
-    return Positioned(
-      bottom: context.isMobile ? 32 : 48,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: CompassWidget(
-          headingDegrees: 42,
-          speedKnots: 12.4,
-          windKnots: 15.2,
-          windDirection: 'N 45°',
-          isVrEnabled: isVr,
-          onToggleVr: () => setState(() => isVr = !isVr),
-        ),
+  Widget _buildDraggableCompass() {
+    return DraggableOverlay(
+      id: 'map_compass',
+      initialPosition: const Offset(140, 500),
+      child: Consumer<NMEAProvider>(
+        builder: (_, nmea, __) {
+          final windDeg = nmea.currentData?.windDirectionDegrees;
+          final windLabel = windDeg != null
+              ? '${cardinalDirection(windDeg)} ${windDeg.toStringAsFixed(0)}°'
+              : '--';
+          return CompassWidget(
+            headingDegrees: nmea.currentData?.courseOverGroundDegrees ?? 0,
+            speedKnots: nmea.currentData?.speedOverGroundKnots ?? 0,
+            windKnots: nmea.currentData?.windSpeedKnots ?? 0,
+            windDirection: windLabel,
+            isVrEnabled: isVr,
+            onToggleVr: () => setState(() => isVr = !isVr),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildNavigationSidebar(BuildContext context) {
+  Widget _buildDraggableSidebar(BuildContext context) {
     final items = const [
       NavItem(icon: Icons.dashboard_outlined, label: 'Dashboard'),
       NavItem(icon: Icons.map_outlined, label: 'Map'),
@@ -152,10 +209,9 @@ class _MapScreenState extends State<MapScreen> {
       NavItem(icon: Icons.directions_boat_outlined, label: 'Vessel'),
     ];
 
-    return Positioned(
-      top: 100,
-      bottom: 100,
-      left: OceanDimensions.spacing,
+    return DraggableOverlay(
+      id: 'map_sidebar',
+      initialPosition: const Offset(0, 200),
       child: NavigationSidebar(
         items: items,
         activeIndex: 1,
@@ -164,77 +220,78 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildWindWidgets() {
-    return Stack(
-      children: [
-        for (var i = 0; i < _windOffsets.length; i++)
-          TrueWindWidget(
-            speedKnots: 14.2,
-            directionLabel: 'NNE',
-            progress: 0.6,
-            initialOffset: _windOffsets[i],
-            onPositionChanged: (offset) {
-              setState(() => _windOffsets[i] = offset);
-            },
-            editMode: true,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildTimelineScrubber(BuildContext context) {
-    return Positioned(
-      bottom: context.isMobile ? 8 : 24,
-      left: OceanDimensions.spacingL,
-      right: OceanDimensions.spacingL,
-      child: GlassCard(
-        padding: GlassCardPadding.small,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: const [
-            Icon(Icons.play_arrow, color: OceanColors.pureWhite),
-            Text('Forecast Timeline', style: OceanTextStyles.body),
-            Icon(Icons.more_horiz, color: OceanColors.textSecondary),
-          ],
-        ),
+  Widget _buildDraggableWindWidget() {
+    return DraggableOverlay(
+      id: 'map_wind',
+      initialPosition: const Offset(40, 340),
+      child: Consumer<NMEAProvider>(
+        builder: (_, nmea, __) {
+          final windSpeed = nmea.currentData?.windSpeedKnots;
+          final windDir = nmea.currentData?.windDirectionDegrees;
+          return GlassCard(
+            borderRadius: OceanDimensions.radiusM,
+            child: SizedBox(
+              width: 130,
+              height: 130,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  SizedBox(
+                    width: 110,
+                    height: 110,
+                    child: CircularProgressIndicator(
+                      value: ((windSpeed ?? 0) / 40.0).clamp(0.0, 1.0),
+                      strokeWidth: 5,
+                      backgroundColor:
+                          OceanColors.seafoamGreen.withValues(alpha: 0.2),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        OceanColors.seafoamGreen,
+                      ),
+                    ),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${windSpeed?.toStringAsFixed(1) ?? '--'} kts',
+                        style: OceanTextStyles.bodyLarge.copyWith(
+                          color: OceanColors.pureWhite,
+                        ),
+                      ),
+                      const SizedBox(height: OceanDimensions.spacingXS),
+                      Text(
+                        cardinalDirection(windDir),
+                        style: OceanTextStyles.label.copyWith(
+                          color: OceanColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildTrackOverlay(BuildContext context) {
-    return Consumer<BoatProvider>(
-      builder: (_, boatProvider, __) {
-        if (boatProvider.trackHistoryLength < 2) {
-          return const SizedBox.shrink();
-        }
-        return Consumer<MapProvider>(
-          builder: (_, mapProvider, __) {
-            return TrackOverlay(
-              trackHistory: boatProvider.trackHistory,
-              viewport: mapProvider.viewport,
-            );
-          },
-        );
-      },
+  Widget _buildDraggableLayerToggle() {
+    return DraggableOverlay(
+      id: 'map_layers',
+      initialPosition: const Offset(300, 70),
+      child: const LayerToggle(),
     );
   }
 
-  Widget _buildBoatMarker(BuildContext context) {
-    return Consumer<BoatProvider>(
-      builder: (_, boatProvider, __) {
-        if (!boatProvider.hasPosition) {
-          return const SizedBox.shrink();
-        }
-        return Consumer<MapProvider>(
-          builder: (_, mapProvider, __) {
-            return BoatMarker(
-              position: boatProvider.currentPosition!,
-              viewport: mapProvider.viewport,
-              mobPosition: boatProvider.mobPosition,
-            );
-          },
-        );
-      },
+  Widget _buildDraggableTimeline() {
+    return DraggableOverlay(
+      id: 'map_timeline',
+      initialPosition: Offset(16, MediaQuery.of(context).size.height - 140),
+      child: SizedBox(
+        width: MediaQuery.of(context).size.width - 48,
+        child: const TimelineScrubber(),
+      ),
     );
   }
 }

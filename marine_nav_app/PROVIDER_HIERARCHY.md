@@ -1,8 +1,8 @@
 # Provider Dependency Graph - Phase 2
 
-**Version:** 3.0  
-**Date:** 2026-02-09  
-**Status:** Implemented (BoatProvider, NMEAProvider, RouteProvider added)
+**Version:** 3.1  
+**Date:** 2026-02-15  
+**Status:** Implemented (BoatProvider, WeatherProvider, TimelineProvider added)
 
 ---
 
@@ -11,22 +11,22 @@
 Following **CON-004** from MASTER_DEVELOPMENT_BIBLE.md, all providers are organized in strict acyclic layers with one-directional dependencies:
 
 ```text
-┌──────────────────────────────────────────────────────────┐
-│                   Layer 2 (Navigation)                   │
-│                                                          │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│  │ MapProvider  │  │NMEAProvider  │  │RouteProvider │   │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘   │
-│         │                  │                 │            │
-│         │          ┌───────┘                 │            │
-│         │          ▼                         │            │
-│         │   ┌──────────────┐                 │            │
-│         │   │BoatProvider  │                 │            │
-│         │   │ (← NMEA)     │                 │            │
-│         │   └──────────────┘                 │            │
-│         │                                    │            │
-│         └──────────┬─────────────────────────┘            │
-└────────────────────┼────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                          Layer 2 (Navigation)                           │
+│                                                                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │
+│  │ MapProvider  │  │NMEAProvider  │  │RouteProvider │  │WeatherProv. │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬──────┘  │
+│         │                  │                 │                  │         │
+│         │          ┌───────┘                 │                  │         │
+│         │          ▼                         │                  │         │
+│         │   ┌──────────────┐                 │      ┌──────────┘         │
+│         │   │BoatProvider  │                 │      ▼                    │
+│         │   │(←NMEA,Map,Rt)│                 │  ┌──────────────┐        │
+│         │   └──────────────┘                 │  │TimelineProv. │        │
+│         │                                    │  └──────────────┘        │
+│         └──────────┬───────┴─────────────────┴──────────────────┘        │
+└────────────────────┼────────────────────────────────────────────────────┘
                      │
 ┌────────────────────┼────────────────────────────────────┐
 │                    │      Layer 1                       │
@@ -208,6 +208,39 @@ class RouteProvider extends ChangeNotifier {
 }
 ```
 
+#### Weather Provider (Implemented - FEAT-004)
+
+- File: `lib/providers/weather_provider.dart`
+- Lines: ~230 (under 300 limit ✅)
+- Dependencies: SettingsProvider (Layer 0), CacheProvider (Layer 1)
+- Responsibilities:
+  - Fetch weather data from Open-Meteo Marine API
+  - Cache-first strategy with 1-hour TTL
+  - Debounced viewport-based fetching (500ms)
+  - Toggle wind/wave overlay layers
+  - Track loading, error, and staleness states
+
+**API:**
+
+```dart
+class WeatherProvider extends ChangeNotifier {
+  // State getters
+  WeatherData? get weatherData;
+  bool get isLoading;
+  String? get error;
+  bool get isLayerActive;
+  WeatherLayer get activeLayer;
+  bool get isStale;
+  
+  // Actions
+  Future<void> refresh(LatLng southWest, LatLng northEast);
+  void fetchForViewport(Viewport viewport);
+  void toggleLayer();
+  void setLayerActive(bool active);
+  void clearData();
+}
+```
+
 #### BoatProvider (NEW - Phase 2)
 
 - File: `lib/providers/boat_provider.dart`
@@ -240,12 +273,6 @@ class BoatProvider extends ChangeNotifier {
 }
 ```
 
-#### Weather Provider (Planned - Phase 3)
-
-- File: `lib/providers/weather_provider.dart`
-- Layer: 2
-- Status: Scheduled for Phase 3
-
 ## Provider Initialization Order
 
 In `main.dart`, providers are initialized in dependency order:
@@ -269,26 +296,29 @@ void main() async {
     cacheProvider: cacheProvider,
   );
   final routeProvider = RouteProvider();
-  final boatProvider = BoatProvider(nmeaProvider: nmeaProvider);
-
-  // 4. Initialize async providers (Layer 0 first, then Layer 1)
+  final weatherProvider = WeatherProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
+  final boatProvider = BoatProvider(
+    nmeaProvider: nmeaProvider,
+    mapProvider: mapProvider,
+    routeProvider: routeProvider,
+  );
+  final timelineProvider = TimelineProvider(
+    weatherProvider: weatherProvider,
+  );
+  
+  // 4. Initialize all providers
   await Future.wait([
     settingsProvider.init(),
     themeProvider.init(),
     cacheProvider.init(),
     mapProvider.init(),
   ]);
-
-  // 5. Provide to app
-  runApp(MarineNavigationApp(
-    settingsProvider: settingsProvider,
-    themeProvider: themeProvider,
-    cacheProvider: cacheProvider,
-    mapProvider: mapProvider,
-    nmeaProvider: nmeaProvider,
-    routeProvider: routeProvider,
-    boatProvider: boatProvider,
-  ));
+  
+  // 5. Setup app with all providers
+  runApp(MarineNavigationApp(...));
 }
 ```
 

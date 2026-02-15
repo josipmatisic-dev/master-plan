@@ -5,7 +5,6 @@ library;
 
 import 'package:flutter/material.dart';
 
-import '../../theme/colors.dart';
 import '../../theme/dimensions.dart';
 import '../../theme/text_styles.dart';
 import '../glass/glass_card.dart';
@@ -25,7 +24,10 @@ class NavItem {
 }
 
 /// Vertical navigation sidebar with active state and callback.
-class NavigationSidebar extends StatelessWidget {
+///
+/// On mobile screens (< 600px) the sidebar collapses into a hamburger icon
+/// that expands on tap. On wider screens it behaves as a normal sidebar.
+class NavigationSidebar extends StatefulWidget {
   const NavigationSidebar({
     super.key,
     required this.items,
@@ -43,7 +45,50 @@ class NavigationSidebar extends StatelessWidget {
   final ValueChanged<int> onSelected;
 
   @override
+  State<NavigationSidebar> createState() => _NavigationSidebarState();
+}
+
+class _NavigationSidebarState extends State<NavigationSidebar> {
+  bool _isExpanded = false;
+
+  @override
   Widget build(BuildContext context) {
+    final isMobile =
+        MediaQuery.of(context).size.width < OceanDimensions.breakpointMobile;
+
+    if (!isMobile) {
+      return _buildFullSidebar();
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GlassCard(
+          borderRadius: OceanDimensions.radiusL,
+          child: IconButton(
+            icon: Icon(
+              _isExpanded ? Icons.close : Icons.menu,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            onPressed: () => setState(() => _isExpanded = !_isExpanded),
+          ),
+        ),
+        AnimatedSize(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          alignment: Alignment.topCenter,
+          child: _isExpanded
+              ? Padding(
+                  padding: const EdgeInsets.only(top: OceanDimensions.spacingS),
+                  child: _buildFullSidebar(),
+                )
+              : const SizedBox.shrink(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFullSidebar() {
     return GlassCard(
       borderRadius: OceanDimensions.radiusL,
       child: Padding(
@@ -54,13 +99,13 @@ class NavigationSidebar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (var i = 0; i < items.length; i++) ...[
+            for (var i = 0; i < widget.items.length; i++) ...[
               _NavButton(
-                item: items[i],
-                isActive: i == activeIndex,
-                onTap: () => onSelected(i),
+                item: widget.items[i],
+                isActive: i == widget.activeIndex,
+                onTap: () => widget.onSelected(i),
               ),
-              if (i != items.length - 1)
+              if (i != widget.items.length - 1)
                 const SizedBox(height: OceanDimensions.spacingM),
             ],
           ],
@@ -83,8 +128,8 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color =
-        isActive ? OceanColors.seafoamGreen : OceanColors.textSecondary;
+    final colorScheme = Theme.of(context).colorScheme;
+    final color = isActive ? colorScheme.primary : colorScheme.onSurfaceVariant;
 
     return InkWell(
       onTap: onTap,
@@ -96,7 +141,7 @@ class _NavButton extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           color: isActive
-              ? OceanColors.seafoamGreen.withValues(alpha: 0.15)
+              ? colorScheme.primary.withValues(alpha: 0.15)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(OceanDimensions.radiusM),
         ),

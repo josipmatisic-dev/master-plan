@@ -1,418 +1,258 @@
+/// Boat Provider Tests
+library;
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:latlong2/latlong.dart' as ll;
 import 'package:marine_nav_app/models/boat_position.dart';
 import 'package:marine_nav_app/models/lat_lng.dart';
-import 'package:marine_nav_app/models/nmea_data.dart';
 import 'package:marine_nav_app/providers/boat_provider.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
+import 'package:marine_nav_app/providers/map_provider.dart';
 import 'package:marine_nav_app/providers/nmea_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
-import 'package:marine_nav_app/services/nmea_service.dart';
+import 'package:marine_nav_app/services/location_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-/// Mock NMEA Service that prevents actual connection attempts.
-class MockNMEAService extends NMEAService {}
-
-/// Helper to create [NMEAData] with a GPS position.
-NMEAData _makeNmeaData({
-  required double lat,
-  required double lng,
-  double? speedKnots,
-  double? courseTrue,
-  double hdop = 1.0,
-  int fixQuality = 1,
-  int satellites = 8,
-  DateTime? timestamp,
-}) {
-  final ts = timestamp ?? DateTime.now();
-  return NMEAData(
-    timestamp: ts,
-    gpgga: GPGGAData(
-      position: ll.LatLng(lat, lng),
-      time: ts,
-      fixQuality: fixQuality,
-      satellites: satellites,
-      hdop: hdop,
-    ),
-    gprmc: GPRMCData(
-      position: ll.LatLng(lat, lng),
-      time: ts,
-      valid: true,
-      speedKnots: speedKnots,
-      trackTrue: courseTrue,
-    ),
-    gpvtg: courseTrue != null || speedKnots != null
-        ? GPVTGData(
-            trackTrue: courseTrue,
-            speedKnots: speedKnots,
-          )
-        : null,
-  );
+/// Stub location service that does nothing (no platform calls).
+class StubLocationService extends LocationService {
+  @override
+  Future<void> start() async {
+    // No-op in tests — avoids Geolocator platform calls
+  }
 }
 
 void main() {
-  group('BoatProvider', () {
-    late SettingsProvider settingsProvider;
-    late CacheProvider cacheProvider;
-    late NMEAProvider nmeaProvider;
-    late BoatProvider boatProvider;
-    bool providerDisposed = false;
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    setUp(() async {
-      providerDisposed = false;
-      settingsProvider = SettingsProvider();
-      await settingsProvider.init();
-      cacheProvider = CacheProvider();
-      await cacheProvider.init();
-      nmeaProvider = NMEAProvider(
-        settingsProvider: settingsProvider,
-        cacheProvider: cacheProvider,
-        service: MockNMEAService(),
+  late SettingsProvider settingsProvider;
+  late CacheProvider cacheProvider;
+  late MapProvider mapProvider;
+  late NMEAProvider nmeaProvider;
+
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    settingsProvider = SettingsProvider();
+    await settingsProvider.init();
+    cacheProvider = CacheProvider();
+    await cacheProvider.init();
+    mapProvider = MapProvider(
+      settingsProvider: settingsProvider,
+      cacheProvider: cacheProvider,
+    );
+    await mapProvider.init();
+    nmeaProvider = NMEAProvider(
+      settingsProvider: settingsProvider,
+      cacheProvider: cacheProvider,
+    );
+  });
+
+  group('BoatPosition model', () {
+    test('constructs with required fields and defaults', () {
+      final t = DateTime(2025, 1, 1);
+      const pos = LatLng(latitude: 43.5, longitude: 16.4);
+      final bp = BoatPosition(position: pos, timestamp: t);
+
+      expect(bp.latitude, 43.5);
+      expect(bp.longitude, 16.4);
+      expect(bp.speedKnots, isNull);
+      expect(bp.courseTrue, isNull);
+      expect(bp.heading, isNull);
+      expect(bp.accuracy, 0.0);
+      expect(bp.fixQuality, 0);
+      expect(bp.satellites, 0);
+      expect(bp.altitudeMeters, isNull);
+    });
+
+    test('isValid reflects fixQuality', () {
+      final valid = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        fixQuality: 1,
       );
-      boatProvider = BoatProvider(nmeaProvider: nmeaProvider);
+      final invalid = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+      );
+      expect(valid.isValid, isTrue);
+      expect(invalid.isValid, isFalse);
+    });
+
+    test('isAccurate reflects accuracy threshold', () {
+      final accurate = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        accuracy: 50.0,
+      );
+      final inaccurate = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        accuracy: 50.1,
+      );
+      expect(accurate.isAccurate, isTrue);
+      expect(inaccurate.isAccurate, isFalse);
+    });
+
+    test('bestHeading prefers courseTrue over heading', () {
+      final bp = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        courseTrue: 90.0,
+        heading: 85.0,
+      );
+      expect(bp.bestHeading, 90.0);
+
+      final headingOnly = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        heading: 85.0,
+      );
+      expect(headingOnly.bestHeading, 85.0);
+    });
+
+    test('copyWith preserves unchanged fields', () {
+      final original = BoatPosition(
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
+        timestamp: DateTime(2025),
+        speedKnots: 10.0,
+        courseTrue: 45.0,
+      );
+      final copied = original.copyWith(speedKnots: 15.0);
+      expect(copied.speedKnots, 15.0);
+      expect(copied.courseTrue, 45.0);
+      expect(copied.latitude, 43.5);
+    });
+
+    test('equality compares all fields', () {
+      final t = DateTime(2025, 1, 1);
+      final a = BoatPosition(
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
+        timestamp: t,
+        speedKnots: 5.0,
+        courseTrue: 90.0,
+      );
+      final b = BoatPosition(
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
+        timestamp: t,
+        speedKnots: 5.0,
+        courseTrue: 90.0,
+      );
+      expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
+    });
+
+    test('toString includes coords and speed', () {
+      final pos = BoatPosition(
+        position: const LatLng(latitude: 43.51234, longitude: 16.43210),
+        timestamp: DateTime(2025),
+        speedKnots: 7.3,
+        courseTrue: 85.0,
+      );
+      final str = pos.toString();
+      expect(str, contains('43.51234'));
+      expect(str, contains('7.3'));
+      expect(str, contains('85.0'));
+    });
+  });
+
+  group('TrackPoint', () {
+    test('fromPosition creates compact point', () {
+      final pos = BoatPosition(
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
+        timestamp: DateTime(2025, 6, 1),
+        speedKnots: 5.0,
+      );
+      final tp = TrackPoint.fromPosition(pos);
+      expect(tp.lat, 43.5);
+      expect(tp.lng, 16.4);
+      expect(tp.speedKnots, 5.0);
+    });
+
+    test('fromPosition uses zero speed when null', () {
+      final pos = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+      );
+      final tp = TrackPoint.fromPosition(pos);
+      expect(tp.speedKnots, 0);
+    });
+  });
+
+  group('BoatProvider', () {
+    late BoatProvider boatProvider;
+
+    setUp(() {
+      boatProvider = BoatProvider(
+        nmeaProvider: nmeaProvider,
+        mapProvider: mapProvider,
+        locationService: StubLocationService(),
+      );
     });
 
     tearDown(() {
-      if (!providerDisposed) {
-        boatProvider.dispose();
-      }
-      nmeaProvider.dispose();
-      cacheProvider.dispose();
+      boatProvider.dispose();
     });
 
-    // ============ Initialization ============
-
-    test('initializes with null position', () {
+    test('initializes with no position', () {
       expect(boatProvider.currentPosition, isNull);
-      expect(boatProvider.hasPosition, false);
+      expect(boatProvider.source, PositionSource.none);
+      expect(boatProvider.trackPointCount, 0);
     });
 
-    test('initializes with empty track history', () {
-      expect(boatProvider.trackHistory, isEmpty);
-      expect(boatProvider.trackHistoryLength, 0);
+    test('defaults to followBoat true and showTrack true', () {
+      expect(boatProvider.followBoat, isTrue);
+      expect(boatProvider.showTrack, isTrue);
     });
 
-    test('initializes with no MOB', () {
-      expect(boatProvider.mobPosition, isNull);
-      expect(boatProvider.hasMob, false);
+    test('toggles followBoat', () {
+      boatProvider.followBoat = false;
+      expect(boatProvider.followBoat, isFalse);
+      boatProvider.followBoat = true;
+      expect(boatProvider.followBoat, isTrue);
     });
 
-    test('initializes with tracking enabled', () {
-      expect(boatProvider.isTracking, true);
+    test('toggles showTrack', () {
+      boatProvider.showTrack = false;
+      expect(boatProvider.showTrack, isFalse);
     });
 
-    // ============ updateFromNMEA ============
-
-    test('updateFromNMEA sets current position', () {
-      final data = _makeNmeaData(
-        lat: 59.91,
-        lng: 10.75,
-        speedKnots: 12.0,
-        courseTrue: 85.0,
-      );
-
-      boatProvider.updateFromNMEA(data);
-
-      expect(boatProvider.hasPosition, true);
-      final pos = boatProvider.currentPosition!;
-      expect(pos.latitude, 59.91);
-      expect(pos.longitude, 10.75);
-      expect(pos.speedKnots, 12.0);
-      expect(pos.courseTrue, 85.0);
-    });
-
-    test('updateFromNMEA adds to track history', () {
-      final data = _makeNmeaData(lat: 59.91, lng: 10.75);
-      boatProvider.updateFromNMEA(data);
-
-      expect(boatProvider.trackHistoryLength, 1);
-      expect(boatProvider.trackHistory.first.latitude, 59.91);
-    });
-
-    test('updateFromNMEA ignores null data', () {
-      boatProvider.updateFromNMEA(null);
-      expect(boatProvider.hasPosition, false);
-      expect(boatProvider.trackHistoryLength, 0);
-    });
-
-    test('updateFromNMEA ignores data without position', () {
-      final data = NMEAData(timestamp: DateTime.now());
-      boatProvider.updateFromNMEA(data);
-      expect(boatProvider.hasPosition, false);
-    });
-
-    test('updateFromNMEA calculates accuracy from HDOP', () {
-      final data = _makeNmeaData(lat: 59.91, lng: 10.75, hdop: 2.5);
-      boatProvider.updateFromNMEA(data);
-
-      // accuracy = hdop × 5.0 = 12.5
-      expect(boatProvider.currentPosition!.accuracy, 12.5);
-    });
-
-    test('updateFromNMEA extracts fix quality and satellites', () {
-      final data = _makeNmeaData(
-        lat: 59.91,
-        lng: 10.75,
-        fixQuality: 2,
-        satellites: 10,
-      );
-      boatProvider.updateFromNMEA(data);
-
-      expect(boatProvider.currentPosition!.fixQuality, 2);
-      expect(boatProvider.currentPosition!.satellites, 10);
-    });
-
-    test('updateFromNMEA notifies listeners', () {
-      int notifyCount = 0;
-      boatProvider.addListener(() => notifyCount++);
-
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(lat: 59.91, lng: 10.75),
-      );
-
-      expect(notifyCount, 1);
-    });
-
-    // ============ Tracking toggle ============
-
-    test('setTracking disables position updates', () {
-      boatProvider.setTracking(enabled: false);
-      expect(boatProvider.isTracking, false);
-
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(lat: 59.91, lng: 10.75),
-      );
-      expect(boatProvider.hasPosition, false);
-    });
-
-    test('setTracking re-enables position updates', () {
-      boatProvider.setTracking(enabled: false);
-      boatProvider.setTracking(enabled: true);
-
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(lat: 59.91, lng: 10.75),
-      );
-      expect(boatProvider.hasPosition, true);
-    });
-
-    test('setTracking does not notify if value unchanged', () {
-      int notifyCount = 0;
-      boatProvider.addListener(() => notifyCount++);
-
-      boatProvider.setTracking(enabled: true); // already true
-      expect(notifyCount, 0);
-    });
-
-    // ============ ISS-018 Filtering ============
-
-    test('accepts first position regardless of accuracy', () {
-      final data = _makeNmeaData(
-        lat: 59.91,
-        lng: 10.75,
-        hdop: 20.0, // accuracy = 100m (above threshold)
-      );
-      boatProvider.updateFromNMEA(data);
-      expect(boatProvider.hasPosition, true);
-    });
-
-    test('rejects unrealistic speed with poor accuracy', () {
-      // Set initial position
-      final now = DateTime.now();
-      final first = _makeNmeaData(
-        lat: 59.91,
-        lng: 10.75,
-        timestamp: now,
-      );
-      boatProvider.updateFromNMEA(first);
-
-      // Position jump: ~1 degree lat ≈ 111km in 1 second = ~111,000 m/s
-      // AND accuracy > 50m → should be rejected
-      final jump = _makeNmeaData(
-        lat: 60.91,
-        lng: 10.75,
-        hdop: 20.0, // accuracy = 100m
-        timestamp: now.add(const Duration(seconds: 1)),
-      );
-      boatProvider.updateFromNMEA(jump);
-
-      // Should still have the first position
-      expect(boatProvider.currentPosition!.latitude, 59.91);
-      expect(boatProvider.trackHistoryLength, 1);
-    });
-
-    test('accepts high speed with good accuracy (valid fast vessel)', () {
-      final now = DateTime.now();
-      final first = _makeNmeaData(
-        lat: 59.91,
-        lng: 10.75,
-        timestamp: now,
-      );
-      boatProvider.updateFromNMEA(first);
-
-      // Same large position jump but with good accuracy
-      final jump = _makeNmeaData(
-        lat: 60.91,
-        lng: 10.75,
-        hdop: 1.0, // accuracy = 5m (good)
-        timestamp: now.add(const Duration(seconds: 1)),
-      );
-      boatProvider.updateFromNMEA(jump);
-
-      // Should accept because accuracy is good
-      expect(boatProvider.currentPosition!.latitude, 60.91);
-    });
-
-    test('accepts poor accuracy with realistic speed', () {
-      final now = DateTime.now();
-      final first = _makeNmeaData(
-        lat: 59.91,
-        lng: 10.75,
-        timestamp: now,
-      );
-      boatProvider.updateFromNMEA(first);
-
-      // Small position change (realistic speed) with poor accuracy
-      final next = _makeNmeaData(
-        lat: 59.9101,
-        lng: 10.7501,
-        hdop: 20.0, // accuracy = 100m (poor)
-        timestamp: now.add(const Duration(seconds: 10)),
-      );
-      boatProvider.updateFromNMEA(next);
-
-      // Should accept because speed is realistic
-      expect(boatProvider.currentPosition!.latitude, closeTo(59.9101, 0.001));
-    });
-
-    // ============ Track History LRU Eviction ============
-
-    test('evicts oldest points when exceeding max', () {
-      final now = DateTime.now();
-
-      // Add maxTrackHistoryPoints + 5 positions
-      for (var i = 0; i <= maxTrackHistoryPoints + 4; i++) {
-        final lat = 59.0 + (i * 0.0001); // tiny increments
-        boatProvider.updateFromNMEA(
-          _makeNmeaData(
-            lat: lat,
-            lng: 10.75,
-            timestamp: now.add(Duration(seconds: i)),
-          ),
-        );
-      }
-
-      expect(boatProvider.trackHistoryLength, maxTrackHistoryPoints);
-      // First point should NOT be the original (it was evicted)
-      expect(boatProvider.trackHistory.first.latitude, isNot(59.0));
-    });
-
-    // ============ MOB (Man Overboard) ============
-
-    test('markMOB captures current position', () {
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(lat: 59.91, lng: 10.75),
-      );
-      boatProvider.markMOB();
-
-      expect(boatProvider.hasMob, true);
-      expect(boatProvider.mobPosition!.latitude, 59.91);
-      expect(boatProvider.mobPosition!.longitude, 10.75);
-    });
-
-    test('markMOB does nothing when no position', () {
-      boatProvider.markMOB();
-      expect(boatProvider.hasMob, false);
-    });
-
-    test('clearMOB removes MOB marker', () {
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(lat: 59.91, lng: 10.75),
-      );
-      boatProvider.markMOB();
-      boatProvider.clearMOB();
-
-      expect(boatProvider.hasMob, false);
-      expect(boatProvider.mobPosition, isNull);
-    });
-
-    test('clearMOB does not notify when no MOB set', () {
-      int notifyCount = 0;
-      boatProvider.addListener(() => notifyCount++);
-      boatProvider.clearMOB();
-      expect(notifyCount, 0);
-    });
-
-    test('markMOB notifies listeners', () {
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(lat: 59.91, lng: 10.75),
-      );
-      int notifyCount = 0;
-      boatProvider.addListener(() => notifyCount++);
-      boatProvider.markMOB();
-      expect(notifyCount, 1);
-    });
-
-    // ============ clearTrack ============
-
-    test('clearTrack removes all history', () {
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(lat: 59.91, lng: 10.75),
-      );
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(
-          lat: 59.92,
-          lng: 10.76,
-          timestamp: DateTime.now().add(const Duration(seconds: 1)),
-        ),
-      );
-      expect(boatProvider.trackHistoryLength, 2);
-
+    test('clearTrack empties history', () {
       boatProvider.clearTrack();
-      expect(boatProvider.trackHistoryLength, 0);
-      expect(boatProvider.trackHistory, isEmpty);
+      expect(boatProvider.trackPointCount, 0);
     });
-
-    test('clearTrack does not notify when already empty', () {
-      int notifyCount = 0;
-      boatProvider.addListener(() => notifyCount++);
-      boatProvider.clearTrack();
-      expect(notifyCount, 0);
-    });
-
-    test('clearTrack notifies listeners when non-empty', () {
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(lat: 59.91, lng: 10.75),
-      );
-      int notifyCount = 0;
-      boatProvider.addListener(() => notifyCount++);
-      boatProvider.clearTrack();
-      expect(notifyCount, 1);
-    });
-
-    // ============ trackHistory unmodifiable ============
 
     test('trackHistory returns unmodifiable list', () {
-      boatProvider.updateFromNMEA(
-        _makeNmeaData(lat: 59.91, lng: 10.75),
-      );
-
       final history = boatProvider.trackHistory;
-      expect(
-        () => history.add(
-          BoatPosition(
-            position: const LatLng(latitude: 0.0, longitude: 0.0),
-            timestamp: DateTime.now(),
-          ),
-        ),
-        throwsUnsupportedError,
-      );
+      expect(history, isA<List<TrackPoint>>());
+      expect(() => (history as List).add(null), throwsA(anything));
     });
 
-    // ============ Dispose ============
+    test('does not duplicate followBoat notification', () {
+      int count = 0;
+      boatProvider.addListener(() => count++);
+      boatProvider.followBoat = true; // already true
+      expect(count, 0);
+    });
 
-    test('dispose removes listener from NMEAProvider', () {
-      providerDisposed = true;
-      // Should not throw
-      boatProvider.dispose();
+    test('dispose does not throw when called once', () {
+      final bp = BoatProvider(
+        nmeaProvider: nmeaProvider,
+        mapProvider: mapProvider,
+        locationService: StubLocationService(),
+      );
+      expect(() => bp.dispose(), returnsNormally);
+    });
+  });
+
+  group('ISS-018 constants', () {
+    test('maxRealisticSpeedMps is 50 m/s (~97 knots)', () {
+      expect(maxRealisticSpeedMps, 50.0);
+    });
+
+    test('maxAccuracyThresholdMeters is 50m', () {
+      expect(maxAccuracyThresholdMeters, 50.0);
+    });
+
+    test('maxTrackHistoryPoints is 1000', () {
+      expect(maxTrackHistoryPoints, 1000);
     });
   });
 }

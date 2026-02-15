@@ -7,7 +7,16 @@ import 'package:marine_nav_app/providers/nmea_provider.dart';
 import 'package:marine_nav_app/providers/route_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/providers/theme_provider.dart';
+import 'package:marine_nav_app/providers/timeline_provider.dart';
+import 'package:marine_nav_app/providers/weather_provider.dart';
+import 'package:marine_nav_app/services/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+/// Stub location service for tests.
+class StubLocationService extends LocationService {
+  @override
+  Future<void> start() async {}
+}
 
 void main() {
   testWidgets('HomeScreen renders main UI', (WidgetTester tester) async {
@@ -25,7 +34,18 @@ void main() {
       cacheProvider: cacheProvider,
     );
     final routeProvider = RouteProvider();
-    final boatProvider = BoatProvider(nmeaProvider: nmeaProvider);
+    final weatherProvider = WeatherProvider(
+      settingsProvider: settingsProvider,
+      cacheProvider: cacheProvider,
+    );
+    final boatProvider = BoatProvider(
+      nmeaProvider: nmeaProvider,
+      mapProvider: mapProvider,
+      locationService: StubLocationService(),
+    );
+    final timelineProvider = TimelineProvider(
+      weatherProvider: weatherProvider,
+    );
 
     await settingsProvider.init();
     await themeProvider.init();
@@ -40,7 +60,9 @@ void main() {
         mapProvider: mapProvider,
         nmeaProvider: nmeaProvider,
         routeProvider: routeProvider,
+        weatherProvider: weatherProvider,
         boatProvider: boatProvider,
+        timelineProvider: timelineProvider,
       ),
     );
 

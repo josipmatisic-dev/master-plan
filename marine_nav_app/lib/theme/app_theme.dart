@@ -10,21 +10,28 @@ import 'package:flutter/services.dart';
 
 import 'colors.dart';
 import 'dimensions.dart';
+import 'holographic_theme_data.dart';
 import 'text_styles.dart';
+import 'theme_variant.dart';
 
 /// App theme configuration with Ocean Glass design system
 class AppTheme {
-  AppTheme._(); // Private constructor
+  AppTheme._();
 
-  // ============ Dark Theme (Primary) ============
+  /// Get ThemeData for specific variant and brightness
+  static ThemeData getThemeForVariant(bool isDark, ThemeVariant variant) {
+    switch (variant) {
+      case ThemeVariant.oceanGlass:
+        return isDark ? darkTheme : lightTheme;
+      case ThemeVariant.holographicCyberpunk:
+        return isDark ? HolographicThemeData.dark : HolographicThemeData.light;
+    }
+  }
 
   /// Dark theme following Ocean Glass design language
-  /// This is the primary theme optimized for marine navigation
   static ThemeData get darkTheme {
     return ThemeData(
       brightness: Brightness.dark,
-
-      // Color Scheme
       colorScheme: const ColorScheme.dark(
         primary: OceanColors.seafoamGreen,
         secondary: OceanColors.teal,
@@ -35,13 +42,8 @@ class AppTheme {
         onSurface: OceanColors.textPrimary,
         onError: OceanColors.pureWhite,
       ),
-
       scaffoldBackgroundColor: OceanColors.background,
-
-      // Typography
       textTheme: _buildTextTheme(OceanColors.textPrimary),
-
-      // AppBar
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -55,8 +57,6 @@ class AppTheme {
         ),
         iconTheme: IconThemeData(color: OceanColors.textPrimary),
       ),
-
-      // Card Theme
       cardTheme: CardThemeData(
         color: OceanColors.surface,
         elevation: 0,
@@ -64,32 +64,23 @@ class AppTheme {
           borderRadius: BorderRadius.circular(OceanDimensions.radius),
         ),
       ),
-
-      // Icon Theme
       iconTheme: const IconThemeData(
         color: OceanColors.textPrimary,
         size: OceanDimensions.icon,
       ),
-
-      // Divider
       dividerTheme: DividerThemeData(
         color: OceanColors.textDisabled.withValues(alpha: 0.2),
         thickness: 1,
         space: OceanDimensions.spacingM,
       ),
-
       useMaterial3: true,
     );
   }
-
-  // ============ Light Theme (Secondary) ============
 
   /// Light theme for daytime use
   static ThemeData get lightTheme {
     return ThemeData(
       brightness: Brightness.light,
-
-      // Color Scheme
       colorScheme: const ColorScheme.light(
         primary: OceanColors.seafoamGreen,
         secondary: OceanColors.teal,
@@ -100,13 +91,8 @@ class AppTheme {
         onSurface: OceanColors.textPrimaryLight,
         onError: OceanColors.pureWhite,
       ),
-
       scaffoldBackgroundColor: OceanColors.backgroundLight,
-
-      // Typography
       textTheme: _buildTextTheme(OceanColors.textPrimaryLight),
-
-      // AppBar
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -120,8 +106,6 @@ class AppTheme {
         ),
         iconTheme: IconThemeData(color: OceanColors.textPrimaryLight),
       ),
-
-      // Card Theme
       cardTheme: CardThemeData(
         color: OceanColors.surfaceLight,
         elevation: 0,
@@ -129,27 +113,19 @@ class AppTheme {
           borderRadius: BorderRadius.circular(OceanDimensions.radius),
         ),
       ),
-
-      // Icon Theme
       iconTheme: const IconThemeData(
         color: OceanColors.textPrimaryLight,
         size: OceanDimensions.icon,
       ),
-
-      // Divider
       dividerTheme: DividerThemeData(
         color: OceanColors.textSecondaryLight.withValues(alpha: 0.2),
         thickness: 1,
         space: OceanDimensions.spacingM,
       ),
-
       useMaterial3: true,
     );
   }
 
-  // ============ Helper Methods ============
-
-  /// Build text theme with specified color
   static TextTheme _buildTextTheme(Color textColor) {
     return TextTheme(
       displayLarge: OceanTextStyles.dataValue.copyWith(color: textColor),

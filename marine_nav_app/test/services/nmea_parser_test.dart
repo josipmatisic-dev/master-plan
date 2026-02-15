@@ -324,5 +324,135 @@ void main() {
         throwsA(isA<NMEAError>()),
       );
     });
+
+    test('routes HDG sentences correctly', () {
+      const sentence = '\$HCHDG,225.3,1.2,E,3.5,W';
+      final data = NMEAParser.parseSentence(sentence);
+      expect(data, isA<HDGData>());
+    });
+
+    test('routes MTW sentences correctly', () {
+      const sentence = '\$YXMTW,18.5,C';
+      final data = NMEAParser.parseSentence(sentence);
+      expect(data, isA<MTWData>());
+    });
+  });
+
+  group('HDG Parsing', () {
+    test('parses heading with deviation and variation', () {
+      const sentence = '\$HCHDG,225.3,1.2,E,3.5,W';
+      final data = NMEAParser.parseHDG(sentence);
+      expect(data, isNotNull);
+      expect(data!.headingDegrees, 225.3);
+      expect(data.deviationDegrees, 1.2);
+      expect(data.variationDegrees, -3.5);
+    });
+
+    test('parses heading with west deviation', () {
+      const sentence = '\$HCHDG,180.0,2.0,W,,';
+      final data = NMEAParser.parseHDG(sentence);
+      expect(data, isNotNull);
+      expect(data!.headingDegrees, 180.0);
+      expect(data.deviationDegrees, -2.0);
+      expect(data.variationDegrees, isNull);
+    });
+
+    test('parses heading-only (no dev/var)', () {
+      const sentence = '\$HCHDG,90.0,,,,,';
+      final data = NMEAParser.parseHDG(sentence);
+      expect(data, isNotNull);
+      expect(data!.headingDegrees, 90.0);
+      expect(data.deviationDegrees, isNull);
+      expect(data.variationDegrees, isNull);
+    });
+
+    test('returns null for too few fields', () {
+      const sentence = '\$HCHDG,225.3';
+      expect(NMEAParser.parseHDG(sentence), isNull);
+    });
+
+    test('returns null for missing heading value', () {
+      const sentence = '\$HCHDG,,1.2,E,3.5,W';
+      expect(NMEAParser.parseHDG(sentence), isNull);
+    });
+  });
+
+  group('MTW Parsing', () {
+    test('parses water temperature', () {
+      const sentence = '\$YXMTW,18.5,C';
+      final data = NMEAParser.parseMTW(sentence);
+      expect(data, isNotNull);
+      expect(data!.temperatureCelsius, 18.5);
+    });
+
+    test('parses negative temperature', () {
+      const sentence = '\$YXMTW,-2.3,C';
+      final data = NMEAParser.parseMTW(sentence);
+      expect(data, isNotNull);
+      expect(data!.temperatureCelsius, -2.3);
+    });
+
+    test('returns null for too few fields', () {
+      const sentence = '\$YXMTW';
+      expect(NMEAParser.parseMTW(sentence), isNull);
+    });
+
+    test('returns null for missing temperature', () {
+      const sentence = '\$YXMTW,,C';
+      expect(NMEAParser.parseMTW(sentence), isNull);
+    });
+  });
+
+  group('NMEAData heading getters', () {
+    test('headingTrue computes from HDG data', () {
+      final data = NMEAData(
+        hdg: const HDGData(
+          headingDegrees: 180.0,
+          deviationDegrees: 2.0,
+          variationDegrees: -3.0,
+        ),
+        timestamp: DateTime.now(),
+      );
+      // 180 + 2 + (-3) = 179
+      expect(data.headingTrue, closeTo(179.0, 0.01));
+    });
+
+    test('headingTrue falls back to COG when no HDG', () {
+      final data = NMEAData(
+        gpvtg: const GPVTGData(trackTrue: 123.0),
+        timestamp: DateTime.now(),
+      );
+      expect(data.headingTrue, 123.0);
+    });
+
+    test('headingMagnetic returns HDG heading', () {
+      final data = NMEAData(
+        hdg: const HDGData(headingDegrees: 270.0),
+        timestamp: DateTime.now(),
+      );
+      expect(data.headingMagnetic, 270.0);
+    });
+
+    test('waterTempCelsius returns MTW data', () {
+      final data = NMEAData(
+        mtw: const MTWData(temperatureCelsius: 22.5),
+        timestamp: DateTime.now(),
+      );
+      expect(data.waterTempCelsius, 22.5);
+    });
+
+    test('copyWith preserves hdg and mtw', () {
+      final original = NMEAData(
+        hdg: const HDGData(headingDegrees: 90.0),
+        mtw: const MTWData(temperatureCelsius: 15.0),
+        timestamp: DateTime.now(),
+      );
+      final copy = original.copyWith(
+        gpvtg: const GPVTGData(speedKnots: 5.0),
+      );
+      expect(copy.hdg?.headingDegrees, 90.0);
+      expect(copy.mtw?.temperatureCelsius, 15.0);
+      expect(copy.gpvtg?.speedKnots, 5.0);
+    });
   });
 }

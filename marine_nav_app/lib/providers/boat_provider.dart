@@ -1,230 +1,279 @@
-/// Boat Provider - Layer 2 Provider
+/// Boat Provider - Layer 2
 ///
-/// Manages vessel position state by consuming NMEAProvider data.
-/// Maintains track history with LRU eviction and implements ISS-018
-/// position jump filtering for GPS reconnect scenarios.
-///
-/// Dependencies:
-/// - Layer 2: NMEAProvider (position data source)
+/// Consumes NMEAProvider data when connected, falls back to phone GPS
+/// via LocationService when NMEA is unavailable. Filters unrealistic
+/// positions (ISS-018) and maintains track history.
 library;
-import 'dart:math' as math;
+
+import 'dart:async';
+import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
+import 'package:geolocator/geolocator.dart' as geo;
+import 'package:latlong2/latlong.dart' as latlong2;
 
 import '../models/boat_position.dart';
 import '../models/lat_lng.dart';
-import '../models/nmea_data.dart';
+import '../services/geo_utils.dart';
+import '../services/location_service.dart';
+import 'map_provider.dart';
 import 'nmea_provider.dart';
+import 'route_provider.dart';
 
-/// Provides vessel position tracking, track history, and MOB capability.
-///
-/// Listens to [NMEAProvider] for position updates, filters unrealistic
-/// jumps per ISS-018, and maintains a bounded track history list.
-///
-/// Usage:
-/// ```dart
-/// final boat = context.watch<BoatProvider>();
-/// if (boat.currentPosition != null) {
-///   final sog = boat.currentPosition!.speedKnots;
-/// }
-/// ```
+/// Active position data source.
+enum PositionSource {
+  /// No position data available.
+  none,
+
+  /// NMEA instrument feed (primary).
+  nmea,
+
+  /// Phone built-in GPS (fallback).
+  phoneGps,
+}
+
+/// Boat Provider - manages live position and track history.
 class BoatProvider extends ChangeNotifier {
   final NMEAProvider _nmeaProvider;
+  final MapProvider _mapProvider;
+  final LocationService _locationService;
+  final RouteProvider? _routeProvider;
 
   BoatPosition? _currentPosition;
-  final List<BoatPosition> _trackHistory = [];
-  BoatPosition? _mobPosition;
-  bool _isTracking = true;
+  PositionSource _source = PositionSource.none;
+  final Queue<TrackPoint> _trackHistory = Queue<TrackPoint>();
 
-  /// Earth radius in meters for haversine distance calculation.
-  static const double _earthRadiusMeters = 6371000.0;
+  bool _followBoat = true;
+  bool _showTrack = true;
 
-  /// Creates a BoatProvider that listens to [nmeaProvider] for updates.
+  StreamSubscription<geo.Position>? _gpsSub;
+  StreamSubscription<LocationStatus>? _gpsStatusSub;
+
+  /// Creates a BoatProvider consuming NMEA, map, and location services.
   BoatProvider({
     required NMEAProvider nmeaProvider,
-  }) : _nmeaProvider = nmeaProvider {
+    required MapProvider mapProvider,
+    LocationService? locationService,
+    RouteProvider? routeProvider,
+  })  : _nmeaProvider = nmeaProvider,
+        _mapProvider = mapProvider,
+        _locationService = locationService ?? LocationService(),
+        _routeProvider = routeProvider {
     _nmeaProvider.addListener(_onNmeaUpdate);
+    _startPhoneGps();
   }
 
-  // ============ Public Getters ============
+  // ============ Public API ============
 
-  /// Current vessel position (null if no valid position received yet).
+  /// Current boat position (null if no valid fix).
   BoatPosition? get currentPosition => _currentPosition;
 
-  /// Track history, oldest first. Max [maxTrackHistoryPoints] entries.
-  List<BoatPosition> get trackHistory => List.unmodifiable(_trackHistory);
+  /// Active data source.
+  PositionSource get source => _source;
 
-  /// Number of points in track history.
-  int get trackHistoryLength => _trackHistory.length;
+  /// Unmodifiable track history.
+  List<TrackPoint> get trackHistory => List.unmodifiable(_trackHistory);
 
-  /// MOB (Man Overboard) marker position (null if not set).
-  BoatPosition? get mobPosition => _mobPosition;
+  /// Track point count.
+  int get trackPointCount => _trackHistory.length;
 
-  /// Whether MOB marker is active.
-  bool get hasMob => _mobPosition != null;
+  /// Whether the map auto-follows the boat.
+  bool get followBoat => _followBoat;
 
-  /// Whether position tracking is enabled.
-  bool get isTracking => _isTracking;
+  /// Whether the track trail is visible.
+  bool get showTrack => _showTrack;
 
-  /// Whether a valid position has been received.
-  bool get hasPosition => _currentPosition != null;
-
-  // ============ Public Methods ============
-
-  /// Marks current position as Man Overboard (MOB).
-  ///
-  /// Captures the current vessel position. If no current position
-  /// is available, does nothing.
-  void markMOB() {
-    if (_currentPosition == null) return;
-    _mobPosition = _currentPosition;
+  /// Toggle map auto-follow.
+  set followBoat(bool value) {
+    if (_followBoat == value) return;
+    _followBoat = value;
     notifyListeners();
   }
 
-  /// Clears the MOB marker.
-  void clearMOB() {
-    if (_mobPosition == null) return;
-    _mobPosition = null;
+  /// Toggle track trail visibility.
+  set showTrack(bool value) {
+    if (_showTrack == value) return;
+    _showTrack = value;
+    _syncTrackToMap();
     notifyListeners();
   }
 
-  /// Clears all track history points.
+  /// Clear all track history.
   void clearTrack() {
-    if (_trackHistory.isEmpty) return;
     _trackHistory.clear();
+    _syncTrackToMap();
     notifyListeners();
   }
 
-  /// Enables or disables position tracking.
-  ///
-  /// When disabled, NMEA updates are ignored and no new positions
-  /// are added to the track history.
-  void setTracking({required bool enabled}) {
-    if (_isTracking == enabled) return;
-    _isTracking = enabled;
-    notifyListeners();
-  }
+  // ============ NMEA Source (Primary) ============
 
-  /// Manually updates position from NMEA data.
-  ///
-  /// Called by the provider wiring or directly for testing.
-  /// Delegates to [_processNmeaData] for filtering and history management.
-  void updateFromNMEA(NMEAData? data) {
-    if (data == null || !_isTracking) return;
-    _processNmeaData(data);
-  }
-
-  // ============ Private Methods ============
-
-  /// Listener callback for NMEAProvider changes.
   void _onNmeaUpdate() {
-    updateFromNMEA(_nmeaProvider.currentData);
-  }
+    if (!_nmeaProvider.isConnected) {
+      if (_source == PositionSource.nmea) {
+        _source = PositionSource.phoneGps;
+        notifyListeners();
+      }
+      return;
+    }
 
-  /// Processes NMEA data into a BoatPosition with ISS-018 filtering.
-  void _processNmeaData(NMEAData data) {
+    final data = _nmeaProvider.currentData;
+    if (data == null) return;
+
     final position = data.position;
     if (position == null) return;
 
-    // Extract accuracy from GPGGA HDOP (HDOP × 5m baseline estimate)
-    final hdop = data.gpgga?.hdop ?? 99.0;
-    final accuracy = hdop * 5.0;
-
-    final newPosition = BoatPosition(
+    final newPos = BoatPosition(
       position: LatLng(
         latitude: position.latitude,
         longitude: position.longitude,
       ),
-      speedKnots: data.speedOverGroundKnots,
-      courseTrue: data.courseOverGroundDegrees,
-      heading: null, // Do not treat magnetic course over ground as vessel heading
       timestamp: data.timestamp,
-      accuracy: accuracy,
+      courseTrue: data.courseOverGroundDegrees,
+      heading: data.headingTrue,
+      speedKnots: data.speedOverGroundKnots,
+      accuracy: _hdopToAccuracy(data.gpgga?.hdop),
       fixQuality: data.gpgga?.fixQuality ?? 0,
       satellites: data.gpgga?.satellites ?? 0,
       altitudeMeters: data.gpgga?.altitudeMeters,
     );
 
-    // Apply ISS-018 filter: reject unrealistic position jumps
-    if (!_passesPositionFilter(newPosition)) {
-      if (kDebugMode) {
-        debugPrint(
-          'ISS-018: Filtered unrealistic position jump '
-          '(accuracy: ${accuracy.toStringAsFixed(1)}m)',
-        );
-      }
-      return;
+    _processPosition(newPos, PositionSource.nmea);
+  }
+
+  // ============ Phone GPS Source (Fallback) ============
+
+  void _startPhoneGps() {
+    _gpsSub = _locationService.positionStream.listen(_onPhoneGpsUpdate);
+    _gpsStatusSub = _locationService.statusStream.listen((status) {
+      debugPrint('BoatProvider: GPS status → $status');
+      notifyListeners();
+    });
+    debugPrint('BoatProvider: Starting phone GPS...');
+    _locationService.start();
+  }
+
+  void _onPhoneGpsUpdate(geo.Position geoPos) {
+    debugPrint(
+      'BoatProvider: 📍 GPS fix '
+      '${geoPos.latitude},${geoPos.longitude} acc=${geoPos.accuracy}m',
+    );
+    if (_nmeaProvider.isConnected) return;
+
+    final newPos = BoatPosition(
+      position: LatLng(
+        latitude: geoPos.latitude,
+        longitude: geoPos.longitude,
+      ),
+      timestamp: geoPos.timestamp,
+      courseTrue: geoPos.heading != 0 ? geoPos.heading : null,
+      speedKnots: geoPos.speed > 0 ? geoPos.speed * 1.94384 : null,
+      accuracy: geoPos.accuracy,
+      fixQuality: 1,
+    );
+
+    _processPosition(newPos, PositionSource.phoneGps);
+  }
+
+  // ============ Shared Position Processing ============
+
+  void _processPosition(BoatPosition newPos, PositionSource src) {
+    if (!_isPositionValid(newPos)) return;
+
+    _currentPosition = newPos;
+    _source = src;
+    _addTrackPoint(newPos);
+    _syncBoatToMap();
+
+    final latLng2Pos = _toLatLng2(newPos.position);
+    _routeProvider?.updatePosition(latLng2Pos);
+
+    if (_followBoat) {
+      _mapProvider.setCenter(newPos.position);
     }
 
-    _currentPosition = newPosition;
-    _addToTrackHistory(newPosition);
     notifyListeners();
   }
 
-  /// ISS-018 filter: Rejects positions with unrealistic speed AND low accuracy.
-  ///
-  /// Returns true if position should be accepted, false if rejected.
-  /// First position is always accepted.
-  bool _passesPositionFilter(BoatPosition newPosition) {
-    if (_currentPosition == null) return true;
+  // ============ ISS-018 Position Filtering ============
 
-    final previous = _currentPosition!;
-    final timeDelta =
-        newPosition.timestamp.difference(previous.timestamp).inMilliseconds;
-
-    // Avoid division by zero; accept if timestamps are identical
-    if (timeDelta <= 0) return true;
-
-    final distanceMeters = _haversineDistance(
-      previous.position,
-      newPosition.position,
-    );
-
-    final speedMps = distanceMeters / (timeDelta / 1000.0);
-
-    // Reject if both speed is unrealistic AND accuracy is poor
-    if (speedMps > maxRealisticSpeedMps &&
-        newPosition.accuracy > maxAccuracyThresholdMeters) {
+  bool _isPositionValid(BoatPosition newPos) {
+    if (newPos.accuracy > maxAccuracyThresholdMeters) {
       return false;
+    }
+
+    final prev = _currentPosition;
+    if (prev != null) {
+      final distNm = GeoUtils.distanceBetween(
+        _toLatLng2(prev.position),
+        _toLatLng2(newPos.position),
+      );
+      final distM = distNm * 1852.0;
+      final dtS =
+          newPos.timestamp.difference(prev.timestamp).inMilliseconds / 1000.0;
+      if (dtS > 0 && (distM / dtS) > maxRealisticSpeedMps) return false;
     }
 
     return true;
   }
 
-  /// Adds position to track history with LRU eviction.
-  void _addToTrackHistory(BoatPosition position) {
-    _trackHistory.add(position);
+  // ============ Track History ============
 
-    // Evict oldest points if over limit
+  void _addTrackPoint(BoatPosition pos) {
+    const minTrackDistanceM = 5.0;
+    if (_trackHistory.isNotEmpty) {
+      final last = _trackHistory.last;
+      final lastLatLng2 = latlong2.LatLng(last.lat, last.lng);
+      final distNm = GeoUtils.distanceBetween(
+        lastLatLng2,
+        _toLatLng2(pos.position),
+      );
+      final distM = distNm * 1852.0;
+      if (distM < minTrackDistanceM) return;
+    }
+
+    _trackHistory.addLast(TrackPoint.fromPosition(pos));
     while (_trackHistory.length > maxTrackHistoryPoints) {
-      _trackHistory.removeAt(0);
+      _trackHistory.removeFirst();
     }
   }
 
-  /// Haversine distance calculation between two coordinates.
-  ///
-  /// Returns distance in meters. Used for ISS-018 speed calculation.
-  static double _haversineDistance(LatLng from, LatLng to) {
-    final lat1 = _degToRad(from.latitude);
-    final lat2 = _degToRad(to.latitude);
-    final dLat = _degToRad(to.latitude - from.latitude);
-    final dLng = _degToRad(to.longitude - from.longitude);
+  // ============ Map Sync ============
 
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(lat1) *
-            math.cos(lat2) *
-            math.sin(dLng / 2) *
-            math.sin(dLng / 2);
-    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-
-    return _earthRadiusMeters * c;
+  void _syncBoatToMap() {
+    final pos = _currentPosition;
+    if (pos == null) return;
+    _mapProvider.updateBoatMarker(
+      pos.latitude,
+      pos.longitude,
+      pos.bestHeading ?? 0,
+    );
   }
 
-  static double _degToRad(double deg) => deg * math.pi / 180.0;
+  void _syncTrackToMap() {
+    if (!_showTrack || _trackHistory.isEmpty) {
+      _mapProvider.clearTrackLine();
+      return;
+    }
+    _mapProvider.updateTrackLine(
+      _trackHistory.map((p) => [p.lng, p.lat]).toList(),
+    );
+  }
+
+  // ============ Utilities ============
+
+  static double _hdopToAccuracy(double? hdop) => hdop != null ? hdop * 5.0 : 0;
+
+  /// Convert app LatLng to latlong2 LatLng for RouteProvider compatibility.
+  static latlong2.LatLng _toLatLng2(LatLng pos) {
+    return latlong2.LatLng(pos.latitude, pos.longitude);
+  }
 
   @override
   void dispose() {
     _nmeaProvider.removeListener(_onNmeaUpdate);
+    _gpsSub?.cancel();
+    _gpsStatusSub?.cancel();
+    _locationService.dispose();
     super.dispose();
   }
 }

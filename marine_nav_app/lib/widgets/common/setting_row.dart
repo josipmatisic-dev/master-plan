@@ -33,16 +33,23 @@ class SettingRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: OceanTextStyles.body.copyWith(
-              color: OceanColors.textSecondary,
+          Flexible(
+            child: Text(
+              label,
+              style: OceanTextStyles.body.copyWith(
+                color: OceanColors.textSecondary,
+              ),
             ),
           ),
-          Text(
-            value,
-            style: OceanTextStyles.body.copyWith(
-              fontWeight: FontWeight.w600,
+          const SizedBox(width: OceanDimensions.spacingS),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: OceanTextStyles.body.copyWith(
+                fontWeight: FontWeight.w600,
+                color: OceanColors.textPrimary,
+              ),
             ),
           ),
         ],
