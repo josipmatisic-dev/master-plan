@@ -6,11 +6,12 @@ import 'package:flutter/material.dart' hide Viewport;
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
+import '../../models/weather_data.dart';
 import '../../providers/map_provider.dart';
 import '../../providers/route_provider.dart';
+import '../../providers/timeline_provider.dart';
 import '../../providers/weather_provider.dart';
 import '../../services/route_map_bridge.dart';
-import '../../services/wind_texture_generator.dart';
 import '../../theme/colors.dart';
 import '../../theme/dimensions.dart';
 import '../../theme/text_styles.dart';
@@ -42,6 +43,7 @@ class _MapWebViewState extends State<MapWebView> {
   MapProvider? _mapProvider;
   WeatherProvider? _weatherProvider;
   RouteProvider? _routeProvider;
+  TimelineProvider? _timelineProvider;
   RouteMapBridge? _routeBridge;
 
   @override
@@ -59,6 +61,9 @@ class _MapWebViewState extends State<MapWebView> {
 
     _weatherProvider = context.read<WeatherProvider>();
     _weatherProvider!.addListener(_onWeatherChanged);
+
+    _timelineProvider = context.read<TimelineProvider>();
+    _timelineProvider!.addListener(_onTimelineChanged);
 
     _routeProvider = context.read<RouteProvider>();
     _routeProvider!.addListener(_onRouteChanged);
@@ -109,6 +114,34 @@ class _MapWebViewState extends State<MapWebView> {
     );
   }
 
+  /// Handle timeline frame changes: regenerate wind texture for active frame.
+  Future<void> _onTimelineChanged() async {
+    final timeline = _timelineProvider;
+    final weather = _weatherProvider;
+    if (timeline == null || weather == null) return;
+
+    // Only regenerate texture if timeline has frames
+    if (timeline.hasFrames) {
+      final vp = _mapProvider!.viewport;
+      if (vp.size.isEmpty) return;
+      final b = vp.bounds;
+
+      // Regenerate wind texture from the active frame's wind data
+      await weather.generateWindTexture(
+        windPoints: timeline.activeWindPoints,
+        south: b.south,
+        north: b.north,
+        west: b.west,
+        east: b.east,
+      );
+
+      // Push updated data (wind texture + wave data) to JavaScript
+      await _pushWeatherToJs(
+        useTimelineData: true,
+      );
+    }
+  }
+
   /// Render route on map when RouteProvider changes.
   void _onRouteChanged() {
     if (_routeBridge == null) return;
@@ -126,7 +159,12 @@ class _MapWebViewState extends State<MapWebView> {
   }
 
   /// Send current weather data to the WebGL layers in map.html.
-  Future<void> _pushWeatherToJs() async {
+  ///
+  /// If [useTimelineData] is true, uses wave/wind points from the active
+  /// timeline frame. Otherwise uses current weather data.
+  Future<void> _pushWeatherToJs({
+    bool useTimelineData = false,
+  }) async {
     final weather = _weatherProvider;
     if (weather == null || _controller == null) return;
     if (!weather.hasData) return;
@@ -134,6 +172,16 @@ class _MapWebViewState extends State<MapWebView> {
     final vp = _mapProvider?.viewport;
     if (vp == null || vp.size.isEmpty) return;
     final b = vp.bounds;
+
+    // Determine which wave data to use
+    List<WaveDataPoint> wavePointsToUse;
+    if (useTimelineData &&
+        _timelineProvider != null &&
+        _timelineProvider!.hasFrames) {
+      wavePointsToUse = _timelineProvider!.activeWavePoints;
+    } else {
+      wavePointsToUse = weather.data.wavePoints;
+    }
 
     // Toggle visibility
     await _controller!.runJavaScript(
@@ -143,8 +191,7 @@ class _MapWebViewState extends State<MapWebView> {
       'window.mapBridge.setWaveLayerVisible(${weather.isWaveVisible});',
     );
 
-    // Send wind data using server-side texture generation
-    // Use pre-generated texture from provider if available
+    // Send wind data using pre-generated texture from provider
     if (weather.isWindVisible) {
       final textureData = weather.windTexture;
       if (textureData != null) {
@@ -159,57 +206,32 @@ class _MapWebViewState extends State<MapWebView> {
         } catch (e) {
           debugPrint('setWindTexture failed: $e');
         }
-      } else if (weather.data.windPoints.isNotEmpty) {
-        // Fallback? Or just wait for provider to generate it?
-        // Provider generates it async and notifies.
-        // So we just wait.
       }
     }
 
-    // Send wave data as GeoJSON-like points (using generator if available or raw)
-    // WindTextureGenerator also supports wave GeoJSON generation
-    if (weather.isWaveVisible && weather.data.wavePoints.isNotEmpty) {
-      final waveData = WindTextureGenerator.generateWaveGeoJson(
-        weather.data.wavePoints,
-      );
-
-      if (waveData != null) {
-        // We pass raw points + max height to JS, or just the points?
-        // map.html setWaveData expects { points: [...], bounds: ... }
-        // But generateWaveGeoJson returns a GeoJSON string.
-        // Let's see map.html setWaveData again.
-        // It iterates points. So generateWaveGeoJson is for MapLibre Heatmap layer?
-        // map.html setWaveData logic:
-        // data = { points: [{lat, lng, height, dir}], bounds: ... }
-        // So we should stick to the manual point construction for now unless map.html updated.
-        // Wait, map.html setWaveData takes { points: ... }.
-        // WindTextureGenerator.generateWaveGeoJson returns a FeatureCollection string.
-        // It seems map.html implements a custom canvas renderer for waves ("_animateWaves"), not a MapLibre layer.
-        // So we should KEEP the old wave implementation for now.
-
-        final wavePts = weather.data.wavePoints;
-        final points = <Map<String, double>>[];
-        for (final p in wavePts) {
-          points.add({
-            'lat': p.position.latitude,
-            'lng': p.position.longitude,
-            'height': p.heightMeters,
-            'dir': p.directionDegrees,
-          });
-        }
-        final waveJson = jsonEncode({
-          'points': points,
-          'bounds': {
-            's': b.south,
-            'n': b.north,
-            'w': b.west,
-            'e': b.east,
-          },
+    // Send wave data as points (map.html uses custom canvas renderer)
+    if (weather.isWaveVisible && wavePointsToUse.isNotEmpty) {
+      final points = <Map<String, double>>[];
+      for (final p in wavePointsToUse) {
+        points.add({
+          'lat': p.position.latitude,
+          'lng': p.position.longitude,
+          'height': p.heightMeters,
+          'dir': p.directionDegrees,
         });
-        await _controller!.runJavaScript(
-          'window.mapBridge.setWaveData($waveJson);',
-        );
       }
+      final waveJson = jsonEncode({
+        'points': points,
+        'bounds': {
+          's': b.south,
+          'n': b.north,
+          'w': b.west,
+          'e': b.east,
+        },
+      });
+      await _controller!.runJavaScript(
+        'window.mapBridge.setWaveData($waveJson);',
+      );
     }
   }
 
@@ -217,6 +239,7 @@ class _MapWebViewState extends State<MapWebView> {
   void dispose() {
     _mapProvider?.removeListener(_onViewportChanged);
     _weatherProvider?.removeListener(_onWeatherChanged);
+    _timelineProvider?.removeListener(_onTimelineChanged);
     _routeProvider?.removeListener(_onRouteChanged);
     super.dispose();
   }

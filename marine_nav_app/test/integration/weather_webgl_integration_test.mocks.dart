@@ -4,12 +4,12 @@
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i10;
-import 'dart:typed_data' as _i18;
+import 'dart:typed_data' as _i19;
 import 'dart:ui' as _i8;
 
 import 'package:latlong2/latlong.dart' as _i15;
 import 'package:marine_nav_app/models/lat_lng.dart' as _i12;
-import 'package:marine_nav_app/models/nmea_error.dart' as _i17;
+import 'package:marine_nav_app/models/nmea_error.dart' as _i18;
 import 'package:marine_nav_app/models/route.dart' as _i6;
 import 'package:marine_nav_app/models/viewport.dart' as _i4;
 import 'package:marine_nav_app/models/weather_data.dart' as _i5;
@@ -17,9 +17,10 @@ import 'package:marine_nav_app/providers/cache_provider.dart' as _i3;
 import 'package:marine_nav_app/providers/map_provider.dart' as _i9;
 import 'package:marine_nav_app/providers/route_provider.dart' as _i14;
 import 'package:marine_nav_app/providers/settings_provider.dart' as _i2;
+import 'package:marine_nav_app/providers/timeline_provider.dart' as _i16;
 import 'package:marine_nav_app/providers/weather_provider.dart' as _i13;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i16;
+import 'package:mockito/src/dummies.dart' as _i17;
 import 'package:webview_flutter/webview_flutter.dart' as _i11;
 import 'package:webview_flutter_platform_interface/webview_flutter_platform_interface.dart'
     as _i7;
@@ -520,6 +521,30 @@ class MockWeatherProvider extends _i1.Mock implements _i13.WeatherProvider {
       ) as _i10.Future<void>);
 
   @override
+  _i10.Future<void> generateWindTexture({
+    List<_i5.WindDataPoint>? windPoints,
+    double? south,
+    double? north,
+    double? west,
+    double? east,
+  }) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #generateWindTexture,
+          [],
+          {
+            #windPoints: windPoints,
+            #south: south,
+            #north: north,
+            #west: west,
+            #east: east,
+          },
+        ),
+        returnValue: _i10.Future<void>.value(),
+        returnValueForMissingStub: _i10.Future<void>.value(),
+      ) as _i10.Future<void>);
+
+  @override
   void clearData() => super.noSuchMethod(
         Invocation.method(
           #clearData,
@@ -787,6 +812,186 @@ class MockRouteProvider extends _i1.Mock implements _i14.RouteProvider {
       );
 }
 
+/// A class which mocks [TimelineProvider].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockTimelineProvider extends _i1.Mock implements _i16.TimelineProvider {
+  MockTimelineProvider() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  int get frameIndex => (super.noSuchMethod(
+        Invocation.getter(#frameIndex),
+        returnValue: 0,
+      ) as int);
+
+  @override
+  int get frameCount => (super.noSuchMethod(
+        Invocation.getter(#frameCount),
+        returnValue: 0,
+      ) as int);
+
+  @override
+  bool get hasFrames => (super.noSuchMethod(
+        Invocation.getter(#hasFrames),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  _i16.PlaybackState get playbackState => (super.noSuchMethod(
+        Invocation.getter(#playbackState),
+        returnValue: _i16.PlaybackState.paused,
+      ) as _i16.PlaybackState);
+
+  @override
+  bool get isPlaying => (super.noSuchMethod(
+        Invocation.getter(#isPlaying),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  double get scrubberPosition => (super.noSuchMethod(
+        Invocation.getter(#scrubberPosition),
+        returnValue: 0.0,
+      ) as double);
+
+  @override
+  String get activeTimeLabel => (super.noSuchMethod(
+        Invocation.getter(#activeTimeLabel),
+        returnValue: _i17.dummyValue<String>(
+          this,
+          Invocation.getter(#activeTimeLabel),
+        ),
+      ) as String);
+
+  @override
+  List<_i5.WindDataPoint> get activeWindPoints => (super.noSuchMethod(
+        Invocation.getter(#activeWindPoints),
+        returnValue: <_i5.WindDataPoint>[],
+      ) as List<_i5.WindDataPoint>);
+
+  @override
+  List<_i5.WaveDataPoint> get activeWavePoints => (super.noSuchMethod(
+        Invocation.getter(#activeWavePoints),
+        returnValue: <_i5.WaveDataPoint>[],
+      ) as List<_i5.WaveDataPoint>);
+
+  @override
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  void setFrameIndex(int? index) => super.noSuchMethod(
+        Invocation.method(
+          #setFrameIndex,
+          [index],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void setScrubberPosition(double? position) => super.noSuchMethod(
+        Invocation.method(
+          #setScrubberPosition,
+          [position],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void nextFrame() => super.noSuchMethod(
+        Invocation.method(
+          #nextFrame,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void previousFrame() => super.noSuchMethod(
+        Invocation.method(
+          #previousFrame,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void play() => super.noSuchMethod(
+        Invocation.method(
+          #play,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void pause() => super.noSuchMethod(
+        Invocation.method(
+          #pause,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void togglePlayback() => super.noSuchMethod(
+        Invocation.method(
+          #togglePlayback,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void reset() => super.noSuchMethod(
+        Invocation.method(
+          #reset,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeListener(_i8.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
 /// A class which mocks [SettingsProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
@@ -840,7 +1045,7 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
   @override
   String get language => (super.noSuchMethod(
         Invocation.getter(#language),
-        returnValue: _i16.dummyValue<String>(
+        returnValue: _i17.dummyValue<String>(
           this,
           Invocation.getter(#language),
         ),
@@ -855,7 +1060,7 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
   @override
   String get nmeaHost => (super.noSuchMethod(
         Invocation.getter(#nmeaHost),
-        returnValue: _i16.dummyValue<String>(
+        returnValue: _i17.dummyValue<String>(
           this,
           Invocation.getter(#nmeaHost),
         ),
@@ -868,10 +1073,10 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
       ) as int);
 
   @override
-  _i17.ConnectionType get nmeaConnectionType => (super.noSuchMethod(
+  _i18.ConnectionType get nmeaConnectionType => (super.noSuchMethod(
         Invocation.getter(#nmeaConnectionType),
-        returnValue: _i17.ConnectionType.tcp,
-      ) as _i17.ConnectionType);
+        returnValue: _i18.ConnectionType.tcp,
+      ) as _i18.ConnectionType);
 
   @override
   bool get autoConnectNMEA => (super.noSuchMethod(
@@ -882,7 +1087,7 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
   @override
   String get mapTilerApiKey => (super.noSuchMethod(
         Invocation.getter(#mapTilerApiKey),
-        returnValue: _i16.dummyValue<String>(
+        returnValue: _i17.dummyValue<String>(
           this,
           Invocation.getter(#mapTilerApiKey),
         ),
@@ -1028,7 +1233,7 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
       ) as _i10.Future<void>);
 
   @override
-  _i10.Future<void> setNMEAConnectionType(_i17.ConnectionType? type) =>
+  _i10.Future<void> setNMEAConnectionType(_i18.ConnectionType? type) =>
       (super.noSuchMethod(
         Invocation.method(
           #setNMEAConnectionType,
@@ -1163,7 +1368,7 @@ class MockWebViewController extends _i1.Mock implements _i11.WebViewController {
     Uri? uri, {
     _i11.LoadRequestMethod? method = _i11.LoadRequestMethod.get,
     Map<String, String>? headers = const {},
-    _i18.Uint8List? body,
+    _i19.Uint8List? body,
   }) =>
       (super.noSuchMethod(
         Invocation.method(

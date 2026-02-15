@@ -6,6 +6,7 @@ import 'package:marine_nav_app/models/weather_data.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
 import 'package:marine_nav_app/providers/route_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
+import 'package:marine_nav_app/providers/timeline_provider.dart';
 import 'package:marine_nav_app/providers/weather_provider.dart';
 import 'package:marine_nav_app/services/wind_texture_generator.dart';
 import 'package:marine_nav_app/widgets/map/map_webview.dart';
@@ -20,6 +21,7 @@ import 'weather_webgl_integration_test.mocks.dart';
   MapProvider,
   WeatherProvider,
   RouteProvider,
+  TimelineProvider,
   SettingsProvider,
   WebViewController,
 ])
@@ -27,6 +29,7 @@ void main() {
   late MockMapProvider mockMapProvider;
   late MockWeatherProvider mockWeatherProvider;
   late MockRouteProvider mockRouteProvider;
+  late MockTimelineProvider mockTimelineProvider;
   late MockSettingsProvider mockSettingsProvider;
   late MockWebViewController mockWebViewController;
 
@@ -34,6 +37,7 @@ void main() {
     mockMapProvider = MockMapProvider();
     mockWeatherProvider = MockWeatherProvider();
     mockRouteProvider = MockRouteProvider();
+    mockTimelineProvider = MockTimelineProvider();
     mockSettingsProvider = MockSettingsProvider();
     mockWebViewController = MockWebViewController();
 
@@ -83,6 +87,11 @@ void main() {
     );
     when(mockWeatherProvider.windTexture).thenReturn(mockTexture);
 
+    // Stubs for TimelineProvider
+    when(mockTimelineProvider.hasFrames).thenReturn(false);
+    when(mockTimelineProvider.activeWindPoints).thenReturn([]);
+    when(mockTimelineProvider.activeWavePoints).thenReturn([]);
+
     // Stubs for WebViewController
     when(mockWebViewController.runJavaScript(any)).thenAnswer((_) async {});
     // Mock loadFlutterAsset call in initState if it happens (though we pass controller)
@@ -107,6 +116,8 @@ void main() {
           ChangeNotifierProvider<WeatherProvider>.value(
               value: mockWeatherProvider),
           ChangeNotifierProvider<RouteProvider>.value(value: mockRouteProvider),
+          ChangeNotifierProvider<TimelineProvider>.value(
+              value: mockTimelineProvider),
         ],
         child: MaterialApp(
           home: Scaffold(

@@ -298,7 +298,62 @@ class WeatherProvider extends ChangeNotifier {
     }
   }
 
+  /// Generates wind texture from wind data points.
+  ///
+  /// If [windPoints] is provided, generates texture from those points.
+  /// Otherwise, uses current weather data ([_data.windPoints]).
+  /// Updates [_windTexture] and notifies listeners.
+  ///
+  /// Useful for timeline playback: call with [TimelineProvider.activeWindPoints]
+  /// to render forecast frames without mutating fetched data.
+  Future<void> generateWindTexture({
+    List<WindDataPoint>? windPoints,
+    double? south,
+    double? north,
+    double? west,
+    double? east,
+  }) async {
+    // If explicit bounds not provided, use stored bounds from last fetch
+    // If those don't exist either, we can't generate (need bounds for texture)
+    final actualSouth = south ?? _lastFetchedBounds?.south;
+    final actualNorth = north ?? _lastFetchedBounds?.north;
+    final actualWest = west ?? _lastFetchedBounds?.west;
+    final actualEast = east ?? _lastFetchedBounds?.east;
+
+    if (actualSouth == null ||
+        actualNorth == null ||
+        actualWest == null ||
+        actualEast == null) {
+      debugPrint(
+        'WeatherProvider.generateWindTexture: '
+        'Cannot generate texture without bounds. '
+        'Either pass bounds or fetch data first.',
+      );
+      return;
+    }
+
+    final pointsToUse = windPoints ?? _data.windPoints;
+
+    try {
+      _windTexture = await WindTextureGenerator.generate(
+        windPoints: pointsToUse,
+        south: actualSouth,
+        north: actualNorth,
+        west: actualWest,
+        east: actualEast,
+      );
+
+      if (_windTexture != null) {
+        debugPrint('WeatherProvider: Wind texture generated');
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('WeatherProvider: Wind texture generation failed - $e');
+    }
+  }
+
   /// Generates WebGL textures from fetched weather data.
+  /// Internal method used during data fetching.
   Future<void> _generateTextures({
     required List<WindDataPoint> windPoints,
     required List<WaveDataPoint> wavePoints,
