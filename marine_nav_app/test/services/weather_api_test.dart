@@ -64,7 +64,10 @@ MockClient _dualMockClient({
 
 void main() {
   group('WeatherApiService', () {
-    test('fetchWeatherData parses dual response with 25-point grid', () async {
+    test('fetchWeatherData parses grid response with real grid points',
+        () async {
+      // Mock returns single-object response (API with single coord) — parser
+      // handles both array and single-object formats gracefully.
       final api = WeatherApiService(client: _dualMockClient());
       final data = await api.fetchWeatherData(
         south: 58.0,
@@ -73,21 +76,17 @@ void main() {
         east: 12.0,
       );
 
-      // 5×5 grid = 25 points each
-      expect(data.windPoints.length, 25);
-      expect(data.wavePoints.length, 25);
+      // Single-object response → 1 wind + 1 wave point for grid[0]
+      expect(data.windPoints.length, 1);
+      expect(data.wavePoints.length, 1);
       expect(data.isEmpty, false);
       expect(data.hasWind, true);
       expect(data.hasWaves, true);
 
-      // Verify wind values are near the base (12.5 kts ±10%)
-      for (final w in data.windPoints) {
-        expect(w.speedKnots, closeTo(12.5, 1.5));
-      }
-      // Verify wave values are near the base (1.8 m ±10%)
-      for (final w in data.wavePoints) {
-        expect(w.heightMeters, closeTo(1.8, 0.25));
-      }
+      // Verify wind value matches response
+      expect(data.windPoints[0].speedKnots, 12.5);
+      // Verify wave value matches response
+      expect(data.wavePoints[0].heightMeters, 1.8);
 
       api.dispose();
     });
@@ -229,7 +228,7 @@ void main() {
       api.dispose();
     });
 
-    test('builds correct URIs for dual endpoints', () async {
+    test('builds correct URIs with grid coordinates', () async {
       final capturedUris = <Uri>[];
       final mockClient = MockClient((request) async {
         capturedUris.add(request.url);
@@ -252,10 +251,12 @@ void main() {
       final marineUri =
           capturedUris.firstWhere((u) => u.host == 'marine-api.open-meteo.com');
       expect(marineUri.path, '/v1/marine');
-      expect(marineUri.queryParameters['latitude'], '60.0000');
-      expect(marineUri.queryParameters['longitude'], '10.0000');
+      // Grid coordinates: 5×5 = 25 comma-separated values
+      final marineLats = marineUri.queryParameters['latitude']!.split(',');
+      expect(marineLats.length, 25);
+      expect(marineLats.first, '58.0000'); // south
+      expect(marineLats.last, '62.0000'); // north
       expect(marineUri.queryParameters['current'], contains('wave_height'));
-      // Marine should NOT have wind params
       expect(
           marineUri.queryParameters['current'], isNot(contains('wind_speed')));
 
@@ -263,9 +264,10 @@ void main() {
           capturedUris.firstWhere((u) => u.host == 'api.open-meteo.com');
       expect(forecastUri.path, '/v1/forecast');
       expect(forecastUri.queryParameters['wind_speed_unit'], 'kn');
+      final forecastLats = forecastUri.queryParameters['latitude']!.split(',');
+      expect(forecastLats.length, 25);
       expect(
           forecastUri.queryParameters['current'], contains('wind_speed_10m'));
-      // Forecast should NOT have wave params
       expect(forecastUri.queryParameters['current'],
           isNot(contains('wave_height')));
 
@@ -295,6 +297,42 @@ void main() {
         expect(frame.hasWind, true);
         expect(frame.hasWave, true);
       }
+
+      api.dispose();
+    });
+
+    test('parses multi-point array response (real API format)', () async {
+      // Open-Meteo returns an array when given multiple lat/lng
+      const arrayForecast = '''
+      [
+        {"latitude":58.0,"longitude":8.0,"current":{"wind_speed_10m":10.0,"wind_direction_10m":200.0},"hourly":{"time":["2026-02-09T00:00"],"wind_speed_10m":[10.0],"wind_direction_10m":[200.0]}},
+        {"latitude":59.0,"longitude":9.0,"current":{"wind_speed_10m":15.0,"wind_direction_10m":220.0},"hourly":{"time":["2026-02-09T00:00"],"wind_speed_10m":[15.0],"wind_direction_10m":[220.0]}}
+      ]
+      ''';
+      const arrayMarine = '''
+      [
+        {"latitude":58.0,"longitude":8.0,"current":{"wave_height":1.0,"wave_direction":170.0,"wave_period":5.0},"hourly":{"time":["2026-02-09T00:00"],"wave_height":[1.0],"wave_direction":[170.0],"wave_period":[5.0]}},
+        {"latitude":59.0,"longitude":9.0,"current":{"wave_height":2.5,"wave_direction":190.0,"wave_period":7.0},"hourly":{"time":["2026-02-09T00:00"],"wave_height":[2.5],"wave_direction":[190.0],"wave_period":[7.0]}}
+      ]
+      ''';
+      final api = WeatherApiService(
+        client: _dualMockClient(marine: arrayMarine, forecast: arrayForecast),
+      );
+      final data = await api.fetchWeatherData(
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
+      );
+
+      // 2 results in array → 2 points parsed (grid has 25 positions,
+      // but only 2 array elements returned by mock)
+      expect(data.windPoints.length, 2);
+      expect(data.wavePoints.length, 2);
+      expect(data.windPoints[0].speedKnots, 10.0);
+      expect(data.windPoints[1].speedKnots, 15.0);
+      expect(data.wavePoints[0].heightMeters, 1.0);
+      expect(data.wavePoints[1].heightMeters, 2.5);
 
       api.dispose();
     });

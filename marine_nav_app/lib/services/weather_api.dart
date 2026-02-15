@@ -74,22 +74,27 @@ class WeatherApiService {
   /// Creates a weather API service with an optional HTTP client.
   WeatherApiService({http.Client? client}) : _client = client ?? http.Client();
 
+  /// Grid size for multi-point fetch (gridSize × gridSize points).
+  static const int gridSize = 5;
+
   /// Fetches weather data for a geographic bounding box.
   ///
-  /// Makes parallel calls to the Marine API (waves) and Forecast API
-  /// (wind), then merges the results into a grid of points covering
-  /// the viewport.
+  /// Builds a [gridSize]×[gridSize] grid of coordinates across the viewport
+  /// and fetches real data for each point via Open-Meteo's multi-coordinate
+  /// support. Makes parallel calls to the Marine API (waves) and Forecast
+  /// API (wind), then merges the results.
   Future<WeatherData> fetchWeatherData({
     required double south,
     required double north,
     required double west,
     required double east,
   }) async {
-    final centerLat = (south + north) / 2;
-    final centerLng = (west + east) / 2;
+    final grid = _buildGrid(south, north, west, east);
+    final lats = grid.map((p) => p.$1.toStringAsFixed(4)).join(',');
+    final lngs = grid.map((p) => p.$2.toStringAsFixed(4)).join(',');
 
-    final marineUri = _buildMarineUri(centerLat, centerLng);
-    final forecastUri = _buildForecastUri(centerLat, centerLng);
+    final marineUri = _buildMarineUri(lats, lngs);
+    final forecastUri = _buildForecastUri(lats, lngs);
 
     // Parallel fetch with shared retry logic.
     final responses = await Future.wait([
@@ -113,22 +118,37 @@ class WeatherApiService {
       );
     }
 
-    return parseDualResponse(
+    return parseGridResponse(
       marineBody: marineResponse.body,
       forecastBody: forecastResponse.body,
-      south: south,
-      north: north,
-      west: west,
-      east: east,
+      grid: grid,
     );
   }
 
-  /// Builds the Marine API URI (wave data only).
-  Uri _buildMarineUri(double lat, double lng) {
+  /// Builds a gridSize×gridSize list of (lat, lng) pairs across the viewport.
+  static List<(double, double)> _buildGrid(
+    double south,
+    double north,
+    double west,
+    double east,
+  ) {
+    final points = <(double, double)>[];
+    final latStep = (north - south) / (gridSize - 1);
+    final lngStep = (east - west) / (gridSize - 1);
+    for (var row = 0; row < gridSize; row++) {
+      for (var col = 0; col < gridSize; col++) {
+        points.add((south + row * latStep, west + col * lngStep));
+      }
+    }
+    return points;
+  }
+
+  /// Builds the Marine API URI with multi-coordinate lat/lng (wave data).
+  Uri _buildMarineUri(String lats, String lngs) {
     return Uri.parse(marineUrl).replace(
       queryParameters: {
-        'latitude': lat.toStringAsFixed(4),
-        'longitude': lng.toStringAsFixed(4),
+        'latitude': lats,
+        'longitude': lngs,
         'current': 'wave_height,wave_direction,wave_period',
         'hourly': 'wave_height,wave_direction,wave_period',
         'forecast_days': '1',
@@ -136,12 +156,12 @@ class WeatherApiService {
     );
   }
 
-  /// Builds the Forecast API URI (wind data only).
-  Uri _buildForecastUri(double lat, double lng) {
+  /// Builds the Forecast API URI with multi-coordinate lat/lng (wind data).
+  Uri _buildForecastUri(String lats, String lngs) {
     return Uri.parse(forecastUrl).replace(
       queryParameters: {
-        'latitude': lat.toStringAsFixed(4),
-        'longitude': lng.toStringAsFixed(4),
+        'latitude': lats,
+        'longitude': lngs,
         'current': 'wind_speed_10m,wind_direction_10m',
         'hourly': 'wind_speed_10m,wind_direction_10m',
         'wind_speed_unit': 'kn',
