@@ -10,6 +10,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
@@ -162,9 +163,16 @@ class WeatherProvider extends ChangeNotifier {
     required double north,
     required double west,
     required double east,
+    bool force = true,
   }) async {
     _debounceTimer?.cancel();
-    await _fetchData(south: south, north: north, west: west, east: east);
+    await _fetchData(
+      south: south,
+      north: north,
+      west: west,
+      east: east,
+      force: force,
+    );
   }
 
   /// Internal fetch with cache-first strategy and retry.
@@ -173,16 +181,57 @@ class WeatherProvider extends ChangeNotifier {
     required double north,
     required double west,
     required double east,
+    bool force = false,
   }) async {
-    // Skip if same bounding box and data is fresh
-    final bounds = _BoundingBox(
-      south: south,
-      north: north,
-      west: west,
-      east: east,
-    );
-    if (_lastFetchedBounds == bounds && !_data.isStale && hasData) {
-      return;
+    // Round coordinates to generate consistent cache keys
+    // Round to 1 decimal place (approx 11km) for cache bucket
+    final rSouth = double.parse(south.toStringAsFixed(1));
+    final rNorth = double.parse(north.toStringAsFixed(1));
+    final rWest = double.parse(west.toStringAsFixed(1));
+    final rEast = double.parse(east.toStringAsFixed(1));
+
+    final cacheKey = 'weather_${rSouth}_${rNorth}_${rWest}_${rEast}';
+
+    // 1. Try cache first (unless forced)
+    if (!force) {
+      final cachedJson = _cache.getString(cacheKey);
+      if (cachedJson != null) {
+        try {
+          final data = WeatherData.fromJson(jsonDecode(cachedJson));
+          if (!data.isStale) {
+            debugPrint('WeatherProvider: Cache HIT for $cacheKey');
+            _data = data;
+            _errorMessage = null;
+
+            // Generate textures from cached data
+            _generateTextures(
+              windPoints: _data.windPoints,
+              wavePoints: _data.wavePoints,
+              south: south,
+              north: north,
+              west: west,
+              east: east,
+            );
+
+            notifyListeners();
+            return;
+          }
+        } catch (e) {
+          debugPrint('WeatherProvider: Cache parse failed - $e');
+          _cache.invalidate(cacheKey);
+        }
+      }
+
+      // Skip if same bounding box and data is fresh (in-memory check)
+      final bounds = _BoundingBox(
+        south: south,
+        north: north,
+        west: west,
+        east: east,
+      );
+      if (_lastFetchedBounds == bounds && !_data.isStale && hasData) {
+        return;
+      }
     }
 
     _isLoading = true;
@@ -198,8 +247,24 @@ class WeatherProvider extends ChangeNotifier {
       );
 
       _data = result;
-      _lastFetchedBounds = bounds;
+      _lastFetchedBounds = _BoundingBox(
+        south: south,
+        north: north,
+        west: west,
+        east: east,
+      );
       _errorMessage = null;
+
+      // 2. Write to cache
+      try {
+        await _cache.put(
+          cacheKey,
+          jsonEncode(_data.toJson()),
+          ttl: const Duration(hours: 1),
+        );
+      } catch (e) {
+        debugPrint('WeatherProvider: Cache write failed - $e');
+      }
 
       debugPrint(
         'WeatherProvider: Fetched ${result.windPoints.length} wind, '

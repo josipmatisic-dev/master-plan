@@ -76,15 +76,15 @@ class ForecastTimeline extends StatelessWidget {
                 color: cs.onSurfaceVariant, fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
         if (frame.hasWind)
-          Text('${frame.wind!.speedKnots.toStringAsFixed(0)} kts',
+          Text('${frame.windPoints.first.speedKnots.toStringAsFixed(0)} kts',
               style: tt.bodySmall?.copyWith(color: cs.onSurface)),
         if (frame.hasWind)
-          Text(_compassDirection(frame.wind!.directionDegrees),
+          Text(_compassDirection(frame.windPoints.first.directionDegrees),
               style: tt.bodySmall
                   ?.copyWith(color: cs.onSurfaceVariant, fontSize: 10)),
         const SizedBox(height: 4),
         if (frame.hasWave)
-          Text('${frame.wave!.heightMeters.toStringAsFixed(1)} m',
+          Text('${frame.wavePoints.first.heightMeters.toStringAsFixed(1)} m',
               style: tt.bodySmall?.copyWith(color: cs.primary)),
       ]),
     );

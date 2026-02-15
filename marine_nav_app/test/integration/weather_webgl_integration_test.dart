@@ -51,7 +51,7 @@ void main() {
     when(mockWeatherProvider.hasData).thenReturn(true);
     when(mockWeatherProvider.isWindVisible).thenReturn(true);
     when(mockWeatherProvider.isWaveVisible).thenReturn(false);
-    
+
     // Sample wind data
     final windPoints = [
       const WindDataPoint(
@@ -88,19 +88,24 @@ void main() {
     // Mock loadFlutterAsset call in initState if it happens (though we pass controller)
     when(mockWebViewController.loadFlutterAsset(any)).thenAnswer((_) async {});
     when(mockWebViewController.setJavaScriptMode(any)).thenAnswer((_) async {});
-    when(mockWebViewController.setBackgroundColor(any)).thenAnswer((_) async {});
-    when(mockWebViewController.addJavaScriptChannel(any, onMessageReceived: anyNamed('onMessageReceived')))
+    when(mockWebViewController.setBackgroundColor(any))
         .thenAnswer((_) async {});
-    when(mockWebViewController.setNavigationDelegate(any)).thenAnswer((_) async {});
+    when(mockWebViewController.addJavaScriptChannel(any,
+            onMessageReceived: anyNamed('onMessageReceived')))
+        .thenAnswer((_) async {});
+    when(mockWebViewController.setNavigationDelegate(any))
+        .thenAnswer((_) async {});
   });
 
-  testWidgets('MapWebView triggers texture generation and calls setWindTexture', (tester) async {
+  testWidgets('MapWebView triggers texture generation and calls setWindTexture',
+      (tester) async {
     // We pass our mock controller to bypass initialization logic and verify calls
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           ChangeNotifierProvider<MapProvider>.value(value: mockMapProvider),
-          ChangeNotifierProvider<WeatherProvider>.value(value: mockWeatherProvider),
+          ChangeNotifierProvider<WeatherProvider>.value(
+              value: mockWeatherProvider),
           ChangeNotifierProvider<RouteProvider>.value(value: mockRouteProvider),
         ],
         child: MaterialApp(
@@ -120,7 +125,7 @@ void main() {
     // MapWebView adds listener to WeatherProvider in initState.
     // Since mockWeatherProvider is a Mock, it doesn't hold listeners unless we verify addListener call
     // and extract the callback.
-    
+
     // Verify addListener was called
     final verification = verify(mockWeatherProvider.addListener(captureAny));
     expect(verification.callCount, greaterThan(0));
@@ -128,13 +133,14 @@ void main() {
 
     // Trigger the listener (simulate update)
     listener();
-    
+
     // Allow async texture generation to complete
     await tester.pumpAndSettle();
-    
+
     // Verify that runJavaScript was called with setWindTexture
     // We expect a call containing "window.mapBridge.setWindTexture"
-    verify(mockWebViewController.runJavaScript(argThat(contains('window.mapBridge.setWindTexture')))).called(greaterThan(0));
+    verify(mockWebViewController.runJavaScript(
+            argThat(contains('window.mapBridge.setWindTexture'))))
+        .called(greaterThan(0));
   });
 }
-

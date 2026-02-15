@@ -60,15 +60,15 @@ void main() {
 
       expect(result.windPoints, hasLength(2));
       expect(result.wavePoints, hasLength(2));
-      
+
       // Check first point
       expect(result.windPoints[0].position.latitude, 45.0);
       expect(result.windPoints[0].speedKnots, 12.0);
-      
+
       // Check second point
       expect(result.windPoints[1].position.latitude, 46.0);
       expect(result.windPoints[1].speedKnots, 12.0);
-      
+
       // Frames are parsed from the first point
       expect(result.frames, hasLength(2));
     });
@@ -84,7 +84,8 @@ void main() {
       );
 
       expect(result.windPoints, hasLength(1));
-      expect(result.windPoints[0].position.latitude, 45.0); // Uses (south, west)
+      expect(
+          result.windPoints[0].position.latitude, 45.0); // Uses (south, west)
       expect(result.windPoints[0].position.longitude, 14.0);
     });
 
@@ -96,7 +97,7 @@ void main() {
         forecastBody: partialBody,
         grid: [(45.0, 14.0)],
       );
-      
+
       expect(result.windPoints, isEmpty);
       expect(result.wavePoints, isEmpty);
       expect(result.frames, isEmpty);

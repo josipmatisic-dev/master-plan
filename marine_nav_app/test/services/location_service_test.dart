@@ -30,10 +30,10 @@ void main() {
     });
 
     test('stop() resets status to idle', () {
-       // Ideally we would start it first, but since we can't fully start it,
-       // we just verify stop doesn't crash from idle state.
-       service.stop();
-       expect(service.status, LocationStatus.idle);
+      // Ideally we would start it first, but since we can't fully start it,
+      // we just verify stop doesn't crash from idle state.
+      service.stop();
+      expect(service.status, LocationStatus.idle);
     });
   });
 }

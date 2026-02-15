@@ -56,10 +56,10 @@ class TimelineProvider extends ChangeNotifier {
   int get frameIndex => _frameIndex;
 
   /// Total number of available frames.
-  int get frameCount => _accessibleFrames.length;
+  int get frameCount => _allFrames.length;
 
   /// Whether frames are available.
-  bool get hasFrames => _accessibleFrames.isNotEmpty;
+  bool get hasFrames => _allFrames.isNotEmpty;
 
   /// Current playback state.
   PlaybackState get playbackState => _playbackState;
@@ -69,14 +69,14 @@ class TimelineProvider extends ChangeNotifier {
 
   /// Active frame at the current index (null if no frames).
   WeatherFrame? get activeFrame {
-    final frames = _accessibleFrames;
+    final frames = _allFrames;
     if (frames.isEmpty || _frameIndex >= frames.length) return null;
     return frames[_frameIndex];
   }
 
   /// Scrubber position as a normalized value (0.0–1.0).
   double get scrubberPosition {
-    final count = _accessibleFrames.length;
+    final count = _allFrames.length;
     if (count <= 1) return 0.0;
     return _frameIndex / (count - 1);
   }
@@ -93,33 +93,23 @@ class TimelineProvider extends ChangeNotifier {
   /// Wind/wave data lists for the active frame (for overlay rendering).
   List<WindDataPoint> get activeWindPoints {
     final frame = activeFrame;
-    if (frame?.wind == null) return const [];
-    return [frame!.wind!];
+    return frame?.windPoints ?? [];
   }
 
   /// Wave data for the active frame.
   List<WaveDataPoint> get activeWavePoints {
     final frame = activeFrame;
-    if (frame?.wave == null) return const [];
-    return [frame!.wave!];
+    return frame?.wavePoints ?? [];
   }
 
-  /// Accessible frames (capped by ISS-013 limit).
-  List<WeatherFrame> get _accessibleFrames {
-    final allFrames = _weather.data.frames;
-    if (allFrames.length <= maxFramesInMemory) return allFrames;
-    // Window of frames around current index.
-    const half = maxFramesInMemory ~/ 2;
-    final start =
-        (_frameIndex - half).clamp(0, allFrames.length - maxFramesInMemory);
-    return allFrames.sublist(start, start + maxFramesInMemory);
-  }
+  /// All available frames (no sliding window for now).
+  List<WeatherFrame> get _allFrames => _weather.data.frames;
 
   // ============ Frame Navigation ============
 
   /// Jump to a specific frame index.
   void setFrameIndex(int index) {
-    final count = _accessibleFrames.length;
+    final count = _allFrames.length;
     if (count == 0) return;
     final clamped = index.clamp(0, count - 1);
     if (clamped == _frameIndex) return;
@@ -129,7 +119,7 @@ class TimelineProvider extends ChangeNotifier {
 
   /// Set scrubber position (0.0–1.0) and jump to nearest frame.
   void setScrubberPosition(double position) {
-    final count = _accessibleFrames.length;
+    final count = _allFrames.length;
     if (count == 0) return;
     final index = (position.clamp(0.0, 1.0) * (count - 1)).round();
     setFrameIndex(index);
@@ -137,14 +127,14 @@ class TimelineProvider extends ChangeNotifier {
 
   /// Advance to the next frame. Wraps to start if at end.
   void nextFrame() {
-    final count = _accessibleFrames.length;
+    final count = _allFrames.length;
     if (count == 0) return;
     setFrameIndex((_frameIndex + 1) % count);
   }
 
   /// Go to the previous frame. Wraps to end if at start.
   void previousFrame() {
-    final count = _accessibleFrames.length;
+    final count = _allFrames.length;
     if (count == 0) return;
     setFrameIndex((_frameIndex - 1 + count) % count);
   }
@@ -153,7 +143,7 @@ class TimelineProvider extends ChangeNotifier {
 
   /// Start playing through frames automatically.
   void play() {
-    if (_accessibleFrames.length < 2) return;
+    if (_allFrames.length < 2) return;
     _playbackState = PlaybackState.playing;
     _playbackTimer?.cancel();
     _playbackTimer = Timer.periodic(playbackInterval, (_) {

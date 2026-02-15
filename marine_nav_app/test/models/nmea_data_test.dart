@@ -29,7 +29,8 @@ void main() {
     test('speedOverGroundKnots combines GPRMC and GPVTG', () {
       final dataOnlyRMC = NMEAData(
         timestamp: now,
-        gprmc: GPRMCData(position: pos, time: now, valid: true, speedKnots: 10.5),
+        gprmc:
+            GPRMCData(position: pos, time: now, valid: true, speedKnots: 10.5),
       );
       expect(dataOnlyRMC.speedOverGroundKnots, 10.5);
 
@@ -43,7 +44,8 @@ void main() {
     test('courseOverGroundDegrees combines GPRMC and GPVTG', () {
       final dataOnlyRMC = NMEAData(
         timestamp: now,
-        gprmc: GPRMCData(position: pos, time: now, valid: true, trackTrue: 180.0),
+        gprmc:
+            GPRMCData(position: pos, time: now, valid: true, trackTrue: 180.0),
       );
       expect(dataOnlyRMC.courseOverGroundDegrees, 180.0);
 
@@ -53,7 +55,6 @@ void main() {
       );
       expect(dataOnlyVTG.courseOverGroundDegrees, 90.0);
     });
-
 
     test('depthMeters returns value from DPT', () {
       final data = NMEAData(

@@ -29,6 +29,22 @@ class WindDataPoint {
     required this.directionDegrees,
   });
 
+  /// Creates a WindDataPoint from JSON map.
+  factory WindDataPoint.fromJson(Map<String, dynamic> json) {
+    return WindDataPoint(
+      position: LatLng.fromJson(json['pos']),
+      speedKnots: (json['spd'] as num).toDouble(),
+      directionDegrees: (json['dir'] as num).toDouble(),
+    );
+  }
+
+  /// Converts to JSON map.
+  Map<String, dynamic> toJson() => {
+        'pos': position.toJson(),
+        'spd': speedKnots,
+        'dir': directionDegrees,
+      };
+
   /// Beaufort scale number (0-12) based on wind speed in knots.
   int get beaufortScale {
     if (speedKnots < 1) return 0;
@@ -90,6 +106,24 @@ class WaveDataPoint {
     this.periodSeconds,
   });
 
+  /// Creates a WaveDataPoint from JSON map.
+  factory WaveDataPoint.fromJson(Map<String, dynamic> json) {
+    return WaveDataPoint(
+      position: LatLng.fromJson(json['pos']),
+      heightMeters: (json['hgt'] as num).toDouble(),
+      directionDegrees: (json['dir'] as num).toDouble(),
+      periodSeconds: (json['per'] as num?)?.toDouble(),
+    );
+  }
+
+  /// Converts to JSON map.
+  Map<String, dynamic> toJson() => {
+        'pos': position.toJson(),
+        'hgt': heightMeters,
+        'dir': directionDegrees,
+        if (periodSeconds != null) 'per': periodSeconds,
+      };
+
   @override
   String toString() => 'WaveDataPoint(${position.latitude.toStringAsFixed(2)}, '
       '${position.longitude.toStringAsFixed(2)}, '
@@ -139,6 +173,26 @@ class WeatherData {
     this.gridResolution = 0.25,
   });
 
+  /// Creates WeatherData from JSON map.
+  factory WeatherData.fromJson(Map<String, dynamic> json) {
+    return WeatherData(
+      windPoints:
+          (json['wind'] as List).map((e) => WindDataPoint.fromJson(e)).toList(),
+      wavePoints:
+          (json['wave'] as List).map((e) => WaveDataPoint.fromJson(e)).toList(),
+      fetchedAt: DateTime.fromMillisecondsSinceEpoch(json['ts'] as int),
+      gridResolution: (json['res'] as num).toDouble(),
+    );
+  }
+
+  /// Converts to JSON map.
+  Map<String, dynamic> toJson() => {
+        'wind': windPoints.map((e) => e.toJson()).toList(),
+        'wave': wavePoints.map((e) => e.toJson()).toList(),
+        'ts': fetchedAt.millisecondsSinceEpoch,
+        'res': gridResolution,
+      };
+
   /// Empty weather data.
   static final empty = WeatherData(
     windPoints: const [],
@@ -180,41 +234,41 @@ class WeatherFrame {
   /// Forecast timestamp for this frame.
   final DateTime time;
 
-  /// Wind data for this hour.
-  final WindDataPoint? wind;
+  /// Wind data points for this hour (one per grid point).
+  final List<WindDataPoint> windPoints;
 
-  /// Wave data for this hour.
-  final WaveDataPoint? wave;
+  /// Wave data points for this hour (one per grid point).
+  final List<WaveDataPoint> wavePoints;
 
   /// Creates a forecast frame.
   const WeatherFrame({
     required this.time,
-    this.wind,
-    this.wave,
+    this.windPoints = const [],
+    this.wavePoints = const [],
   });
 
   /// Whether this frame has wind data.
-  bool get hasWind => wind != null;
+  bool get hasWind => windPoints.isNotEmpty;
 
-  /// Whether this frame has wave data.
-  bool get hasWave => wave != null;
+  /// Whether this frame has Wave data.
+  bool get hasWave => wavePoints.isNotEmpty;
 
   @override
   String toString() => 'WeatherFrame($time, '
-      'wind: ${wind != null ? "${wind!.speedKnots.toStringAsFixed(1)} kts" : "n/a"}, '
-      'wave: ${wave != null ? "${wave!.heightMeters.toStringAsFixed(1)} m" : "n/a"})';
+      'wind: ${windPoints.isNotEmpty ? "${windPoints.length} pts" : "n/a"}, '
+      'wave: ${wavePoints.isNotEmpty ? "${wavePoints.length} pts" : "n/a"})';
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     return other is WeatherFrame &&
         other.time == time &&
-        other.wind == wind &&
-        other.wave == wave;
+        other.windPoints == windPoints &&
+        other.wavePoints == wavePoints;
   }
 
   @override
-  int get hashCode => Object.hash(time, wind, wave);
+  int get hashCode => Object.hash(time, windPoints, wavePoints);
 }
 
 /// Default cache TTL for weather data (1 hour).

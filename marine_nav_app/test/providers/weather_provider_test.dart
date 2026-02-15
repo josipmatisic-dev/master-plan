@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:marine_nav_app/models/lat_lng.dart';
+import 'package:marine_nav_app/models/weather_data.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/providers/weather_provider.dart';
@@ -9,38 +12,70 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// Sample Forecast API response for tests (wind).
 const _forecastResponse = '''
-{
-  "latitude": 60.0,
-  "longitude": 10.0,
-  "current": {
-    "wind_speed_10m": 12.5,
-    "wind_direction_10m": 225.0
+[
+  {
+    "latitude": 60.0,
+    "longitude": 10.0,
+    "current": {
+      "wind_speed_10m": 12.5,
+      "wind_direction_10m": 225.0
+    },
+    "hourly": {
+      "time": ["2026-02-09T00:00", "2026-02-09T01:00"],
+      "wind_speed_10m": [10.0, 12.5],
+      "wind_direction_10m": [220.0, 225.0]
+    }
   },
-  "hourly": {
-    "time": ["2026-02-09T00:00", "2026-02-09T01:00"],
-    "wind_speed_10m": [10.0, 12.5],
-    "wind_direction_10m": [220.0, 225.0]
+  {
+    "latitude": 60.0,
+    "longitude": 12.0,
+    "current": {
+      "wind_speed_10m": 11.0,
+      "wind_direction_10m": 230.0
+    },
+    "hourly": {
+      "time": ["2026-02-09T00:00", "2026-02-09T01:00"],
+      "wind_speed_10m": [9.0, 11.0],
+      "wind_direction_10m": [215.0, 230.0]
+    }
   }
-}
+]
 ''';
 
 /// Sample Marine API response for tests (waves).
 const _marineResponse = '''
-{
-  "latitude": 60.0,
-  "longitude": 10.0,
-  "current": {
-    "wave_height": 1.8,
-    "wave_direction": 180.0,
-    "wave_period": 6.5
+[
+  {
+    "latitude": 60.0,
+    "longitude": 10.0,
+    "current": {
+      "wave_height": 1.8,
+      "wave_direction": 180.0,
+      "wave_period": 6.5
+    },
+    "hourly": {
+      "time": ["2026-02-09T00:00", "2026-02-09T01:00"],
+      "wave_height": [1.5, 1.8],
+      "wave_direction": [175.0, 180.0],
+      "wave_period": [6.0, 6.5]
+    }
   },
-  "hourly": {
-    "time": ["2026-02-09T00:00", "2026-02-09T01:00"],
-    "wave_height": [1.5, 1.8],
-    "wave_direction": [175.0, 180.0],
-    "wave_period": [6.0, 6.5]
+  {
+    "latitude": 60.0,
+    "longitude": 12.0,
+    "current": {
+      "wave_height": 1.7,
+      "wave_direction": 185.0,
+      "wave_period": 6.3
+    },
+    "hourly": {
+      "time": ["2026-02-09T00:00", "2026-02-09T01:00"],
+      "wave_height": [1.4, 1.7],
+      "wave_direction": [170.0, 185.0],
+      "wave_period": [5.9, 6.3]
+    }
   }
-}
+]
 ''';
 
 void main() {
@@ -198,14 +233,21 @@ void main() {
     });
 
     test('refresh keeps stale data as fallback on error', () async {
-      // First fetch succeeds
-      final successClient = MockClient((request) async {
+      // 1. Setup provider with success client
+      var clientShouldFail = false;
+      final client = MockClient((request) async {
+        if (clientShouldFail) {
+          return http.Response('Error', 500);
+        }
         if (request.url.host == 'api.open-meteo.com') {
           return http.Response(_forecastResponse, 200);
         }
         return http.Response(_marineResponse, 200);
       });
-      createProvider(client: successClient);
+
+      createProvider(client: client);
+
+      // 2. First fetch succeeds
       await weatherProvider.refresh(
         south: 58.0,
         north: 62.0,
@@ -213,35 +255,22 @@ void main() {
         east: 12.0,
       );
       expect(weatherProvider.hasData, true);
+      final originalData = weatherProvider.data;
 
-      // Now create a new provider that will fail, but has existing data
-      // (Simulating same provider with stale data)
-      // The provider keeps old data as fallback
-      final failClient = MockClient((_) async {
-        return http.Response('Error', 500);
-      });
+      // 3. Switch to failing mode
+      clientShouldFail = true;
 
-      // Use a new API but same provider state
-      final failApi = WeatherApiService(client: failClient);
-      final failProvider = WeatherProvider(
-        settingsProvider: settingsProvider,
-        cacheProvider: cacheProvider,
-        api: failApi,
-      );
-
-      // First load data via refresh into failProvider manually
-      // (testing cache fallback concept - provider keeps stale data)
-      await failProvider.refresh(
+      // 4. Refresh again (should fail but keep data)
+      await weatherProvider.refresh(
         south: 58.0,
         north: 62.0,
         west: 8.0,
         east: 12.0,
       );
 
-      // Should have error but data stays from before (empty in this case
-      // since failProvider has no prior data)
-      expect(failProvider.errorMessage, isNotNull);
-      failProvider.dispose();
+      expect(weatherProvider.errorMessage, isNotNull);
+      expect(weatherProvider.hasData, true);
+      expect(weatherProvider.data, equals(originalData));
     });
 
     test('refresh notifies listeners', () async {
@@ -353,6 +382,100 @@ void main() {
       // Should not throw
       providerDisposed = true;
       weatherProvider.dispose();
+    });
+
+    // ============ Caching ============
+
+    test('uses cached data if available and fresh', () async {
+      // 1. Pre-populate cache with fresh data
+      final cachedData = WeatherData(
+        fetchedAt: DateTime.now(),
+        windPoints: [
+          const WindDataPoint(
+            position: LatLng(latitude: 60.0, longitude: 10.0),
+            speedKnots: 15.0,
+            directionDegrees: 180.0,
+          ),
+        ],
+        wavePoints: const [],
+      );
+
+      // Cache key for 58.0, 62.0, 8.0, 12.0 -> "weather_58.0_62.0_8.0_12.0"
+      await cacheProvider.put(
+        'weather_58.0_62.0_8.0_12.0',
+        jsonEncode(cachedData.toJson()),
+      );
+
+      // 2. Create provider with failing API to prove it doesn't call API
+      createProvider(
+          client: MockClient((_) async => http.Response('Error', 500)));
+
+      // 3. Request data
+      await weatherProvider.refresh(
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
+        force: false,
+      );
+
+      // 4. Verify data came from cache
+      expect(weatherProvider.hasData, true);
+      expect(weatherProvider.data.windPoints.first.speedKnots, 15.0);
+      expect(weatherProvider.errorMessage, isNull);
+    });
+
+    test('fetches from API if cache miss', () async {
+      // 1. Ensure cache empty
+      await cacheProvider.clearCache();
+
+      // 2. Create provider with working API
+      int apiCalls = 0;
+      createProvider(client: MockClient((request) async {
+        apiCalls++;
+        if (request.url.host == 'api.open-meteo.com') {
+          return http.Response(_forecastResponse, 200);
+        }
+        return http.Response(_marineResponse, 200);
+      }));
+
+      // 3. Request data
+      await weatherProvider.refresh(
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
+        force: false,
+      );
+
+      // 4. Verify API called
+      expect(apiCalls, 2); // 1 forecast + 1 marine
+      expect(weatherProvider.hasData, true);
+    });
+
+    test('writes to cache after successful fetch', () async {
+      // 1. Create provider with working API
+      createProvider(client: MockClient((request) async {
+        if (request.url.host == 'api.open-meteo.com') {
+          return http.Response(_forecastResponse, 200);
+        }
+        return http.Response(_marineResponse, 200);
+      }));
+
+      // 2. Request data
+      await weatherProvider.refresh(
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
+      );
+
+      // 3. Check cache
+      final cachedJson = cacheProvider.getString('weather_58.0_62.0_8.0_12.0');
+      expect(cachedJson, isNotNull);
+
+      final data = WeatherData.fromJson(jsonDecode(cachedJson!));
+      expect(data.windPoints.isNotEmpty, true);
     });
   });
 }

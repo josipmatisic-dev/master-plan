@@ -8,7 +8,7 @@ void main() {
         // $WIMWV,214.8,R,0.1,K,A*28
         const sentence = '\$WIMWV,214.8,R,0.1,K,A*28';
         final data = NMEAInstrumentParser.parseMWV(sentence);
-        
+
         expect(data, isNotNull);
         expect(data!.angleDegrees, 214.8);
         expect(data.isRelative, isTrue);
@@ -18,7 +18,8 @@ void main() {
 
       test('returns null for invalid sentence', () {
         expect(NMEAInstrumentParser.parseMWV('invalid'), isNull);
-        expect(NMEAInstrumentParser.parseMWV('\$WIMWV,1,2,3'), isNull); // too short
+        expect(NMEAInstrumentParser.parseMWV('\$WIMWV,1,2,3'),
+            isNull); // too short
       });
     });
 
@@ -55,7 +56,7 @@ void main() {
         expect(data.deviationDegrees, isNull);
       });
 
-       test('parses sentence with deviation and variation', () {
+      test('parses sentence with deviation and variation', () {
         // $HCHDG,101.1,1.0,E,7.1,W*3C
         const sentence = '\$HCHDG,101.1,1.0,E,7.1,W*3C';
         final data = NMEAInstrumentParser.parseHDG(sentence);

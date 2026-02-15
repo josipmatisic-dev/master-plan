@@ -151,7 +151,7 @@ class WeatherApiService {
         'longitude': lngs,
         'current': 'wave_height,wave_direction,wave_period',
         'hourly': 'wave_height,wave_direction,wave_period',
-        'forecast_days': '1',
+        'forecast_days': '7',
       },
     );
   }
@@ -165,7 +165,7 @@ class WeatherApiService {
         'current': 'wind_speed_10m,wind_direction_10m',
         'hourly': 'wind_speed_10m,wind_direction_10m',
         'wind_speed_unit': 'kn',
-        'forecast_days': '1',
+        'forecast_days': '7',
       },
     );
   }

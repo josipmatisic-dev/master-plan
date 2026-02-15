@@ -71,16 +71,11 @@ WeatherData parseGridResponse({
       }
     }
 
-    // Parse hourly frames from the first grid point (representative)
-    final firstForecast = forecastList.isNotEmpty
-        ? forecastList[0] as Map<String, dynamic>
-        : null;
-    final firstMarine =
-        marineList.isNotEmpty ? marineList[0] as Map<String, dynamic> : null;
+    // Parse hourly frames: collect all grid points for each time step
     final frames = _parseHourlyFrames(
-      firstForecast?['hourly'] as Map<String, dynamic>?,
-      firstMarine?['hourly'] as Map<String, dynamic>?,
-      firstForecast?['hourly']?['time'] as List<dynamic>?,
+      forecastList: forecastList,
+      marineList: marineList,
+      grid: grid,
     );
 
     return WeatherData(
@@ -114,65 +109,107 @@ WeatherData parseDualResponse({
   );
 }
 
-/// Parses hourly forecast frames by merging wind + wave hourly data.
-List<WeatherFrame> _parseHourlyFrames(
-  Map<String, dynamic>? forecastHourly,
-  Map<String, dynamic>? marineHourly,
-  List<dynamic>? times,
-) {
-  if (times == null) return [];
+/// Parses hourly forecast frames by iterating time steps and collecting
+/// all grid points' wind + wave data for each step.
+List<WeatherFrame> _parseHourlyFrames({
+  required List<dynamic> forecastList,
+  required List<dynamic> marineList,
+  required List<(double, double)> grid,
+}) {
+  if (forecastList.isEmpty && marineList.isEmpty) return [];
+
   final frames = <WeatherFrame>[];
 
-  final windSpeeds = forecastHourly?['wind_speed_10m'] as List<dynamic>?;
-  final windDirs = forecastHourly?['wind_direction_10m'] as List<dynamic>?;
-  final waveHeights = marineHourly?['wave_height'] as List<dynamic>?;
-  final waveDirs = marineHourly?['wave_direction'] as List<dynamic>?;
-  final wavePeriods = marineHourly?['wave_period'] as List<dynamic>?;
+  // Get the common time array from the first forecast
+  final firstForecast =
+      forecastList.isNotEmpty ? forecastList[0] as Map<String, dynamic> : null;
+  final hourlyForecast = firstForecast?['hourly'] as Map<String, dynamic>?;
+  final times = hourlyForecast?['time'] as List<dynamic>?;
 
-  const pos = LatLng(latitude: 0, longitude: 0);
+  if (times == null || times.isEmpty) return [];
 
-  for (var i = 0; i < times.length; i++) {
-    final timeStr = times[i] as String?;
+  // Iterate through each time step
+  for (var timeIdx = 0; timeIdx < times.length; timeIdx++) {
+    final timeStr = times[timeIdx] as String?;
     if (timeStr == null) continue;
     final time = DateTime.tryParse(timeStr);
     if (time == null) continue;
 
-    WindDataPoint? wind;
-    if (windSpeeds != null &&
-        windDirs != null &&
-        i < windSpeeds.length &&
-        i < windDirs.length) {
-      final speed = (windSpeeds[i] as num?)?.toDouble();
-      final dir = (windDirs[i] as num?)?.toDouble();
-      if (speed != null && dir != null) {
-        wind = WindDataPoint(
-            position: pos, speedKnots: speed, directionDegrees: dir);
+    final windPoints = <WindDataPoint>[];
+    final wavePoints = <WaveDataPoint>[];
+
+    // Collect wind data from all grid points at this time step
+    for (var gridIdx = 0; gridIdx < forecastList.length; gridIdx++) {
+      if (gridIdx >= grid.length) break;
+      final pos =
+          LatLng(latitude: grid[gridIdx].$1, longitude: grid[gridIdx].$2);
+      final fc = forecastList[gridIdx] as Map<String, dynamic>;
+      final hourly = fc['hourly'] as Map<String, dynamic>?;
+
+      if (hourly != null) {
+        final windSpeeds = hourly['wind_speed_10m'] as List<dynamic>?;
+        final windDirs = hourly['wind_direction_10m'] as List<dynamic>?;
+
+        if (windSpeeds != null &&
+            windDirs != null &&
+            timeIdx < windSpeeds.length &&
+            timeIdx < windDirs.length) {
+          final speed = (windSpeeds[timeIdx] as num?)?.toDouble();
+          final dir = (windDirs[timeIdx] as num?)?.toDouble();
+          if (speed != null && dir != null) {
+            windPoints.add(WindDataPoint(
+              position: pos,
+              speedKnots: speed,
+              directionDegrees: dir,
+            ));
+          }
+        }
       }
     }
 
-    WaveDataPoint? wave;
-    if (waveHeights != null &&
-        waveDirs != null &&
-        i < waveHeights.length &&
-        i < waveDirs.length) {
-      final height = (waveHeights[i] as num?)?.toDouble();
-      final wDir = (waveDirs[i] as num?)?.toDouble();
-      final period = wavePeriods != null && i < wavePeriods.length
-          ? (wavePeriods[i] as num?)?.toDouble()
-          : null;
-      if (height != null && wDir != null) {
-        wave = WaveDataPoint(
-          position: pos,
-          heightMeters: height,
-          directionDegrees: wDir,
-          periodSeconds: period,
-        );
+    // Collect wave data from all grid points at this time step
+    for (var gridIdx = 0; gridIdx < marineList.length; gridIdx++) {
+      if (gridIdx >= grid.length) break;
+      final pos =
+          LatLng(latitude: grid[gridIdx].$1, longitude: grid[gridIdx].$2);
+      final mc = marineList[gridIdx] as Map<String, dynamic>;
+      final hourly = mc['hourly'] as Map<String, dynamic>?;
+
+      if (hourly != null) {
+        final waveHeights = hourly['wave_height'] as List<dynamic>?;
+        final waveDirs = hourly['wave_direction'] as List<dynamic>?;
+        final wavePeriods = hourly['wave_period'] as List<dynamic>?;
+
+        if (waveHeights != null &&
+            waveDirs != null &&
+            timeIdx < waveHeights.length &&
+            timeIdx < waveDirs.length) {
+          final height = (waveHeights[timeIdx] as num?)?.toDouble();
+          final wDir = (waveDirs[timeIdx] as num?)?.toDouble();
+          final period = wavePeriods != null && timeIdx < wavePeriods.length
+              ? (wavePeriods[timeIdx] as num?)?.toDouble()
+              : null;
+          if (height != null && wDir != null) {
+            wavePoints.add(WaveDataPoint(
+              position: pos,
+              heightMeters: height,
+              directionDegrees: wDir,
+              periodSeconds: period,
+            ));
+          }
+        }
       }
     }
 
-    if (wind != null || wave != null) {
-      frames.add(WeatherFrame(time: time, wind: wind, wave: wave));
+    // Create frame for this time step
+    if (windPoints.isNotEmpty || wavePoints.isNotEmpty) {
+      frames.add(WeatherFrame(
+        time: time,
+        windPoints: windPoints,
+        wavePoints: wavePoints,
+      ));
     }
   }
+
   return frames;
 }

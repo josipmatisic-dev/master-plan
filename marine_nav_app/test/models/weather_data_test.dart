@@ -272,19 +272,23 @@ void main() {
     const position = LatLng(latitude: 59.91, longitude: 10.75);
     final testTime = DateTime(2026, 2, 9, 12, 0);
 
-    test('constructs with wind and wave', () {
+    test('constructs with wind and wave lists', () {
       final frame = WeatherFrame(
         time: testTime,
-        wind: const WindDataPoint(
-          position: position,
-          speedKnots: 15.0,
-          directionDegrees: 270.0,
-        ),
-        wave: const WaveDataPoint(
-          position: position,
-          heightMeters: 2.0,
-          directionDegrees: 180.0,
-        ),
+        windPoints: const [
+          WindDataPoint(
+            position: position,
+            speedKnots: 15.0,
+            directionDegrees: 270.0,
+          ),
+        ],
+        wavePoints: const [
+          WaveDataPoint(
+            position: position,
+            heightMeters: 2.0,
+            directionDegrees: 180.0,
+          ),
+        ],
       );
       expect(frame.hasWind, true);
       expect(frame.hasWave, true);
@@ -293,32 +297,38 @@ void main() {
     test('constructs with only wind', () {
       final frame = WeatherFrame(
         time: testTime,
-        wind: const WindDataPoint(
-          position: position,
-          speedKnots: 10.0,
-          directionDegrees: 90.0,
-        ),
+        windPoints: const [
+          WindDataPoint(
+            position: position,
+            speedKnots: 10.0,
+            directionDegrees: 90.0,
+          ),
+        ],
       );
       expect(frame.hasWind, true);
       expect(frame.hasWave, false);
     });
 
-    test('equality compares time, wind, wave', () {
+    test('equality compares time, windPoints, wavePoints', () {
       final a = WeatherFrame(
         time: testTime,
-        wind: const WindDataPoint(
-          position: position,
-          speedKnots: 15.0,
-          directionDegrees: 270.0,
-        ),
+        windPoints: const [
+          WindDataPoint(
+            position: position,
+            speedKnots: 15.0,
+            directionDegrees: 270.0,
+          ),
+        ],
       );
       final b = WeatherFrame(
         time: testTime,
-        wind: const WindDataPoint(
-          position: position,
-          speedKnots: 15.0,
-          directionDegrees: 270.0,
-        ),
+        windPoints: const [
+          WindDataPoint(
+            position: position,
+            speedKnots: 15.0,
+            directionDegrees: 270.0,
+          ),
+        ],
       );
       expect(a, equals(b));
       expect(a.hashCode, equals(b.hashCode));

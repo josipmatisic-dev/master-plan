@@ -47,7 +47,7 @@ class _MapWebViewState extends State<MapWebView> {
   @override
   void initState() {
     super.initState();
-    
+
     // Allow proceeding if testController is provided even if platform is null
     if (WebViewPlatform.instance == null && widget.testController == null) {
       _webViewAvailable = false;
@@ -160,9 +160,9 @@ class _MapWebViewState extends State<MapWebView> {
           debugPrint('setWindTexture failed: $e');
         }
       } else if (weather.data.windPoints.isNotEmpty) {
-         // Fallback? Or just wait for provider to generate it?
-         // Provider generates it async and notifies.
-         // So we just wait.
+        // Fallback? Or just wait for provider to generate it?
+        // Provider generates it async and notifies.
+        // So we just wait.
       }
     }
 
@@ -244,7 +244,9 @@ class _MapWebViewState extends State<MapWebView> {
                 borderRadius: BorderRadius.circular(OceanDimensions.radius),
                 child: Stack(
                   children: [
-                    if (_webViewAvailable && _controller != null && widget.testController == null)
+                    if (_webViewAvailable &&
+                        _controller != null &&
+                        widget.testController == null)
                       WebViewWidget(controller: _controller!)
                     else
                       _buildFallback(),

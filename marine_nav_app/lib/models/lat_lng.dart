@@ -29,6 +29,20 @@ class LatLng {
     );
   }
 
+  /// Creates a LatLng from JSON map.
+  factory LatLng.fromJson(Map<String, dynamic> json) {
+    return LatLng(
+      latitude: (json['lat'] as num).toDouble(),
+      longitude: (json['lng'] as num).toDouble(),
+    );
+  }
+
+  /// Converts to JSON map.
+  Map<String, dynamic> toJson() => {
+        'lat': latitude,
+        'lng': longitude,
+      };
+
   @override
   String toString() => 'LatLng($latitude, $longitude)';
 
