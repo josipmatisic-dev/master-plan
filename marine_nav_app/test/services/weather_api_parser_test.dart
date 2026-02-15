@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:marine_nav_app/services/weather_api_parser.dart';
-import 'package:marine_nav_app/models/weather_data.dart';
 import 'package:marine_nav_app/services/weather_api.dart'; // for Exception
+import 'package:marine_nav_app/services/weather_api_parser.dart';
 
 void main() {
   group('WeatherApiParser', () {

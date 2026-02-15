@@ -1,7 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:marine_nav_app/models/nmea_data.dart';
-import 'package:marine_nav_app/models/nmea_instrument_data.dart';
 
 void main() {
   group('NMEAData', () {
