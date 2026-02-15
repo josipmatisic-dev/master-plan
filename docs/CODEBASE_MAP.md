@@ -3,8 +3,8 @@
 
 ## Marine Navigation App - Flutter Project Structure
 
-**Version:** 3.2
-**Last Updated:** 2026-02-09
+**Version:** 4.0
+**Last Updated:** 2026-02-15
 **Purpose:** Complete map of codebase structure, dependencies, and data flow (includes SailStream UI)
 
 ---
@@ -24,181 +24,203 @@
 
 The Flutter scaffold includes Android and iOS native folders under `marine_nav_app/android` and `marine_nav_app/ios` for parallel platform work.
 
-```
 ```text
 lib/
-├── main.dart                     # App entry, provider setup
-├── models/                       # Data models
-│   ├── boat_position.dart       # ✅ GPS position with heading/speed (ISS-018 filtering constants)
-│   ├── bounds.dart              # Geographic bounds (SW/NE corners)
-│   ├── cache_entry.dart         # Cache metadata (TTL, LRU)
-│   ├── forecast_data.dart       # Weather forecast time series
-│   ├── lat_lng.dart             # WGS84 coordinate pair
-│   ├── nmea_data.dart           # ✅ NMEA sentence data models (GPGGA, GPRMC, GPVTG, MWV, DPT)
-│   ├── nmea_error.dart          # ✅ NMEA error types & connection config
-│   ├── nmea_message.dart        # Parsed NMEA sentences
-│   ├── viewport.dart            # Map viewport state
-│   ├── weather_data.dart        # Current weather conditions
-│   ├── wind_data.dart           # Wind speed/direction
-│   ├── wave_data.dart           # Wave height/period/direction
-│   └── ais_target.dart          # AIS vessel information
+├── config/
+│   ├── env.dart                  # Environment configuration
+│   └── env.example.dart          # Example env template
+├── main.dart                     # App entry, provider setup (~222 lines)
+├── models/
+│   ├── boat_position.dart        # Unified GPS model: courseTrue, heading, accuracy, fixQuality, satellites, altitudeMeters, isValid, isAccurate, copyWith, TrackPoint, ISS-018 constants
+│   ├── lat_lng.dart              # WGS84 coordinate pair (app's LatLng, used by ProjectionService)
+│   ├── nmea_data.dart            # NMEA sentence data (GPGGA, GPRMC, GPVTG, MWV, DPT, HDG, MTW)
+│   ├── nmea_error.dart           # NMEA error types & connection config
+│   ├── nmea_instrument_data.dart # Individual NMEA instrument data classes (MWV, DPT, HDG, MTW)
+│   ├── route.dart                # Route & Waypoint models with navigation metrics
+│   ├── viewport.dart             # Map viewport state (center, zoom, rotation, size, bounds)
+│   └── weather_data.dart         # Weather data + WeatherFrame for timeline
 │
-├── providers/                    # State management (Provider pattern)
-│   ├── boat_provider.dart       # ✅ Boat position & tracking state (ISS-018, LRU track, MOB)
-│   ├── cache_provider.dart      # Cache coordination
-│   ├── map_provider.dart        # Map viewport & interaction state
-│   ├── nmea_provider.dart       # ✅ NMEA data stream processing
-│   ├── route_provider.dart      # ✅ Route management & navigation metrics
-│   ├── settings_provider.dart   # User preferences & configuration
-│   ├── theme_provider.dart      # Theme & dark mode state
-│   ├── timeline_provider.dart   # Forecast playback state
-│   └── weather_provider.dart    # Weather data & overlays
+├── providers/
+│   ├── boat_provider.dart        # Boat position tracking (NMEA + phone GPS fallback, ISS-018 filter, track history)
+│   ├── cache_provider.dart       # Cache coordination & statistics
+│   ├── map_provider.dart         # Map viewport & interaction state
+│   ├── nmea_provider.dart        # NMEA data stream processing & connection lifecycle
+│   ├── route_provider.dart       # Route management & navigation metrics (distance, bearing, ETA, XTE)
+│   ├── settings_provider.dart    # User preferences & configuration
+│   ├── theme_provider.dart       # Theme mode + theme variant (Ocean Glass / Holographic)
+│   ├── timeline_provider.dart    # Forecast playback state (play/pause/speed/frame selection)
+│   └── weather_provider.dart     # Weather data fetching, caching, overlay layer toggles
 │
-├── services/                     # Business logic & data access
-│   ├── cache_service.dart       # LRU disk cache with TTL
-│   ├── http_client.dart         # HTTP with retry & backoff
-│   ├── location_service.dart    # GPS/location wrapper
-│   ├── nmea_parser.dart         # ✅ NMEA 0183 sentence parser (checksum, coordinate conversion)
-│   ├── projection_service.dart  # Coordinate transformations
-│   ├── weather_api.dart         # Open-Meteo API client
-│   ├── noaa_api.dart            # NOAA tides/buoys API
-│   ├── ais_service.dart         # AIS data processing
-│   └── database_service.dart    # SQLite local database
+├── services/
+│   ├── geo_utils.dart            # Geographic calculations (haversine distance, bearing, XTE)
+│   ├── location_service.dart     # Phone GPS wrapper (geolocator package)
+│   ├── nmea_isolate_messages.dart # Messages for NMEA parser isolate communication
+│   ├── nmea_parser.dart          # NMEA 0183 sentence parser (checksum, coordinate conversion)
+│   ├── nmea_parser_instruments.dart # Instrument-specific NMEA parsers (MWV, DPT, HDG, MTW)
+│   ├── nmea_service.dart         # NMEA TCP/UDP connection service with auto-reconnect
+│   ├── projection_service.dart   # Coordinate transforms (WGS84 ↔ Web Mercator ↔ Screen)
+│   ├── route_map_bridge.dart     # Route visualization on WebView map
+│   ├── weather_api.dart          # Open-Meteo Marine API client with retry/backoff
+│   ├── weather_api_parser.dart   # Weather API response parser
+│   └── wind_texture_generator.dart # WebGL texture generation for wind particle rendering
 │
-├── screens/                      # Full-screen pages
-│   ├── home_screen.dart         # Main app screen
-│   ├── map_screen.dart          # Primary map view
-│   ├── navigation_mode_screen.dart # SailStream navigation layout (SOG/COG/DEPTH orbs + route actions)
-│   ├── forecast_screen.dart     # Weather forecast details
-│   ├── timeline_screen.dart     # Forecast playback
-│   ├── settings_screen.dart     # App configuration
-│   ├── trip_log_screen.dart     # Trip history
-│   └── about_screen.dart        # About & help
+├── screens/
+│   ├── dashboard_screen.dart     # Dashboard overview
+│   ├── home_screen.dart          # Main app entry screen
+│   ├── map_screen.dart           # Primary map view with draggable overlays
+│   ├── navigation_mode_screen.dart # Navigation mode (SOG/COG/DEPTH orbs + route)
+│   ├── profile_screen.dart       # User profile
+│   ├── settings_screen.dart      # App configuration
+│   ├── vessel_screen.dart        # Vessel information
+│   └── weather_screen.dart       # Fullscreen weather with draggable bottom sheet
 │
-├── widgets/                      # Reusable UI components
-│   ├── map/                     # Map-specific widgets
-│   │   └── map_webview.dart     # MapTiler WebView container
-│   ├── glass/                   # Glass UI components (Ocean Glass design)
-│   │   ├── glass_card.dart     # Base frosted glass container
-│   │   ├── glass_button.dart   # Glass-styled button
-│   │   └── glass_modal.dart    # Glass modal/dialog
-│   ├── navigation/              # Navigation components
-│   │   ├── navigation_sidebar.dart # Primary app navigation menu
-│   │   ├── compass_widget.dart    # Compass with heading/speed/wind
-│   │   └── route_info_card.dart   # Next waypoint info display
-│   ├── data_displays/           # Data visualization widgets
-│   │   ├── data_orb.dart       # Circular data display (SOG/COG/DEPTH)
-│   │   ├── wind_widget.dart    # Draggable true wind indicator
-│   │   └── timeline_scrubber.dart # Forecast time navigation
-│   ├── overlays/                # Map overlay widgets
-│   │   ├── wind_overlay.dart   # Wind arrow rendering
-│   │   ├── wave_overlay.dart   # Wave height visualization
-│   │   ├── current_overlay.dart # Ocean current vectors
-│   │   ├── boat_marker.dart    # ✅ Boat position indicator (directional arrow + accuracy ring)
-│   │   ├── track_overlay.dart  # ✅ Breadcrumb trail (gradient line)
-│   │   └── ais_overlay.dart    # AIS vessel markers
-│   ├── controls/                # UI controls
-│   │   ├── timeline_controls.dart # Play/pause/speed
-│   │   ├── layer_toggle.dart   # Overlay enable/disable
-│   │   ├── zoom_controls.dart  # +/- buttons
-│   │   └── action_button_bar.dart # Route/Mark/Track/Alerts buttons
-│   ├── cards/                   # Info display cards
-│   │   ├── boat_info_card.dart # Speed/heading/position
-│   │   ├── weather_card.dart   # Current conditions
-│   │   ├── forecast_card.dart  # Daily forecast
-│   │   └── tide_card.dart      # Tide predictions
-│   └── common/                  # Shared widgets
-│       ├── error_widget.dart   # Error display
-│       ├── loading_widget.dart # Loading spinner
-│       └── empty_state.dart    # No data state
+├── widgets/
+│   ├── common/
+│   │   ├── animated_press_button.dart # Animated button with press feedback
+│   │   ├── draggable_overlay.dart     # Drag + resize wrapper with persistence
+│   │   ├── glow_text.dart             # Multi-layer shadow text for bloom effect
+│   │   └── setting_row.dart           # Reusable settings row widget
+│   ├── controls/
+│   │   └── layer_toggle.dart          # Overlay enable/disable control
+│   ├── data_displays/
+│   │   ├── data_orb.dart              # Circular data display (3 sizes, 4 states, hero animation)
+│   │   ├── neon_data_orb.dart         # Rotating neon orb for holographic theme
+│   │   └── wind_widget.dart           # Draggable true wind indicator (140×140)
+│   ├── effects/
+│   │   ├── holographic_shimmer.dart   # Cyberpunk shimmer effect
+│   │   ├── particle_background.dart   # CustomPainter particle system, 60 FPS
+│   │   ├── scan_line_effect.dart      # Retro scan line overlay
+│   │   └── scroll_reveal.dart         # Entrance animation on scroll
+│   ├── glass/
+│   │   ├── glass_card.dart            # Base frosted glass container (4 padding variants)
+│   │   └── holographic_card.dart      # Glassmorphism card with neon glow border
+│   ├── home/
+│   │   ├── cache_info_card.dart       # Cache statistics display
+│   │   ├── navigation_shortcuts.dart  # Quick navigation buttons
+│   │   ├── settings_card.dart         # Settings summary card
+│   │   ├── theme_controls.dart        # Theme mode/variant toggle
+│   │   └── welcome_card.dart          # Welcome/greeting card
+│   ├── map/
+│   │   └── map_webview.dart           # MapTiler WebView with JS bridge
+│   ├── navigation/
+│   │   ├── compass_widget.dart        # Compass rose with heading
+│   │   ├── course_deviation_indicator.dart # XTE visualization
+│   │   ├── navigation_sidebar.dart    # Vertical glass nav rail
+│   │   └── nmea_connection_widget.dart # NMEA status indicator
+│   ├── overlays/
+│   │   ├── boat_marker.dart           # Vessel position marker (directional arrow + accuracy ring)
+│   │   ├── track_overlay.dart         # Breadcrumb trail (gradient line)
+│   │   ├── wave_overlay.dart          # Wave height visualization
+│   │   └── wind_overlay.dart          # Wind arrow rendering
+│   ├── settings/
+│   │   ├── maptiler_key_card.dart     # MapTiler API key configuration
+│   │   ├── nmea_settings_card.dart    # NMEA connection settings
+│   │   └── nmea_settings_helpers.dart # Settings form helpers
+│   └── weather/
+│       ├── forecast_timeline.dart     # Forecast timeline display
+│       ├── timeline_scrubber.dart     # Time scrubber control
+│       ├── weather_detail_cards.dart  # Weather detail info cards
+│       └── weather_map_view.dart      # Weather map integration
 │
-├── utils/                        # Utility functions
-│   ├── beaufort.dart            # Wind speed to Beaufort scale
-│   ├── conversions.dart         # Unit conversions
-│   ├── formatters.dart          # Date/number formatting
-│   ├── validators.dart          # Input validation
-│   ├── logger.dart              # Logging wrapper
-│   └── constants.dart           # App-wide constants
+├── utils/
+│   ├── navigation_utils.dart     # Navigation helper functions
+│   ├── overlay_layout_store.dart # Persist overlay positions to SharedPreferences
+│   └── responsive_utils.dart     # Breakpoints, responsive spacing, device detection
 │
-├── theme/                        # Styling & theming
-│   ├── app_theme.dart           # Light/dark themes
-│   ├── colors.dart              # Marine color palette
-│   ├── text_styles.dart         # Typography
-│   └── dimensions.dart          # Spacing/sizing
-│
-└── l10n/                         # Localization
-```
-    ├── app_en.arb               # English strings
-    ├── app_es.arb               # Spanish strings
-    └── app_fr.arb               # French strings
+└── theme/
+    ├── app_theme.dart            # 4 ThemeData variants via getThemeForVariant()
+    ├── colors.dart               # Ocean Glass color palette (deepNavy, seafoamGreen, etc.)
+    ├── dimensions.dart           # Spacing, radii, glass blur/opacity constants
+    ├── holographic_colors.dart   # Neon palette (Electric Blue, Magenta, Cyber Purple)
+    ├── holographic_effects.dart  # NeonGlow, TextGlow, GlowShadows utilities
+    ├── holographic_gradients.dart # Cyberpunk gradient definitions
+    ├── holographic_shimmer_utils.dart # Shimmer animation utilities
+    ├── holographic_theme_data.dart # Holographic ThemeData configuration
+    ├── text_styles.dart          # Typography system (dataValue, heading, body, label)
+    └── theme_variant.dart        # ThemeVariant enum (oceanGlass, holographicCyberpunk)
 
 assets/
-├── map.html                      # MapTiler GL JS setup
-├── images/                       # App images
-│   ├── logo.png
-│   ├── boat_icon.png
-│   └── compass_rose.png
-└── fonts/                        # Custom fonts
-    └── RobotoMono-Regular.ttf
+└── map.html                      # MapTiler GL JS + WebGL wind/wave rendering
 
 test/
-├── unit/                         # Unit tests
-│   ├── services/
-│   │   ├── nmea_parser_test.dart
-│   │   ├── projection_service_test.dart
-│   │   └── cache_service_test.dart
-│   └── utils/
-│       ├── beaufort_test.dart
-│       └── conversions_test.dart
-├── widget/                       # Widget tests
-│   ├── map_webview_test.dart
-│   ├── timeline_controls_test.dart
-│   └── weather_card_test.dart
-└── integration/                  # Integration tests
-    └── app_test.dart
+├── _fixtures/
+│   └── weather_fixtures.dart     # Mock weather API responses
+├── integration/
+│   └── nmea_ui_integration_test.dart # NMEA → UI update integration test
+├── models/
+│   ├── boat_position_test.dart   # BoatPosition model tests (19 tests)
+│   ├── route_test.dart           # Route/Waypoint model tests
+│   ├── viewport_test.dart        # Viewport model tests
+│   └── weather_data_test.dart    # WeatherData model tests
+├── providers/
+│   ├── boat_provider_test.dart   # BoatProvider tests (NMEA, GPS, ISS-018, track)
+│   ├── map_provider_test.dart    # MapProvider tests
+│   ├── nmea_provider_test.dart   # NMEAProvider tests
+│   ├── route_provider_test.dart  # RouteProvider tests
+│   ├── settings_provider_test.dart # SettingsProvider tests
+│   ├── theme_provider_test.dart  # ThemeProvider tests
+│   ├── timeline_provider_test.dart # TimelineProvider tests
+│   └── weather_provider_test.dart # WeatherProvider tests
+├── services/
+│   ├── geo_utils_test.dart       # Geographic calculation tests
+│   ├── nmea_parser_test.dart     # NMEA parser tests
+│   ├── nmea_service_test.dart    # NMEA service tests
+│   ├── projection_service_test.dart # Projection tests
+│   ├── route_map_bridge_test.dart # Route bridge tests
+│   └── weather_api_test.dart     # Weather API tests
+├── utils/
+│   └── overlay_layout_store_test.dart # Overlay persistence tests
+└── widget_test.dart              # HomeScreen widget tests
+```
 
 ---
 
 ## Provider Dependency Graph
 
 ```
-
 Layer 0 (No Dependencies):
-┌─────────────────────┐
-│ SettingsProvider    │  ← User preferences, units, language
-└─────────────────────┘
+┌─────────────────────┐      ┌─────────────────────┐
+│ SettingsProvider    │      │ RouteProvider       │
+│ ← prefs, units     │      │ ← route CRUD, nav   │
+└─────────────────────┘      └─────────────────────┘
 
 Layer 1 (Depends on Layer 0):
 ┌─────────────────────┐      ┌─────────────────────┐
 │ CacheProvider       │      │ ThemeProvider       │
-│ - Depends: Settings │      │ - Depends: Settings │
+│ - Depends: (none)   │      │ - Depends: (none)   │
 └─────────────────────┘      └─────────────────────┘
 
-Layer 2 (Depends on Layer 0-1):
-┌─────────────────────────────┐      ┌─────────────────────────────┐
-│ WeatherProvider             │      │ MapProvider                 │
-│ - Depends: Settings, Cache  │      │ - Depends: Settings         │
-└─────────────────────────────┘      └─────────────────────────────┘
-         ↓                                      ↓
-┌─────────────────────────────┐      ┌─────────────────────────────┐
-│ NMEAProvider                │      │ BoatProvider                │
-│ - Depends: Settings         │      │ - Depends: Map, Settings    │
-└─────────────────────────────┘      └─────────────────────────────┘
+Layer 2 (Depends on Layers 0-1):
+┌─────────────────────────────┐   ┌─────────────────────────────┐
+│ MapProvider                 │   │ NMEAProvider                │
+│ - Depends: Settings, Cache  │   │ - Depends: Settings, Cache  │
+└─────────────────────────────┘   └─────────────────────────────┘
+                                  ┌─────────────────────────────┐
+                                  │ WeatherProvider             │
+                                  │ - Depends: Settings, Cache  │
+                                  └─────────────────────────────┘
 
-Layer 3 (Depends on Layer 0-2):
-┌─────────────────────────────────────────────────┐
-│ TimelineProvider                                │
-│ - Depends: Weather, Map, Settings               │
-└─────────────────────────────────────────────────┘
+Layer 2+ (Depends on Layer 2 peers):
+┌───────────────────────────────────────────────────────────────┐
+│ BoatProvider                                                  │
+│ - Depends: NMEAProvider, MapProvider                          │
+│ - Optional: LocationService (phone GPS), RouteProvider        │
+└───────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────┐
+│ TimelineProvider                                              │
+│ - Depends: WeatherProvider                                    │
+└───────────────────────────────────────────────────────────────┘
+
+All 9 providers:
+  SettingsProvider, ThemeProvider, CacheProvider,
+  MapProvider, NMEAProvider, RouteProvider, WeatherProvider,
+  BoatProvider, TimelineProvider
 
 RULES:
-
-- Maximum 3 layers
 - No circular dependencies
-- All created in main.dart
-- Dependencies documented in code
-- `MapViewportService` is the ONLY source of viewport truth; MapProvider owns it and exposes read-only viewport snapshots to widgets/overlays.
-
+- All created in main.dart with constructor injection
+- Dependencies injected explicitly (no ProxyProvider)
+- ChangeNotifierProvider.value() used in MultiProvider
 ```
 
 ---
@@ -216,7 +238,7 @@ MapProvider.updateViewport()
 WeatherProvider.fetchWeatherForBounds()
       ↓
 
-1. Check CacheService (cache-first)
+1. Check CacheProvider (cache-first)
       ↓
 2. If cached & valid → Return immediately
       ↓
@@ -224,15 +246,14 @@ WeatherProvider.fetchWeatherForBounds()
       ↓
 4. Parse response → WeatherData model
       ↓
-5. CacheService.set() with TTL
+5. CacheProvider.set() with TTL
       ↓
 6. WeatherProvider.notifyListeners()
       ↓
 Widget Rebuild:
 
 - MapScreen updates overlays
-- WeatherCard shows new data
-- ForecastScreen updates timeline
+- WeatherScreen shows new data
 
 ```
 
@@ -302,38 +323,55 @@ Canvas rendered to screen
 
 ### main.dart
 **Purpose:** App entry point, provider initialization  
-**Lines:** ~150  
+**Lines:** ~222  
 **Key Responsibilities:**
-- Create all providers in correct order
-- Setup dependency injection
-- Initialize services (cache, database, location)
-- Configure app theme
-- Run the app
+- Create all 9 providers with constructor injection (bottom-up)
+- Initialize providers via `Future.wait` (settings, theme, cache, map)
+- Configure named routes for all screens
+- Run the app with `MultiProvider` + `ChangeNotifierProvider.value()`
 
 **Critical Code:**
 ```dart
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Initialize services
-  await CacheService.instance.initialize();
-  await DatabaseService.instance.initialize();
-  
+
+  // Initialize providers (constructor injection, bottom-up)
+  final settingsProvider = SettingsProvider();
+  final themeProvider = ThemeProvider();
+  final cacheProvider = CacheProvider();
+  final mapProvider = MapProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
+  final nmeaProvider = NMEAProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
+  final routeProvider = RouteProvider();
+  final weatherProvider = WeatherProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
+  final boatProvider = BoatProvider(
+    nmeaProvider: nmeaProvider,
+    mapProvider: mapProvider,
+    routeProvider: routeProvider,
+  );
+  final timelineProvider = TimelineProvider(
+    weatherProvider: weatherProvider,
+  );
+
+  await Future.wait([
+    settingsProvider.init(),
+    themeProvider.init(),
+    cacheProvider.init(),
+    mapProvider.init(),
+  ]);
+
   runApp(
-    MultiProvider(
-      providers: [
-        // Layer 0
-        ChangeNotifierProvider(create: (_) => SettingsProvider()),
-        
-        // Layer 1
-        ChangeNotifierProxyProvider<SettingsProvider, CacheProvider>(
-          create: (_) => CacheProvider(),
-          update: (_, settings, cache) => cache!..updateSettings(settings),
-        ),
-        
-        // Layer 2 & 3...
-      ],
-      child: MyApp(),
+    MarineNavigationApp(
+      settingsProvider: settingsProvider,
+      // ... all 9 providers passed to MultiProvider
     ),
   );
 }
@@ -343,24 +381,25 @@ void main() async {
 
 ### providers/weather_provider.dart
 
-**Purpose:** Manages weather data fetching and caching  
-**Lines:** ~250  
-**Dependencies:** CacheService, WeatherApi, SettingsProvider  
-**Used By:** MapScreen, ForecastScreen, TimelineScreen  
+**Purpose:** Manages weather data fetching, caching, and overlay layer toggles  
+**Lines:** ~309  
+**Dependencies:** SettingsProvider, CacheProvider, WeatherApi  
+**Used By:** MapScreen, WeatherScreen, TimelineProvider  
 
 **Key Methods:**
 
-- `fetchWeather(Bounds bounds)` - Get weather for map area
-- `getForecast(LatLng location, int days)` - Get forecast
-- `refreshWeather()` - Force refresh from network
-- `_updateCache()` - Update cache with new data
+- `fetchForViewport({south, north, west, east})` - Get weather for map bounds
+- `refresh({south, north, west, east})` - Force refresh from network
+- `toggleLayer(WeatherLayer layer)` - Toggle overlay visibility
+- `setLayerActive(WeatherLayer layer, {active})` - Set layer on/off
 
 **State:**
 
-- `WeatherData? currentWeather` - Current conditions
-- `List<ForecastData> forecast` - 7-day forecast
+- `WeatherData data` - Current weather conditions (empty by default)
 - `bool isLoading` - Network request in progress
-- `DateTime? lastUpdated` - Last fetch timestamp
+- `bool hasData` - Whether data is available
+- `bool isStale` - Whether data needs refresh
+- `Set<WeatherLayer> activeLayers` - Active overlay layers (wind, wave enabled by default)
 
 ---
 
@@ -430,46 +469,73 @@ void main() async {
 
 ### Core Services
 
-**CacheService**
+**ProjectionService**
 
-- **Type:** Singleton
-- **Storage:** Disk (application documents directory)
-- **Strategy:** LRU eviction, TTL-based expiry
-- **Size Limit:** 100MB default
-- **Index:** In-memory Map for fast lookups
+- **Type:** Static utility (pure math, no state)
+- **Methods:** `latLngToScreen()`, `screenToLatLng()`, `webMercatorToWgs84()`
+- **Constants:** `EARTH_RADIUS = 6378137.0`, `MAX_LATITUDE = 85.05112878`
+- **Contract:** All overlays/widgets must use this—no manual pixel math
 
-**MapViewportService**
+**GeoUtils**
 
-- **Type:** Singleton owned by MapProvider
-- **State:** Current viewport (center, zoom, bearing, pitch, size)
-- **Responsibilities:**
-      - Normalize viewport updates from WebView → Provider
-      - Provide read-only snapshots to overlays/widgets
-      - Apply clamp rules (zoom 1-20, lat clamp 85.05°)
-- **Consumers:** MapProvider, overlay painters, NavigationMode screen
-- **Guarantee:** Single source of truth for all projection math
+- **Type:** Static utility (pure math)
+- **Methods:** `distance()` (haversine), `bearing()`, `crossTrackDistance()` (XTE)
+- **Used By:** RouteProvider, BoatProvider, NavigationModeScreen
 
 **WeatherApi**
 
-- **Provider:** Open-Meteo
-- **Endpoints:** `/v1/marine`, `/v1/forecast`
+- **Provider:** Open-Meteo Marine
+- **Endpoints:** `/v1/marine`
 - **Rate Limit:** None (free tier)
 - **Retry:** 3 attempts with exponential backoff
-- **Timeout:** 10 seconds
+- **Timeout:** 15 seconds
+
+**WeatherApiParser**
+
+- **Type:** Static utility
+- **Purpose:** Parse Open-Meteo JSON responses into `WeatherData` models
+- **Used By:** WeatherApi
 
 **NMEAParser**
 
 - **Format:** NMEA 0183
-- **Sentences:** GGA, RMC, AIVDM, VTG, DPT, MWV
+- **Sentences:** GGA, RMC, VTG, MWV, DPT, HDG, MTW
 - **Validation:** Checksum required
-- **Performance:** Runs in isolate
+- **Performance:** Runs in background isolate
 
-**DatabaseService**
+**NMEAParserInstruments**
 
-- **Engine:** SQLite (sqflite package)
-- **Tables:** trips, waypoints, tracks, settings_backup
-- **Migrations:** Version-based schema updates
-- **Indexes:** lat/lng for spatial queries
+- **Purpose:** Instrument-specific NMEA sentence parsers (MWV, DPT, HDG, MTW)
+- **Used By:** NMEAParser
+
+**NMEAService**
+
+- **Type:** TCP/UDP connection manager
+- **Features:** Auto-reconnect, configurable host/port
+- **Used By:** NMEAProvider
+
+**NmeaIsolateMessages**
+
+- **Purpose:** Message types for NMEA parser isolate communication
+- **Used By:** NMEAProvider, NMEAParser
+
+**LocationService**
+
+- **Type:** Phone GPS wrapper (geolocator package)
+- **Purpose:** Fallback GPS when NMEA device unavailable
+- **Used By:** BoatProvider (optional)
+
+**RouteMapBridge**
+
+- **Type:** WebView JS bridge helper
+- **Purpose:** Render route lines/waypoints on MapTiler WebView via JavaScript
+- **Used By:** MapScreen, NavigationModeScreen
+
+**WindTextureGenerator**
+
+- **Type:** WebGL texture generator
+- **Purpose:** Generate wind particle textures for GPU-accelerated rendering
+- **Used By:** MapWebView (via map.html)
 
 ---
 
@@ -480,53 +546,36 @@ void main() async {
 ```
 MapScreen (StatefulWidget)
 ├── Scaffold
-│   ├── Body
-│   │   └── Stack (Z-index layers from bottom to top)
-│   │       ├── [Layer 0] MapWebView (MapTiler base layer)
-│   │       │
-│   │       ├── [Layer 1] Consumer<WeatherProvider>
-│   │       │   ├── WindParticleOverlay (CustomPaint, animated cyan/teal)
-│   │       │   ├── WaveOverlay (CustomPaint, optional)
-│   │       │   └── CurrentOverlay (CustomPaint, optional)
-│   │       │
-│   │       ├── [Layer 2] Consumer<BoatProvider>
-│   │       │   ├── TrackOverlay (CustomPaint, breadcrumb trail)
-│   │       │   └── BoatMarker (Positioned, vessel icon)
-│   │       │
-│   │       ├── [Layer 3] Consumer<NMEAProvider>
-│   │       │   └── AISOverlay (CustomPaint, vessel markers)
-│   │       │
-│   │       ├── [Layer 4] Navigation Data Displays
-│   │       │   ├── Positioned(top-center) - Data Orbs Row
-│   │       │   │   ├── DataOrb(type: SOG, size: medium)
-│   │       │   │   ├── DataOrb(type: COG, size: medium)
-│   │       │   │   └── DataOrb(type: DEPTH, size: medium)
-│   │       │   │
-│   │       │   └── Positioned(bottom-center)
-│   │       │       └── CompassWidget (200×200, rotating rose)
-│   │       │
-│   │       ├── [Layer 5] Draggable Widgets
-│   │       │   └── Stack
-│   │       │       └── ...WindWidget[] (multi-instance, user-positioned)
-│   │       │
-│   │       ├── [Layer 6] Navigation UI
-│   │       │   ├── Positioned(left: 0, top: 0, bottom: 0)
-│   │       │   │   └── NavigationSidebar (glass, vertical icons)
-│   │       │   │
-│   │       │   └── Positioned(top: 0)
-│   │       │       └── GlassCard - Top App Bar
-│   │       │           ├── SailStream Logo
-│   │       │           ├── SearchButton
-│   │       │           └── LocationButton
-│   │       │
-│   │       └── [Layer 7] Timeline (when in forecast mode)
-│   │           └── Positioned(bottom: 0)
-│   │               └── GlassCard - TimelineScrubber
-│   │                   ├── TimelineControls (play/pause/speed)
-│   │                   └── TimeSlider
-│
-└── FloatingActionButton (optional, for quick actions)
+│   └── Body
+│       └── Stack (Z-index layers from bottom to top)
+│           ├── [Layer 0] MapWebView (MapTiler base layer)
+│           │   └── JS Bridge: viewport sync, tap events, route rendering
+│           │   └── Boat/track rendering via WebView JS bridge (not Flutter CustomPainter)
+│           │
+│           ├── [Layer 1] DraggableOverlay-wrapped widgets
+│           │   ├── DraggableOverlay → WindOverlay (wind arrows, CustomPaint)
+│           │   ├── DraggableOverlay → WaveOverlay (wave visualization, CustomPaint)
+│           │   ├── DraggableOverlay → BoatMarker (vessel icon, directional arrow + accuracy ring)
+│           │   └── DraggableOverlay → TrackOverlay (breadcrumb trail, gradient line)
+│           │
+│           ├── [Layer 2] Navigation Data Displays
+│           │   ├── DraggableOverlay → DataOrb(SOG)
+│           │   ├── DraggableOverlay → DataOrb(COG)
+│           │   ├── DraggableOverlay → DataOrb(DEPTH)
+│           │   └── DraggableOverlay → WindWidget (true wind indicator, 140×140)
+│           │
+│           ├── [Layer 3] Navigation UI
+│           │   ├── Positioned(left) → NavigationSidebar (glass, vertical icons)
+│           │   └── Positioned(top) → GlassCard - Top App Bar
+│           │
+│           └── [Layer 4] Timeline (when in forecast mode)
+│               └── Positioned(bottom) → GlassCard - TimelineScrubber
+│                   ├── Play/pause/speed controls
+│                   └── TimeSlider
 
+Note: Boat position and track breadcrumbs are rendered on the WebView map
+via RouteMapBridge JS calls, not as Flutter CustomPainter overlays in the
+widget stack. The overlay widgets above are for weather data visualization.
 ```
 
 ## Screen Flows
@@ -534,20 +583,21 @@ MapScreen (StatefulWidget)
 ### Primary Navigation
 
 - **Splash → HomeScreen** (initial load)
-- **HomeScreen → MapScreen** (primary nav)
-- **HomeScreen → ForecastScreen** (weather deep dive)
-- **HomeScreen → SettingsScreen** (preferences)
-- **MapScreen → NavigationModeScreen** (enter navigation mode)
-- **MapScreen → TimelineScreen** (forecast playback)
+- **HomeScreen → MapScreen** (primary nav via `/map`)
+- **HomeScreen → DashboardScreen** (overview via `/dashboard`)
+- **HomeScreen → WeatherScreen** (weather deep dive via `/weather`)
+- **HomeScreen → SettingsScreen** (preferences via `/settings`)
+- **HomeScreen → VesselScreen** (vessel info via `/vessel`)
+- **HomeScreen → ProfileScreen** (user profile via `/profile`)
+- **MapScreen → NavigationModeScreen** (enter navigation mode via `/navigation`)
 - **NavigationModeScreen → MapScreen** (back)
-- **Any Screen → AboutScreen** (help/attribution)
 
 ### MapScreen Internal Flow
 
 - Map load start → show glass loading overlay → Map ready → load overlays → enable interactions
 - Enter forecast mode → show TimelineScrubber + overlays → exit forecast mode → hide scrubber
 - Drag wind widgets → persist position via SettingsProvider → restore on reopen
-- NavigationSidebar item tap → route to destination screen (Map, Weather, Settings, Profile)
+- NavigationSidebar item tap → route to destination screen (Map, Weather, Settings, Dashboard, Vessel, Profile)
 
 ### NavigationMode Screen Widget Tree
 
@@ -596,24 +646,46 @@ NavigationModeScreen (StatefulWidget)
 
 | Module | Primary Owner | Lines | Tests | Coverage |
 |--------|---------------|-------|-------|----------|
-| `services/nmea_parser.dart` | NMEAProvider | 280 | 47 | 94% |
-| `services/projection_service.dart` | MapProvider | 180 | 38 | 100% |
-| `services/cache_service.dart` | CacheProvider | 250 | 31 | 87% |
-| `services/weather_api.dart` | WeatherProvider | 220 | 28 | 82% |
-| `providers/weather_provider.dart` | WeatherProvider | 250 | 22 | 78% |
-| `providers/boat_provider.dart` | BoatProvider | 230 | 25 | ✅ 80%+ |
+| `services/nmea_parser.dart` | NMEAProvider | 258 | 47 | 94% |
+| `services/nmea_parser_instruments.dart` | NMEAProvider | 109 | — | — |
+| `services/nmea_service.dart` | NMEAProvider | 282 | 14 | ✅ 80%+ |
+| `services/nmea_isolate_messages.dart` | NMEAProvider | 75 | — | — |
+| `services/projection_service.dart` | MapProvider | 94 | 38 | 100% |
+| `services/weather_api.dart` | WeatherProvider | 202 | 28 | 82% |
+| `services/weather_api_parser.dart` | WeatherProvider | 214 | — | — |
+| `services/geo_utils.dart` | RouteProvider | 133 | ✅ | ✅ 80%+ |
+| `services/location_service.dart` | BoatProvider | 115 | — | — |
+| `services/route_map_bridge.dart` | MapProvider | 64 | ✅ | ✅ 80%+ |
+| `services/wind_texture_generator.dart` | WeatherProvider | 285 | — | — |
+| `providers/weather_provider.dart` | WeatherProvider | 309 | 22 | 78% |
+| `providers/boat_provider.dart` | BoatProvider | 279 | 25 | ✅ 80%+ |
 | `providers/nmea_provider.dart` | NMEAProvider | 231 | 14 | ✅ 80%+ |
-| `providers/route_provider.dart` | RouteProvider | 175 | 30 | ✅ 80%+ |
-| `models/boat_position.dart` | BoatProvider | 135 | 14 | ✅ 80%+ |
-| `widgets/map_webview.dart` | MapProvider | 200 | 12 | 65% |
-| `widgets/overlays/wind_overlay.dart` | WeatherProvider | 180 | 15 | 73% |
-| `widgets/overlays/boat_marker.dart` | BoatProvider | 221 | - | ✅ |
-| `widgets/overlays/track_overlay.dart` | BoatProvider | 169 | - | ✅ |
-| `widgets/glass/glass_card.dart` | UI Library | < 100 | TBD | - |
-| `widgets/data_displays/data_orb.dart` | UI Library | < 150 | TBD | - |
-| `widgets/navigation/compass_widget.dart` | BoatProvider | < 200 | TBD | - |
-| `widgets/data_displays/wind_widget.dart` | WeatherProvider | < 150 | TBD | - |
-| `widgets/navigation/navigation_sidebar.dart` | Navigation | < 150 | TBD | - |
+| `providers/route_provider.dart` | RouteProvider | 299 | 30 | ✅ 80%+ |
+| `providers/map_provider.dart` | MapProvider | 287 | ✅ | ✅ 80%+ |
+| `providers/settings_provider.dart` | SettingsProvider | 299 | ✅ | ✅ 80%+ |
+| `providers/theme_provider.dart` | ThemeProvider | 174 | ✅ | ✅ 80%+ |
+| `providers/timeline_provider.dart` | TimelineProvider | 208 | ✅ | ✅ 80%+ |
+| `providers/cache_provider.dart` | CacheProvider | 150 | — | — |
+| `models/boat_position.dart` | BoatProvider | 152 | 19 | ✅ 80%+ |
+| `models/nmea_data.dart` | NMEAProvider | 250 | — | — |
+| `models/route.dart` | RouteProvider | 146 | ✅ | ✅ 80%+ |
+| `models/weather_data.dart` | WeatherProvider | 224 | ✅ | ✅ 80%+ |
+| `widgets/map/map_webview.dart` | MapProvider | 274 | 12 | 65% |
+| `widgets/overlays/wind_overlay.dart` | WeatherProvider | 266 | 15 | 73% |
+| `widgets/overlays/boat_marker.dart` | BoatProvider | 221 | — | ✅ |
+| `widgets/overlays/track_overlay.dart` | BoatProvider | 169 | — | ✅ |
+| `widgets/overlays/wave_overlay.dart` | WeatherProvider | 209 | — | — |
+| `widgets/glass/glass_card.dart` | UI Library | 151 | TBD | — |
+| `widgets/glass/holographic_card.dart` | UI Library | 149 | TBD | — |
+| `widgets/data_displays/data_orb.dart` | UI Library | 215 | TBD | — |
+| `widgets/data_displays/neon_data_orb.dart` | UI Library | 295 | TBD | — |
+| `widgets/data_displays/wind_widget.dart` | WeatherProvider | 143 | TBD | — |
+| `widgets/navigation/compass_widget.dart` | BoatProvider | 165 | TBD | — |
+| `widgets/navigation/navigation_sidebar.dart` | Navigation | 162 | TBD | — |
+| `widgets/navigation/nmea_connection_widget.dart` | NMEAProvider | 174 | TBD | — |
+| `widgets/navigation/course_deviation_indicator.dart` | RouteProvider | 65 | TBD | — |
+| `widgets/common/draggable_overlay.dart` | UI Library | 180 | TBD | — |
+| `widgets/common/glow_text.dart` | UI Library | 256 | TBD | — |
 
 ---
 
@@ -621,8 +693,8 @@ NavigationModeScreen (StatefulWidget)
 
 ### Provider → Provider
 
-**FORBIDDEN:** Direct method calls between providers  
-**ALLOWED:** ProxyProvider with update() method
+**FORBIDDEN:** Direct method calls between sibling providers  
+**ALLOWED:** Constructor injection of dependencies (no ProxyProvider)
 
 ### Provider → Service
 
@@ -636,7 +708,7 @@ NavigationModeScreen (StatefulWidget)
 
 ### Service → Service
 
-**PATTERN:** Dependency injection in constructor, no singletons except Cache/Database
+**PATTERN:** Dependency injection in constructor, no singletons
 
 ---
 
@@ -644,11 +716,11 @@ NavigationModeScreen (StatefulWidget)
 
 | Category | Max Lines | Current Max | Compliant |
 |----------|-----------|-------------|-----------|
-| Providers | 300 | 231 (NMEAProvider) | ✅ |
-| Services | 300 | > 300 (NMEAService) | ❌ Over limit |
-| Screens | 300 | 285 | ✅ |
-| Widgets | 300 | 221 (BoatMarker) | ✅ |
-| Models | 300 | 135 (BoatPosition) | ✅ |
+| Providers | 300 | 309 (WeatherProvider) | ⚠️ Slightly over |
+| Services | 300 | 285 (WindTextureGenerator) | ✅ |
+| Screens | 300 | 297 (MapScreen) | ✅ |
+| Widgets | 300 | 299 (ParticleBackground) | ✅ |
+| Models | 300 | 250 (NMEAData) | ✅ |
 
 ---
 
