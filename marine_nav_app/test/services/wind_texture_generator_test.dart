@@ -98,8 +98,8 @@ void main() {
 
     test('generates valid GeoJSON with single point', () {
       final points = [
-        WaveDataPoint(
-          position: const LatLng(latitude: 45.0, longitude: 14.0),
+        const WaveDataPoint(
+          position: LatLng(latitude: 45.0, longitude: 14.0),
           heightMeters: 2.5,
           directionDegrees: 180,
           periodSeconds: 8.0,
@@ -131,18 +131,18 @@ void main() {
 
     test('tracks max height across multiple points', () {
       final points = [
-        WaveDataPoint(
-          position: const LatLng(latitude: 45.0, longitude: 14.0),
+        const WaveDataPoint(
+          position: LatLng(latitude: 45.0, longitude: 14.0),
           heightMeters: 1.0,
           directionDegrees: 90,
         ),
-        WaveDataPoint(
-          position: const LatLng(latitude: 45.5, longitude: 14.5),
+        const WaveDataPoint(
+          position: LatLng(latitude: 45.5, longitude: 14.5),
           heightMeters: 4.2,
           directionDegrees: 180,
         ),
-        WaveDataPoint(
-          position: const LatLng(latitude: 46.0, longitude: 15.0),
+        const WaveDataPoint(
+          position: LatLng(latitude: 46.0, longitude: 15.0),
           heightMeters: 2.8,
           directionDegrees: 270,
         ),
@@ -158,8 +158,8 @@ void main() {
 
     test('handles null periodSeconds as 0 in properties', () {
       final points = [
-        WaveDataPoint(
-          position: const LatLng(latitude: 45.0, longitude: 14.0),
+        const WaveDataPoint(
+          position: LatLng(latitude: 45.0, longitude: 14.0),
           heightMeters: 1.5,
           directionDegrees: 90,
         ),
@@ -187,8 +187,8 @@ void main() {
 
     test('produces valid texture from single wind point', () async {
       final points = [
-        WindDataPoint(
-          position: const LatLng(latitude: 44.5, longitude: 14.5),
+        const WindDataPoint(
+          position: LatLng(latitude: 44.5, longitude: 14.5),
           speedKnots: 15,
           directionDegrees: 225,
         ),
@@ -220,13 +220,13 @@ void main() {
 
     test('produces texture with correct resolution', () async {
       final points = [
-        WindDataPoint(
-          position: const LatLng(latitude: 44.0, longitude: 14.0),
+        const WindDataPoint(
+          position: LatLng(latitude: 44.0, longitude: 14.0),
           speedKnots: 10,
           directionDegrees: 0,
         ),
-        WindDataPoint(
-          position: const LatLng(latitude: 45.0, longitude: 15.0),
+        const WindDataPoint(
+          position: LatLng(latitude: 45.0, longitude: 15.0),
           speedKnots: 20,
           directionDegrees: 180,
         ),
@@ -248,8 +248,8 @@ void main() {
 
     test('base64Png is valid base64', () async {
       final points = [
-        WindDataPoint(
-          position: const LatLng(latitude: 44.5, longitude: 14.5),
+        const WindDataPoint(
+          position: LatLng(latitude: 44.5, longitude: 14.5),
           speedKnots: 10,
           directionDegrees: 90,
         ),
@@ -275,13 +275,13 @@ void main() {
 
     test('opposing wind points produce varying u/v ranges', () async {
       final points = [
-        WindDataPoint(
-          position: const LatLng(latitude: 44.0, longitude: 14.0),
+        const WindDataPoint(
+          position: LatLng(latitude: 44.0, longitude: 14.0),
           speedKnots: 20,
           directionDegrees: 0, // from north
         ),
-        WindDataPoint(
-          position: const LatLng(latitude: 46.0, longitude: 16.0),
+        const WindDataPoint(
+          position: LatLng(latitude: 46.0, longitude: 16.0),
           speedKnots: 20,
           directionDegrees: 180, // from south
         ),

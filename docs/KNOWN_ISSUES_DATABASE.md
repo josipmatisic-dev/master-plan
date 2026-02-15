@@ -68,6 +68,7 @@
 | ISS-019 | CacheProvider shell — no backend | 🟠 HIGH | ✅ RESOLVED | Current |
 | ISS-020 | NMEA data not cached across restarts | 🟡 MEDIUM | ✅ RESOLVED | Current |
 | ISS-021 | Unused provider deps in NMEAProvider | 🟢 LOW | ✅ RESOLVED | Current |
+| ISS-022 | Unused imports in WIP UI screens | 🟢 LOW | 🔄 IN PROGRESS | Current |
 
 ---
 
@@ -1097,13 +1098,37 @@ Dependencies injected for future use (settings persistence, position caching) bu
 #### Solution Applied
 Both `_settingsProvider` and `_cacheProvider` are now actively used as part of ISS-019 and ISS-020 fixes. The `// ignore: unused_field` annotations have been removed.
 
+### ISS-022: Unused Imports in WIP UI Screens
+
+**Issue ID:** ISS-022  
+**Title:** Unused imports in VesselScreen and SettingsScreen during holographic theme integration  
+**Category:** Code Quality / Linting  
+**Severity:** 🟢 LOW  
+**Status:** 🔄 IN PROGRESS  
+**Repository:** Current  
+**Files Affected:**
+
+- `lib/screens/vessel_screen.dart`
+- `lib/screens/settings_screen.dart`
+
+**Symptoms:**
+
+- `flutter analyze` shows 6 warnings about unused imports (`holographic_colors.dart`, `particle_background.dart`, etc.)
+- CI fails if configured with `--fatal-warnings`
+
+#### Root Cause
+Slavko added imports for holographic theme components but hasn't yet implemented the widgets using them in these specific screens. Work is in progress.
+
+#### Solution
+Complete the implementation of holographic theme overlays in these screens or remove the unused imports if not needed.
+
 ---
 
 ## Summary Statistics
 
-**Total Issues:** 21  
-**Resolved:** 19 (90%)  
-**In Progress:** 1 (5%)  
+**Total Issues:** 22  
+**Resolved:** 19 (86%)  
+**In Progress:** 2 (9%)  
 **Documented/Workaround:** 1 (5%)
 
 **By Severity:**

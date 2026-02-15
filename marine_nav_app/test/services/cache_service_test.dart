@@ -136,7 +136,7 @@ void main() {
     });
 
     test('handles JSON string values', () async {
-      final json = '{"lat":43.5,"lng":16.4}';
+      const json = '{"lat":43.5,"lng":16.4}';
       await cache.put('position', json);
       expect(cache.get('position'), json);
     });

@@ -150,6 +150,10 @@ test/
 │   └── nmea_ui_integration_test.dart # NMEA → UI update integration test
 ├── models/
 │   ├── boat_position_test.dart   # BoatPosition model tests (19 tests)
+│   ├── lat_lng_test.dart         # LatLng model tests
+│   ├── nmea_data_test.dart       # NMEAData model tests
+│   ├── nmea_error_test.dart      # NMEAError/ConnectionConfig tests
+│   ├── nmea_instrument_data_test.dart # Instrument data model tests
 │   ├── route_test.dart           # Route/Waypoint model tests
 │   ├── viewport_test.dart        # Viewport model tests
 │   └── weather_data_test.dart    # WeatherData model tests
@@ -165,11 +169,15 @@ test/
 ├── services/
 │   ├── cache_service_test.dart   # Cache service tests (TTL, LRU, persistence)
 │   ├── geo_utils_test.dart       # Geographic calculation tests
+│   ├── location_service_test.dart # Location service status tests
+│   ├── nmea_parser_instruments_test.dart # Instrument parser tests (HDG, MWV, DPT, MTW)
 │   ├── nmea_parser_test.dart     # NMEA parser tests
 │   ├── nmea_service_test.dart    # NMEA service tests
 │   ├── projection_service_test.dart # Projection tests
 │   ├── route_map_bridge_test.dart # Route bridge tests
-│   └── weather_api_test.dart     # Weather API tests
+│   ├── weather_api_parser_test.dart # Weather parser tests (grid/array responses)
+│   ├── weather_api_test.dart     # Weather API tests
+│   └── wind_texture_generator_test.dart # Wind texture generation tests
 ├── utils/
 │   └── overlay_layout_store_test.dart # Overlay persistence tests
 └── widget_test.dart              # HomeScreen widget tests

@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:marine_nav_app/models/nmea_error.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
 import 'package:marine_nav_app/providers/nmea_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/providers/theme_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('NMEA UI Integration Tests', () {

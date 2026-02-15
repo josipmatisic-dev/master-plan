@@ -45,6 +45,7 @@ class CacheService {
   static const String _keyPrefix = 'cache_';
   static const String _metadataKey = '${_keyPrefix}__metadata__';
 
+  /// Maximum number of entries to keep in cache.
   final int maxEntries;
   late SharedPreferences _prefs;
   Map<String, _CacheEntryMeta> _metadata = {};
@@ -53,6 +54,8 @@ class CacheService {
   bool _initialized = false;
 
   /// Creates a CacheService with optional max entry limit.
+  ///
+  /// [maxEntries] defaults to 100.
   CacheService({this.maxEntries = 100});
 
   /// Whether the service has been initialized.
