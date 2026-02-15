@@ -5,12 +5,17 @@ import 'package:provider/provider.dart';
 
 import '../providers/nmea_provider.dart';
 import '../providers/route_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
+import '../theme/holographic_colors.dart';
 import '../theme/text_styles.dart';
 import '../utils/responsive_utils.dart';
 import '../widgets/common/draggable_overlay.dart';
 import '../widgets/data_displays/data_orb.dart';
+import '../widgets/effects/holographic_shimmer.dart';
+import '../widgets/effects/particle_background.dart';
+import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/map/map_webview.dart';
 import '../widgets/navigation/course_deviation_indicator.dart';
@@ -28,17 +33,31 @@ class NavigationModeScreen extends StatefulWidget {
 class _NavigationModeScreenState extends State<NavigationModeScreen> {
   @override
   Widget build(BuildContext context) {
+    final isHolographic = context.watch<ThemeProvider>().isHolographic;
+
     return Scaffold(
       body: SafeArea(
         child: SizedBox.expand(
           child: Stack(
             children: [
               const Positioned.fill(child: MapWebView(height: null)),
-              _buildTopBar(context),
+              if (isHolographic)
+                const Positioned.fill(
+                  child: IgnorePointer(
+                    child: RepaintBoundary(
+                      child: ParticleBackground(
+                        interactive: false,
+                        particleCount: 30,
+                      ),
+                    ),
+                  ),
+                ),
+              if (isHolographic) const Positioned.fill(child: ScanLineEffect()),
+              _buildTopBar(context, isHolographic),
               _buildDataOrbsRow(context),
               _buildSidebar(context),
-              _buildRouteInfoCard(context),
-              _buildActionBar(context),
+              _buildRouteInfoCard(context, isHolographic),
+              _buildActionBar(context, isHolographic),
             ],
           ),
         ),
@@ -46,32 +65,47 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
+  Widget _buildTopBar(BuildContext context, bool isHolographic) {
     return DraggableOverlay(
       id: 'nav_topBar',
       initialPosition: const Offset(16, 8),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          GlassCard(
-            padding: GlassCardPadding.small,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back,
-                      color: OceanColors.pureWhite),
-                  onPressed: () => Navigator.of(context).pop(),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Navigation',
-                  style: OceanTextStyles.heading2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+          HolographicShimmer(
+            enabled: isHolographic,
+            child: GlassCard(
+              padding: GlassCardPadding.small,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back,
+                        color: OceanColors.pureWhite),
+                    onPressed: () => Navigator.of(context).pop(),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Navigation',
+                    style: OceanTextStyles.heading2.copyWith(
+                      color:
+                          isHolographic ? HolographicColors.electricBlue : null,
+                      shadows: isHolographic
+                          ? [
+                              Shadow(
+                                color: HolographicColors.electricBlue
+                                    .withValues(alpha: 0.6),
+                                blurRadius: 12,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
             ),
           ),
           const SizedBox(width: 8),
@@ -165,7 +199,7 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
     );
   }
 
-  Widget _buildRouteInfoCard(BuildContext context) {
+  Widget _buildRouteInfoCard(BuildContext context, bool isHolographic) {
     final bottom = MediaQuery.of(context).size.height - 240;
 
     return DraggableOverlay(
@@ -183,32 +217,38 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
             final xte = route.crossTrackError;
             final hasRoute = route.activeRoute != null;
 
-            return GlassCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    hasRoute ? 'Next: ${wp?.name ?? 'Final'}' : 'No Route',
-                    style: OceanTextStyles.heading2,
-                  ),
-                  SizedBox(height: OceanDimensions.spacingXS),
-                  Text(
-                    'Distance: ${hasRoute ? dist.toStringAsFixed(1) : '--'} nm',
-                    style: OceanTextStyles.bodySmall,
-                  ),
-                  Text(
-                    'ETA: ${hasRoute && eta > 0 ? eta.toStringAsFixed(0) : '--'} min',
-                    style: OceanTextStyles.bodySmall,
-                  ),
-                  if (hasRoute) CourseDeviationIndicator(xte: xte),
-                  Text(
-                    'Pos: ${pos?.latitude.toStringAsFixed(4) ?? 'N/A'}, '
-                    '${pos?.longitude.toStringAsFixed(4) ?? 'N/A'}',
-                    style: OceanTextStyles.label,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+            return HolographicShimmer(
+              enabled: isHolographic,
+              child: GlassCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      hasRoute ? 'Next: ${wp?.name ?? 'Final'}' : 'No Route',
+                      style: OceanTextStyles.heading2.copyWith(
+                        color:
+                            isHolographic ? HolographicColors.neonCyan : null,
+                      ),
+                    ),
+                    SizedBox(height: OceanDimensions.spacingXS),
+                    Text(
+                      'Distance: ${hasRoute ? dist.toStringAsFixed(1) : '--'} nm',
+                      style: OceanTextStyles.bodySmall,
+                    ),
+                    Text(
+                      'ETA: ${hasRoute && eta > 0 ? eta.toStringAsFixed(0) : '--'} min',
+                      style: OceanTextStyles.bodySmall,
+                    ),
+                    if (hasRoute) CourseDeviationIndicator(xte: xte),
+                    Text(
+                      'Pos: ${pos?.latitude.toStringAsFixed(4) ?? 'N/A'}, '
+                      '${pos?.longitude.toStringAsFixed(4) ?? 'N/A'}',
+                      style: OceanTextStyles.label,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -217,7 +257,7 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
     );
   }
 
-  Widget _buildActionBar(BuildContext context) {
+  Widget _buildActionBar(BuildContext context, bool isHolographic) {
     final cs = Theme.of(context).colorScheme;
     final bottom = MediaQuery.of(context).size.height - 130;
 
@@ -226,19 +266,22 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
       initialPosition: Offset(16, bottom),
       child: SizedBox(
         width: MediaQuery.of(context).size.width - 32,
-        child: GlassCard(
-          padding: GlassCardPadding.small,
-          child: Wrap(
-            spacing: OceanDimensions.spacingS,
-            runSpacing: OceanDimensions.spacingS,
-            alignment: WrapAlignment.spaceEvenly,
-            children: [
-              _btn('+ Route', cs,
-                  () => _snack(context, 'Route creation coming soon')),
-              _btn('Mark', cs, () => _markPosition(context)),
-              _btn('Track', cs, () => _snack(context, 'Tracking toggled')),
-              _btn('Alerts', cs, () => _snack(context, 'No active alerts')),
-            ],
+        child: HolographicShimmer(
+          enabled: isHolographic,
+          child: GlassCard(
+            padding: GlassCardPadding.small,
+            child: Wrap(
+              spacing: OceanDimensions.spacingS,
+              runSpacing: OceanDimensions.spacingS,
+              alignment: WrapAlignment.spaceEvenly,
+              children: [
+                _btn('+ Route', cs,
+                    () => _snack(context, 'Route creation coming soon')),
+                _btn('Mark', cs, () => _markPosition(context)),
+                _btn('Track', cs, () => _snack(context, 'Tracking toggled')),
+                _btn('Alerts', cs, () => _snack(context, 'No active alerts')),
+              ],
+            ),
           ),
         ),
       ),

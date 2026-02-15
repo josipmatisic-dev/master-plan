@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/theme_provider.dart';
+import '../theme/holographic_colors.dart';
 import '../widgets/common/glow_text.dart';
+import '../widgets/effects/holographic_shimmer.dart';
+import '../widgets/effects/particle_background.dart';
+import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
 
 // TODO: Replace mock data with VesselProvider when available.
@@ -45,6 +51,7 @@ class VesselScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final isHolographic = context.watch<ThemeProvider>().isHolographic;
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -58,27 +65,60 @@ class VesselScreen extends StatelessWidget {
         title: GlowText(
           'Vessel',
           glowStyle: GlowTextStyle.heading,
-          color: cs.primary,
+          color: isHolographic ? HolographicColors.electricBlue : cs.primary,
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          children: [
-            _buildHeader(cs, tt),
-            const SizedBox(height: 16),
-            _buildKeyValueCard(
-                'Dimensions', Icons.straighten, _dimensions, cs, tt),
-            const SizedBox(height: 16),
-            _buildEquipmentCard(cs, tt),
-            const SizedBox(height: 16),
-            _buildKeyValueCard('Engine', Icons.engineering, _engine, cs, tt),
-            const SizedBox(height: 16),
-            _buildSafetyCard(cs, tt),
-            const SizedBox(height: 24),
+      body: Stack(
+        children: [
+          if (isHolographic) ...[
+            Container(
+              decoration: const BoxDecoration(
+                gradient: HolographicColors.deepSpaceBackground,
+              ),
+            ),
+            const IgnorePointer(
+              child: RepaintBoundary(
+                child: ParticleBackground(interactive: false),
+              ),
+            ),
+            const ScanLineEffect(),
           ],
-        ),
+          SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              children: [
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: _buildHeader(cs, tt),
+                ),
+                const SizedBox(height: 16),
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: _buildKeyValueCard(
+                      'Dimensions', Icons.straighten, _dimensions, cs, tt),
+                ),
+                const SizedBox(height: 16),
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: _buildEquipmentCard(cs, tt),
+                ),
+                const SizedBox(height: 16),
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: _buildKeyValueCard(
+                      'Engine', Icons.engineering, _engine, cs, tt),
+                ),
+                const SizedBox(height: 16),
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: _buildSafetyCard(cs, tt),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

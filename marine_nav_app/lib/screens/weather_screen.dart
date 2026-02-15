@@ -2,9 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/weather_data.dart';
+import '../providers/theme_provider.dart';
 import '../providers/weather_provider.dart';
+import '../theme/holographic_colors.dart';
 import '../widgets/common/glow_text.dart';
 import '../widgets/data_displays/data_orb.dart';
+import '../widgets/effects/holographic_shimmer.dart';
+import '../widgets/effects/particle_background.dart';
+import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/weather/forecast_timeline.dart';
 import '../widgets/weather/timeline_scrubber.dart';
@@ -41,6 +46,7 @@ class WeatherScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final weather = context.watch<WeatherProvider>();
+    final isHolographic = context.watch<ThemeProvider>().isHolographic;
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
 
@@ -56,11 +62,23 @@ class WeatherScreen extends StatelessWidget {
               showScrubber: false,
             ),
           ),
-          _buildTopBar(context, weather, cs),
+          if (isHolographic)
+            const Positioned.fill(
+              child: IgnorePointer(
+                child: RepaintBoundary(
+                  child: ParticleBackground(
+                    interactive: false,
+                    particleCount: 30,
+                  ),
+                ),
+              ),
+            ),
+          if (isHolographic) const Positioned.fill(child: ScanLineEffect()),
+          _buildTopBar(context, weather, cs, isHolographic),
           if (!hasData)
             _buildFallbackOverlay(context, weather, cs, tt)
           else
-            _buildBottomSheet(context, weather, cs, tt),
+            _buildBottomSheet(context, weather, cs, tt, isHolographic),
         ],
       ),
     );
@@ -114,26 +132,32 @@ class WeatherScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTopBar(
-      BuildContext context, WeatherProvider weather, ColorScheme cs) {
+  Widget _buildTopBar(BuildContext context, WeatherProvider weather,
+      ColorScheme cs, bool isHolographic) {
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
-            GlassCard(
-              padding: GlassCardPadding.small,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_back),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                  const SizedBox(width: 8),
-                  GlowText('Weather',
-                      glowStyle: GlowTextStyle.heading, color: cs.primary),
-                ],
+            HolographicShimmer(
+              enabled: isHolographic,
+              child: GlassCard(
+                padding: GlassCardPadding.small,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    const SizedBox(width: 8),
+                    GlowText('Weather',
+                        glowStyle: GlowTextStyle.heading,
+                        color: isHolographic
+                            ? HolographicColors.electricBlue
+                            : cs.primary),
+                  ],
+                ),
               ),
             ),
             const Spacer(),
@@ -151,7 +175,7 @@ class WeatherScreen extends StatelessWidget {
   }
 
   Widget _buildBottomSheet(BuildContext context, WeatherProvider weather,
-      ColorScheme cs, TextTheme tt) {
+      ColorScheme cs, TextTheme tt, bool isHolographic) {
     final data = weather.data;
     final wind = data.windPoints.isNotEmpty ? data.windPoints.first : null;
     final wave = data.wavePoints.isNotEmpty ? data.wavePoints.first : null;
@@ -163,13 +187,16 @@ class WeatherScreen extends StatelessWidget {
       builder: (ctx, controller) {
         return Container(
           decoration: BoxDecoration(
-            color: cs.surface.withValues(alpha: 0.92),
+            color: (isHolographic ? HolographicColors.cosmicBlack : cs.surface)
+                .withValues(alpha: 0.92),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(
-                color: Colors.black26,
+                color: isHolographic
+                    ? HolographicColors.electricBlue.withValues(alpha: 0.15)
+                    : Colors.black26,
                 blurRadius: 16,
-                offset: Offset(0, -4),
+                offset: const Offset(0, -4),
               ),
             ],
           ),

@@ -3,9 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/boat_provider.dart';
 import '../providers/nmea_provider.dart';
+import '../providers/theme_provider.dart';
 import '../providers/weather_provider.dart';
+import '../theme/holographic_colors.dart';
 import '../widgets/common/glow_text.dart';
 import '../widgets/data_displays/data_orb.dart';
+import '../widgets/effects/holographic_shimmer.dart';
+import '../widgets/effects/particle_background.dart';
+import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
 
 /// Main dashboard screen showing live marine navigation data.
@@ -16,6 +21,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final isHolographic = context.watch<ThemeProvider>().isHolographic;
     final nmea = context.watch<NMEAProvider>();
     final weather = context.watch<WeatherProvider>();
     final boat = context.watch<BoatProvider>();
@@ -24,29 +30,57 @@ class DashboardScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          children: [
-            _buildHeader(context, cs, nmea.isConnected),
-            const SizedBox(height: 16),
-            _buildNavOrbs(context, data),
-            const SizedBox(height: 16),
-            _buildPositionCard(context, cs, pos, boat),
-            const SizedBox(height: 16),
-            _buildWindCard(context, cs, data, weather),
-            const SizedBox(height: 16),
-            _buildQuickActions(context, cs),
-            const SizedBox(height: 16),
-            _buildStatusCard(context, cs, nmea, weather, pos),
-            const SizedBox(height: 24),
+      body: Stack(
+        children: [
+          // Holographic background
+          if (isHolographic) ...[
+            Container(
+              decoration: const BoxDecoration(
+                gradient: HolographicColors.deepSpaceBackground,
+              ),
+            ),
+            const IgnorePointer(
+              child: RepaintBoundary(
+                child: ParticleBackground(interactive: false),
+              ),
+            ),
+            const ScanLineEffect(),
           ],
-        ),
+          SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              children: [
+                _buildHeader(context, cs, nmea.isConnected, isHolographic),
+                const SizedBox(height: 16),
+                _buildNavOrbs(context, data),
+                const SizedBox(height: 16),
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: _buildPositionCard(context, cs, pos, boat),
+                ),
+                const SizedBox(height: 16),
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: _buildWindCard(context, cs, data, weather),
+                ),
+                const SizedBox(height: 16),
+                _buildQuickActions(context, cs),
+                const SizedBox(height: 16),
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: _buildStatusCard(context, cs, nmea, weather, pos),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader(BuildContext context, ColorScheme cs, bool connected) {
+  Widget _buildHeader(BuildContext context, ColorScheme cs, bool connected,
+      bool isHolographic) {
     final now = TimeOfDay.now();
     final time = '${now.hour.toString().padLeft(2, '0')}:'
         '${now.minute.toString().padLeft(2, '0')}';

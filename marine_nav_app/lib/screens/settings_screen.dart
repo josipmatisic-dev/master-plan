@@ -5,8 +5,12 @@ import '../providers/settings_provider.dart';
 import '../providers/theme_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
+import '../theme/holographic_colors.dart';
 import '../theme/text_styles.dart';
 import '../theme/theme_variant.dart';
+import '../widgets/effects/holographic_shimmer.dart';
+import '../widgets/effects/particle_background.dart';
+import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/settings/nmea_settings_card.dart';
 
@@ -17,30 +21,75 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isHolographic = context.watch<ThemeProvider>().isHolographic;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: OceanColors.deepNavy,
-        title: const Text('Settings', style: OceanTextStyles.heading2),
+        backgroundColor: isHolographic
+            ? HolographicColors.cosmicBlack
+            : OceanColors.deepNavy,
+        title: Text(
+          'Settings',
+          style: OceanTextStyles.heading2.copyWith(
+            color: isHolographic ? HolographicColors.electricBlue : null,
+            shadows: isHolographic
+                ? [
+                    Shadow(
+                      color:
+                          HolographicColors.electricBlue.withValues(alpha: 0.6),
+                      blurRadius: 12,
+                    ),
+                  ]
+                : null,
+          ),
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: OceanColors.pureWhite),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
-      backgroundColor: OceanColors.deepNavy,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(OceanDimensions.spacing),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const NMEASettingsCard(),
-              const SizedBox(height: OceanDimensions.spacingL),
-              _buildThemeSection(context),
-              const SizedBox(height: OceanDimensions.spacingL),
-              _buildGeneralSection(),
-            ],
+      backgroundColor:
+          isHolographic ? HolographicColors.cosmicBlack : OceanColors.deepNavy,
+      body: Stack(
+        children: [
+          if (isHolographic) ...[
+            Container(
+              decoration: const BoxDecoration(
+                gradient: HolographicColors.deepSpaceBackground,
+              ),
+            ),
+            const IgnorePointer(
+              child: RepaintBoundary(
+                child: ParticleBackground(interactive: false),
+              ),
+            ),
+            const ScanLineEffect(),
+          ],
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(OceanDimensions.spacing),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  HolographicShimmer(
+                    enabled: isHolographic,
+                    child: const NMEASettingsCard(),
+                  ),
+                  const SizedBox(height: OceanDimensions.spacingL),
+                  HolographicShimmer(
+                    enabled: isHolographic,
+                    child: _buildThemeSection(context),
+                  ),
+                  const SizedBox(height: OceanDimensions.spacingL),
+                  HolographicShimmer(
+                    enabled: isHolographic,
+                    child: _buildGeneralSection(),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

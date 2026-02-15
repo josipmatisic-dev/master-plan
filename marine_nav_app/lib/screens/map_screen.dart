@@ -7,14 +7,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/nmea_provider.dart';
+import '../providers/theme_provider.dart';
 import '../theme/colors.dart';
 import '../theme/dimensions.dart';
+import '../theme/holographic_colors.dart';
 import '../theme/text_styles.dart';
 import '../utils/navigation_utils.dart';
 import '../utils/responsive_utils.dart';
 import '../widgets/common/draggable_overlay.dart';
 import '../widgets/controls/layer_toggle.dart';
 import '../widgets/data_displays/data_orb.dart';
+import '../widgets/effects/holographic_shimmer.dart';
+import '../widgets/effects/particle_background.dart';
+import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/map/map_webview.dart';
 import '../widgets/navigation/compass_widget.dart';
@@ -59,17 +64,32 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isHolographic = context.watch<ThemeProvider>().isHolographic;
+
     return Scaffold(
       body: SafeArea(
         child: SizedBox.expand(
           child: Stack(
             children: [
               const Positioned.fill(child: MapWebView(height: null)),
-              _buildDraggableTopBar(),
+              // Holographic effects (rendered above map, below UI overlays)
+              if (isHolographic)
+                const Positioned.fill(
+                  child: IgnorePointer(
+                    child: RepaintBoundary(
+                      child: ParticleBackground(
+                        interactive: false,
+                        particleCount: 30,
+                      ),
+                    ),
+                  ),
+                ),
+              if (isHolographic) const Positioned.fill(child: ScanLineEffect()),
+              _buildDraggableTopBar(isHolographic),
               _buildDraggableDataOrbs(context),
               _buildDraggableCompass(),
               _buildDraggableSidebar(context),
-              _buildDraggableWindWidget(),
+              _buildDraggableWindWidget(isHolographic),
               _buildDraggableLayerToggle(),
               _buildDraggableTimeline(),
             ],
@@ -81,28 +101,42 @@ class _MapScreenState extends State<MapScreen> {
 
   // ============ Draggable Widgets ============
 
-  Widget _buildDraggableTopBar() {
+  Widget _buildDraggableTopBar(bool isHolographic) {
     return DraggableOverlay(
       id: 'map_topBar',
       initialPosition: const Offset(16, 8),
       child: SizedBox(
         width: MediaQuery.of(context).size.width - 80,
-        child: GlassCard(
-          padding: GlassCardPadding.small,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Flexible(
-                child: Text(
-                  'SailStream',
-                  style: OceanTextStyles.heading2.copyWith(
-                    color: OceanColors.pureWhite,
+        child: HolographicShimmer(
+          enabled: isHolographic,
+          child: GlassCard(
+            padding: GlassCardPadding.small,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    'SailStream',
+                    style: OceanTextStyles.heading2.copyWith(
+                      color: isHolographic
+                          ? HolographicColors.electricBlue
+                          : OceanColors.pureWhite,
+                      shadows: isHolographic
+                          ? [
+                              Shadow(
+                                color: HolographicColors.electricBlue
+                                    .withValues(alpha: 0.6),
+                                blurRadius: 12,
+                              ),
+                            ]
+                          : null,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
-              const Icon(Icons.search, color: OceanColors.textSecondary),
-            ],
+                const Icon(Icons.search, color: OceanColors.textSecondary),
+              ],
+            ),
           ),
         ),
       ),
@@ -220,7 +254,7 @@ class _MapScreenState extends State<MapScreen> {
     );
   }
 
-  Widget _buildDraggableWindWidget() {
+  Widget _buildDraggableWindWidget(bool isHolographic) {
     return DraggableOverlay(
       id: 'map_wind',
       initialPosition: const Offset(40, 340),
@@ -228,46 +262,55 @@ class _MapScreenState extends State<MapScreen> {
         builder: (_, nmea, __) {
           final windSpeed = nmea.currentData?.windSpeedKnots;
           final windDir = nmea.currentData?.windDirectionDegrees;
-          return GlassCard(
-            borderRadius: OceanDimensions.radiusM,
-            child: SizedBox(
-              width: 130,
-              height: 130,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 110,
-                    height: 110,
-                    child: CircularProgressIndicator(
-                      value: ((windSpeed ?? 0) / 40.0).clamp(0.0, 1.0),
-                      strokeWidth: 5,
-                      backgroundColor:
-                          OceanColors.seafoamGreen.withValues(alpha: 0.2),
-                      valueColor: const AlwaysStoppedAnimation<Color>(
-                        OceanColors.seafoamGreen,
+          return HolographicShimmer(
+            enabled: isHolographic,
+            child: GlassCard(
+              borderRadius: OceanDimensions.radiusM,
+              child: SizedBox(
+                width: 130,
+                height: 130,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 110,
+                      height: 110,
+                      child: CircularProgressIndicator(
+                        value: ((windSpeed ?? 0) / 40.0).clamp(0.0, 1.0),
+                        strokeWidth: 5,
+                        backgroundColor: (isHolographic
+                                ? HolographicColors.electricBlue
+                                : OceanColors.seafoamGreen)
+                            .withValues(alpha: 0.2),
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          isHolographic
+                              ? HolographicColors.neonCyan
+                              : OceanColors.seafoamGreen,
+                        ),
                       ),
                     ),
-                  ),
-                  Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${windSpeed?.toStringAsFixed(1) ?? '--'} kts',
-                        style: OceanTextStyles.bodyLarge.copyWith(
-                          color: OceanColors.pureWhite,
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${windSpeed?.toStringAsFixed(1) ?? '--'} kts',
+                          style: OceanTextStyles.bodyLarge.copyWith(
+                            color: isHolographic
+                                ? HolographicColors.electricBlue
+                                : OceanColors.pureWhite,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: OceanDimensions.spacingXS),
-                      Text(
-                        cardinalDirection(windDir),
-                        style: OceanTextStyles.label.copyWith(
-                          color: OceanColors.textSecondary,
+                        const SizedBox(height: OceanDimensions.spacingXS),
+                        Text(
+                          cardinalDirection(windDir),
+                          style: OceanTextStyles.label.copyWith(
+                            color: OceanColors.textSecondary,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           );
