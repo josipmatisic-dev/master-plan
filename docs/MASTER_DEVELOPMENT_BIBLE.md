@@ -379,9 +379,10 @@ ALL coordinate transformations go through ProjectionService. No manual lat/lng t
 
 ### C.5 File Size Limits
 
-- Maximum 300 lines per file
+- Soft Limit: 300 lines per file
+- Hard Limit: 400 lines per file (relaxed for cohesion)
 - Maximum 50 lines per method
-- Refactor before adding features
+- Refactor if significantly exceeding 400 lines
 
 ### C.6 Overlay Rendering Pipeline
 
