@@ -4,6 +4,7 @@
 /// suitable for GPU-accelerated wind particle visualization.
 /// The texture encodes u/v wind components in R/G channels, allowing
 /// WebGL shaders to sample wind vectors at any position.
+// ignore_for_file: avoid_classes_with_only_static_members
 library;
 
 import 'dart:convert';

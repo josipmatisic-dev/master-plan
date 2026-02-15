@@ -1,7 +1,7 @@
-/// NMEA 0183 Instrument Sentence Parsers
-///
-/// Parses non-GPS instrument sentences: MWV (wind), DPT (depth),
-/// HDG (heading), MTW (water temperature).
+// NMEA 0183 Instrument Sentence Parsers
+//
+// Parses non-GPS instrument sentences: MWV (wind), DPT (depth),
+// HDG (heading), MTW (water temperature).
 // ignore_for_file: avoid_classes_with_only_static_members
 
 import '../models/nmea_data.dart';

@@ -1,7 +1,7 @@
-/// NMEA 0183 Instrument Sentence Data Models
-///
-/// Contains data classes for non-GPS instrument sentences:
-/// MWV (wind), DPT (depth), HDG (heading), MTW (water temperature).
+// NMEA 0183 Instrument Sentence Data Models
+//
+// Contains data classes for non-GPS instrument sentences:
+// MWV (wind), DPT (depth), HDG (heading), MTW (water temperature).
 
 /// MWV - Wind Speed and Angle (NMEA 0183 sentence).
 ///

@@ -266,48 +266,6 @@ class MapProvider extends ChangeNotifier {
     await _runJs('window.mapBridge.clearTrackLine()');
   }
 
-  // ============ Weather Overlay Bridge ============
-
-  /// Send a wind texture to the JS WebGL wind layer.
-  ///
-  /// The texture is a base64-encoded PNG with u/v wind components
-  /// in R/G channels. The JS side decodes it into a WebGL texture
-  /// for GPU-accelerated particle rendering.
-  Future<void> setWindTexture({
-    required String base64Png,
-    required double uMin,
-    required double uMax,
-    required double vMin,
-    required double vMax,
-    required double south,
-    required double north,
-    required double west,
-    required double east,
-  }) async {
-    await _runJs(
-      'window.mapBridge.setWindTexture('
-      '"$base64Png", $uMin, $uMax, $vMin, $vMax, '
-      '$south, $north, $west, $east)',
-    );
-  }
-
-  /// Toggle wind layer visibility in JS.
-  Future<void> setWindLayerVisible(bool visible) async {
-    await _runJs('window.mapBridge.setWindLayerVisible($visible)');
-  }
-
-  /// Send wave data as GeoJSON to the JS heatmap layer.
-  Future<void> setWaveData(String geoJson) async {
-    // Escape for JS string literal
-    final escaped = geoJson.replaceAll("'", "\\'");
-    await _runJs("window.mapBridge.setWaveData('$escaped')");
-  }
-
-  /// Toggle wave layer visibility in JS.
-  Future<void> setWaveLayerVisible(bool visible) async {
-    await _runJs('window.mapBridge.setWaveLayerVisible($visible)');
-  }
-
   /// Emit a map error.
   void reportError(MapError error) {
     _errorController.add(error);
