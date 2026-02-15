@@ -2,9 +2,9 @@
 
 ## Marine Navigation App - Complete Development Reference
 
-**Version:** 6.0  
-**Last Updated:** 2026-02-01  
-**Status:** SailStream UI Architecture Added
+**Version:** 7.0  
+**Last Updated:** 2026-02-15  
+**Status:** BoatProvider, Weather Pipeline, Navigation Mode Added
 
 ---
 
@@ -344,6 +344,12 @@ Key working components:
 - Beaufort scale calculator
 - Marine theme system
 - WebView JavaScript integration
+- **BoatProvider** — NMEA listener + phone GPS fallback + ISS-018 position filtering via `_isPositionValid()` and `GeoUtils.distanceBetween()`
+- **TimelineProvider** — Scrubber + playback + frame mapping for forecast animation
+- **WeatherProvider** — Cache-first fetch + debounced viewport-based data retrieval from Open-Meteo
+- **LocationService** — Phone GPS wrapper (geolocator package) with permission handling and stream-based updates
+- **RouteMapBridge** — WebView JS bridge for route rendering (GeoJSON injection, waypoint markers, dashed polylines)
+- **WindTextureGenerator** — Generates WebGL texture data (Float32Array wind vectors) for map.html shader pipeline
 
 ---
 
@@ -408,6 +414,14 @@ Remove all hardcoded keys, mocks, debug prints, test shortcuts before release.
 ### C.10 Dispose Everything
 
 Every controller, subscription, listener, timer MUST be disposed.
+
+### C.11 WebGL Texture Pipeline
+
+All weather visualization textures go through `WindTextureGenerator` → `map.html` WebGL shaders. Never render weather data via Flutter `CustomPainter` — the WebGL pipeline handles wind/wave/current rendering on the map tile layer.
+
+### C.12 Position Validation (ISS-018)
+
+Position validation via `BoatProvider._isPositionValid()` using `GeoUtils.distanceBetween()` — see ISS-018 in `KNOWN_ISSUES_DATABASE.md`. Note: `GeoUtils.distanceBetween()` returns **nautical miles**; multiply by `1852.0` to get meters.
 
 ---
 

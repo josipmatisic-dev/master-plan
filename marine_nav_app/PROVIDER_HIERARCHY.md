@@ -1,6 +1,6 @@
 # Provider Dependency Graph - Phase 2
 
-**Version:** 3.1  
+**Version:** 3.2  
 **Date:** 2026-02-15  
 **Status:** Implemented (BoatProvider, WeatherProvider, TimelineProvider added)
 
@@ -245,31 +245,57 @@ class WeatherProvider extends ChangeNotifier {
 
 - File: `lib/providers/boat_provider.dart`
 - Lines: ~230 (under 300 limit ✅)
-- Dependencies: NMEAProvider (Layer 2 peer, listens via ChangeNotifier)
+- Dependencies: NMEAProvider (Layer 2 peer), MapProvider (Layer 2 peer), LocationService (optional, for phone GPS fallback), RouteProvider (optional, for XTE/nav sync)
 - Responsibilities:
-  - Consume NMEAProvider position data
+  - Consume NMEAProvider position data via `addListener`
   - Maintain current vessel position state
   - Track history with LRU eviction (max 1000 points)
   - ISS-018 position jump filtering (reject speed >50 m/s + accuracy >50 m)
-  - Man Overboard (MOB) marker capability
+  - Follow-boat mode (auto-center map on vessel)
 
 **API:**
 
 ```dart
 class BoatProvider extends ChangeNotifier {
   BoatPosition? get currentPosition;
-  List<BoatPosition> get trackHistory;
-  int get trackHistoryLength;
-  BoatPosition? get mobPosition;
-  bool get hasMob;
-  bool get isTracking;
-  bool get hasPosition;
+  PositionSource get source;           // none, nmea, phoneGps
+  bool get followBoat;
+  Queue<TrackPoint> get trackHistory;  // LRU queue, max 1000 points
   
-  void updateFromNMEA(NMEAData? data);
-  void markMOB();
-  void clearMOB();
-  void clearTrack();
-  void setTracking({required bool enabled});
+  void toggleFollowBoat();
+  void dispose();
+}
+```
+
+#### TimelineProvider (NEW - Phase 2)
+
+- File: `lib/providers/timeline_provider.dart`
+- Lines: ~208 (under 300 limit ✅)
+- Dependencies: WeatherProvider (Layer 2 peer)
+- Responsibilities:
+  - Manage forecast timeline scrubber position (0.0–1.0)
+  - Playback controls (play/pause/speed)
+  - Map scrubber position to WeatherFrame index
+  - Auto-advance during playback
+
+**API:**
+
+```dart
+class TimelineProvider extends ChangeNotifier {
+  double get scrubberPosition;        // 0.0 to 1.0
+  bool get isPlaying;
+  double get playbackSpeed;           // 1.0x, 2.0x, 4.0x
+  int get currentFrameIndex;
+  int get totalFrames;
+  WeatherFrame? get currentFrame;
+  
+  void setScrubberPosition(double position);
+  void play();
+  void pause();
+  void togglePlayback();
+  void setPlaybackSpeed(double speed);
+  void stepForward();
+  void stepBackward();
 }
 ```
 
@@ -353,6 +379,12 @@ MultiProvider(
     ChangeNotifierProvider<BoatProvider>.value(
       value: boatProvider,
     ),
+    ChangeNotifierProvider<WeatherProvider>.value(
+      value: weatherProvider,
+    ),
+    ChangeNotifierProvider<TimelineProvider>.value(
+      value: timelineProvider,
+    ),
   ],
   child: ...,
 )
@@ -376,6 +408,8 @@ MultiProvider(
 - NMEAProvider: ~231 lines
 - RouteProvider: ~175 lines
 - BoatProvider: ~230 lines
+- WeatherProvider: ~230 lines
+- TimelineProvider: ~208 lines
 
 ✅ **CON-002**: Single Source of Truth
 
@@ -400,8 +434,10 @@ MultiProvider(
 | NMEAProvider | 14 | ✅ |
 | RouteProvider | 30 | ✅ |
 | BoatProvider | 25 | ✅ |
+| WeatherProvider | 22 | ✅ |
+| TimelineProvider | 12 | ✅ |
 | BoatPosition (model) | 14 | ✅ |
-| **Total** | **148+** | **185 including widget/integration** |
+| **Total** | **148+** | **313 including widget/integration** |
 
 Key test areas per provider:
 
@@ -412,6 +448,8 @@ Key test areas per provider:
 5. **NMEAProvider** — Connection lifecycle, data parsing, reconnection, errors
 6. **RouteProvider** — Route activation, waypoint navigation, metrics, progress
 7. **BoatProvider** — NMEA consumption, ISS-018 filtering, track history LRU, MOB, dispose
+8. **WeatherProvider** — Data fetching, caching, layer toggling, staleness, viewport debounce
+9. **TimelineProvider** — Scrubber position, playback controls, frame mapping, speed settings
 
 ## Future Extensions
 
@@ -427,5 +465,5 @@ When adding new providers in Layer 2:
 ---
 
 **Created:** 2026-02-01
-**Last Updated:** 2026-02-09
+**Last Updated:** 2026-02-15
 **Status:** Phase 2 — Boat Position Tracking ✅

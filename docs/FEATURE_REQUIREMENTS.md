@@ -2,8 +2,8 @@
 # Feature Requirements
 ## Marine Navigation App - Detailed Feature Specifications
 
-**Version:** 4.1  
-**Last Updated:** 2026-02-03  
+**Version:** 3.0  
+**Last Updated:** 2026-02-15  
 **Purpose:** Comprehensive requirements for all planned features (includes SailStream UI)
 
 ---
@@ -159,6 +159,14 @@ Display real-time boat position on map with heading indicator, track history, sp
 - [ ] Man Overboard (MOB) quick button
 - [ ] Center map on boat button
 
+**Implementation Status:** 🟢 MOSTLY COMPLETE
+- BoatPosition unified model with `courseTrue`, `heading`, `accuracy`, `fixQuality`, `satellites`
+- BoatProvider with NMEA data consumption, phone GPS fallback, ISS-018 position filtering
+- Track history with LRU eviction (`Queue`, max 1000 points)
+- TrackPoint lightweight class for breadcrumb rendering
+- `boat_marker.dart` and `track_overlay.dart` widgets exist
+- ❌ NOT done: WebView JS bridge for boat marker rendering (markers render but not fully integrated)
+
 **Technical Notes:**
 - Update position every 1 second
 - Store track points in SQLite
@@ -179,9 +187,15 @@ class BoatPosition {
   final double latitude;
   final double longitude;
   final double? speed;        // m/s
-  final double? heading;      // degrees
+  final double? courseTrue;   // degrees (true course over ground)
+  final double? heading;      // degrees (compass heading)
   final double? accuracy;     // meters
+  final int? fixQuality;
+  final int? satellites;
   final DateTime timestamp;
+
+  /// Convenience getter: returns heading if available, else courseTrue
+  double? get bestHeading => heading ?? courseTrue;
 }
 
 class TrackPoint {
@@ -233,8 +247,12 @@ Display wind vectors, wave height/direction, ocean currents, sea surface tempera
 - [ ] Data source: Open-Meteo API
 - [ ] Offline cache: 24 hours
 
+**Implementation Status:** ~60% COMPLETE (split progress below)
+- **Data layer:** ✅ COMPLETE — WeatherProvider, WeatherAPI, WeatherApiParser, WeatherData model, timeline system
+- **Rendering layer:** 🟡 ~30% — WindTextureGenerator done, `wind_overlay.dart` + `wave_overlay.dart` exist but WebGL pipeline not complete, `map.html` has WebGL shaders but integration pending
+
 **Technical Notes:**
-- Use CustomPaint for overlay rendering
+- Weather visualization textures go through WindTextureGenerator → map.html WebGL shaders
 - ProjectionService for coordinate transform
 - Viewport synchronization (see ISS-001)
 - Grid resolution: 0.25° (~25km)
@@ -380,6 +398,13 @@ Animate forecast progression, scrub through time, adjust playback speed, export 
 **Estimated Effort:** 1 week  
 **Dependencies:** None  
 **Owner:** ThemeProvider
+
+**Implementation Status:** ✅ COMPLETE WITH BONUS
+- Ocean Glass theme ✅
+- Dark/Light mode ✅
+- System theme ✅
+- Red light mode ✅
+- BONUS: Holographic Cyberpunk theme added (full particle system, neon effects, shimmer)
 
 #### Description
 Light/dark themes, auto mode based on time, red light mode for night vision, high contrast mode.
@@ -732,6 +757,15 @@ Share routes, waypoints, trip reports, screenshots, community feeds.
 **Dependencies:** None  
 **Owner:** UI Library Team
 
+**Implementation Status:** ✅ COMPLETE
+- GlassCard with 4 padding variants (small, medium, large, none)
+- DataOrb with 3 sizes (small, medium, large), 4 states (normal, alert, critical, inactive)
+- NavigationSidebar
+- DraggableOverlay with persistence
+- WindWidget (TrueWindWidget)
+- Design tokens (colors, dimensions, text_styles)
+- Responsive utilities
+
 #### Description
 Complete implementation of the Ocean Glass design system with reusable frosted glass UI components including GlassCard, DataOrb, CompassWidget, WindWidget, and NavigationSidebar.
 
@@ -809,7 +843,13 @@ Dedicated navigation mode screen with large data orbs for SOG, COG, and DEPTH, r
 - Update route visualization when viewport changes
 - Store user-created routes in local database
 - Validate waypoint coordinates
-- Implementation status: Layout scaffold in `navigation_mode_screen.dart` with placeholder values; navigation entry wiring and data plumbing pending.
+
+**Implementation Status:** 🟢 95% COMPLETE
+- NavigationModeScreen fully implemented
+- SOG/COG/DEPTH data orbs working
+- Compass widget, course deviation indicator
+- Route provider with XTE, bearing, ETA, progress
+- ❌ Missing: AIS target display, anchor alarm
 
 **UI Layout:**
 - Top section: 120px for data orbs

@@ -2,8 +2,8 @@
 
 ## Marine Navigation App - Issue Tracking & Solutions
 
-**Version:** 4.0  
-**Last Updated:** 2024-02-01  
+**Version:** 5.0  
+**Last Updated:** 2026-02-15  
 **Purpose:** Comprehensive database of all issues encountered across 4 attempts
 
 ---
@@ -50,7 +50,7 @@
 | ISS-001 | Overlay projection mismatch at zoom | 🔴 CRITICAL | ✅ RESOLVED | 2, 4 |
 | ISS-002 | MapController god object circular deps | 🔴 CRITICAL | ✅ RESOLVED | 1, 3 |
 | ISS-003 | ProviderNotFoundException on hot reload | 🟠 HIGH | ✅ RESOLVED | 2 |
-| ISS-004 | Stale weather data after fetch | 🟠 HIGH | ✅ RESOLVED | 3 |
+| ISS-004 | Stale weather data after fetch | 🟠 HIGH | ⚠️ PARTIAL | 3 |
 | ISS-005 | RenderFlex overflow on small devices | 🟠 HIGH | ✅ RESOLVED | All |
 | ISS-006 | Memory leak from AnimationControllers | 🔴 CRITICAL | ✅ RESOLVED | 2, 3 |
 | ISS-007 | State inconsistency across screens | 🟠 HIGH | ✅ RESOLVED | 1, 4 |
@@ -64,7 +64,10 @@
 | ISS-015 | Dark mode not persisting | 🟢 LOW | ✅ RESOLVED | 2 |
 | ISS-016 | AIS message buffer overflow | 🟠 HIGH | 🔄 IN PROGRESS | 4 |
 | ISS-017 | Tile cache growing indefinitely | 🟠 HIGH | ✅ RESOLVED | 3 |
-| ISS-018 | GPS position jumping on reconnect | 🟡 MEDIUM | 📋 DOCUMENTED | 4 |
+| ISS-018 | GPS position jumping on reconnect | 🟡 MEDIUM | ✅ RESOLVED | 4 |
+| ISS-019 | CacheProvider shell — no backend | 🟠 HIGH | 📋 DOCUMENTED | Current |
+| ISS-020 | NMEA data not cached across restarts | 🟡 MEDIUM | 📋 DOCUMENTED | Current |
+| ISS-021 | Unused provider deps in NMEAProvider | 🟢 LOW | 📋 DOCUMENTED | Current |
 
 ---
 
@@ -361,7 +364,7 @@ class MapScreen extends StatelessWidget {
 **Title:** Old weather data displays after fetching new data  
 **Category:** Caching / Data Consistency  
 **Severity:** 🟠 HIGH  
-**Status:** ✅ RESOLVED  
+**Status:** ⚠️ PARTIAL  
 **Repository:** Attempt 3  
 **Files Affected:**
 
@@ -951,7 +954,7 @@ Timer.periodic(Duration(milliseconds: 500), (_) {
 **Title:** Boat position jumps when GPS reconnects  
 **Category:** Data Smoothing  
 **Severity:** 🟡 MEDIUM  
-**Status:** 📋 DOCUMENTED  
+**Status:** ✅ RESOLVED  
 **Repository:** Attempt 4  
 **Files Affected:**
 
@@ -968,52 +971,145 @@ Timer.periodic(Duration(milliseconds: 500), (_) {
 #### Root Cause
 GPS receivers output last known position with degraded accuracy when signal lost. When signal restored, position jumps to actual location.
 
-#### Workaround
-Filter positions with low accuracy:
+#### Solution (Implemented)
+Position validation implemented in `boat_provider.dart` via `_isPositionValid()` method, called in `_processPosition()` before accepting any new position:
 
 ```dart
-void _updatePosition(Position position) {
-  // Ignore low accuracy positions
-  if (position.accuracy > 50) {
-    logger.warn('Ignoring low accuracy position: ${position.accuracy}m');
-    return;
+bool _isPositionValid(BoatPosition newPosition) {
+  // 1. Accuracy threshold check
+  if (newPosition.accuracy > maxAccuracyThresholdMeters) {
+    return false; // reject positions with accuracy > 50m
   }
-  
-  // Check for unrealistic speed
-  if (_lastPosition != null) {
-    final distance = _calculateDistance(_lastPosition!, position);
-    final timeDelta = position.timestamp.difference(_lastPosition!.timestamp);
-    final speed = distance / timeDelta.inSeconds;
-    
-    if (speed > 50) { // 50 m/s = 97 knots (unrealistic for most boats)
-      logger.warn('Ignoring unrealistic position jump');
-      return;
+
+  // 2. Speed sanity check against previous position
+  if (_currentPosition != null) {
+    final distance = GeoUtils.distanceBetween(
+      _currentPosition!.latLng, newPosition.latLng,
+    );
+    final timeDelta = newPosition.timestamp
+        .difference(_currentPosition!.timestamp)
+        .inSeconds;
+    if (timeDelta > 0) {
+      final speed = distance / timeDelta;
+      if (speed > maxRealisticSpeedMps) {
+        return false; // reject if > 50 m/s (~97 knots)
+      }
     }
   }
-  
-  _currentPosition = position;
-  notifyListeners();
-}
-```text
 
-#### Ideal Solution
-Implement Kalman filter for GPS smoothing (future enhancement).
+  return true;
+}
+```
+
+Constants defined in `boat_position.dart`:
+- `maxRealisticSpeedMps = 50.0` (≈97 knots)
+- `maxAccuracyThresholdMeters = 50.0`
+
+#### Future Enhancement
+Implement Kalman filter for GPS smoothing (optional improvement).
+
+---
+
+### ISS-019: Incomplete CacheProvider Integration
+
+**Issue ID:** ISS-019  
+**Title:** CacheProvider is a shell with no backend implementation  
+**Category:** Implementation Debt  
+**Severity:** 🟠 HIGH  
+**Status:** 📋 DOCUMENTED  
+**Repository:** Current  
+**Files Affected:**
+
+- `lib/providers/cache_provider.dart`
+
+**Symptoms:**
+
+- Cache statistics UI shows no data
+- Weather caching not functional
+- 7 TODO items in CacheProvider code
+
+#### Root Cause
+CacheProvider was created as an architectural placeholder following ISS-004's single-cache-coordinator design, but the actual CacheService backend was never implemented.
+
+#### Workaround
+Application functions without caching — all data fetched fresh from APIs each time.
+
+**Planned Solution:**
+
+1. Implement disk-backed CacheService with LRU eviction and TTL
+2. Wire CacheProvider to CacheService
+3. Add weather data caching (1-hour TTL)
+4. Add tile caching for offline mode
+
+---
+
+### ISS-020: NMEA Data Not Cached Across Restarts
+
+**Issue ID:** ISS-020  
+**Title:** NMEA configuration and last position not persisted  
+**Category:** Implementation Debt  
+**Severity:** 🟡 MEDIUM  
+**Status:** 📋 DOCUMENTED  
+**Repository:** Current  
+**Files Affected:**
+
+- `lib/providers/nmea_provider.dart`
+
+**Symptoms:**
+
+- Connection settings reset on app restart
+- Last known position lost on restart
+- Auto-reconnect not configurable
+
+#### Root Cause
+NMEAProvider has `_settingsProvider` and `_cacheProvider` injected but not yet used (marked `// ignore: unused_field`).
+
+#### Planned Solution
+
+1. Persist NMEA connection config to SettingsProvider
+2. Cache last known position in CacheProvider
+3. Add configurable auto-reconnect settings
+
+---
+
+### ISS-021: Unused Provider Dependencies in NMEAProvider
+
+**Issue ID:** ISS-021  
+**Title:** NMEAProvider holds unused SettingsProvider and CacheProvider references  
+**Category:** Code Quality  
+**Severity:** 🟢 LOW  
+**Status:** 📋 DOCUMENTED  
+**Repository:** Current  
+**Files Affected:**
+
+- `lib/providers/nmea_provider.dart`
+
+**Symptoms:**
+
+- `_settingsProvider` and `_cacheProvider` fields marked with `// ignore: unused_field`
+- No functional impact
+
+#### Root Cause
+Dependencies injected for future use (settings persistence, position caching) but not yet wired.
+
+#### Planned Solution
+Wire these dependencies when implementing ISS-020.
 
 ---
 
 ## Summary Statistics
 
-**Total Issues:** 18  
-**Resolved:** 15 (83%)  
-**In Progress:** 1 (6%)  
-**Documented/Workaround:** 2 (11%)
+**Total Issues:** 21  
+**Resolved:** 16 (76%)  
+**In Progress:** 1 (5%)  
+**Documented/Workaround:** 4 (19%)
 
 **By Severity:**
 
 - 🔴 Critical: 5 (all resolved)
-- 🟠 High: 8 (7 resolved, 1 in progress)
-- 🟡 Medium: 4 (3 resolved, 1 documented)
-- 🟢 Low: 1 (resolved)
+- 🟠 High: 9 (7 resolved, 1 in progress, 1 documented)
+- 🟡 Medium: 5 (3 resolved, 1 resolved (ISS-018), 1 documented)
+- 🟢 Low: 2 (1 resolved, 1 documented)
 
 **Most Common Categories:**
 
