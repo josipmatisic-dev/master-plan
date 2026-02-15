@@ -6,6 +6,8 @@ library;
 
 import 'package:flutter/foundation.dart';
 
+import '../services/cache_service.dart';
+
 /// Cache statistics data
 class CacheStats {
   /// Total cache size in bytes
@@ -46,15 +48,19 @@ class CacheStats {
 /// Cache Provider - Coordinates cache operations for UI
 ///
 /// Layer 1 provider. Can depend on SettingsProvider (Layer 0).
-/// Wraps CacheService and provides cache statistics.
-///
-/// NOTE: This is a placeholder that will integrate with CacheService
-/// once the backend services are implemented.
+/// Delegates all storage to [CacheService].
 class CacheProvider extends ChangeNotifier {
   // ============ Private Fields ============
 
+  final CacheService _cacheService;
   CacheStats _stats = CacheStats.empty;
   bool _isInitialized = false;
+
+  // ============ Constructor ============
+
+  /// Creates a CacheProvider. Optionally accepts a [CacheService] for testing.
+  CacheProvider({CacheService? cacheService})
+      : _cacheService = cacheService ?? CacheService();
 
   // ============ Public Getters ============
 
@@ -69,17 +75,12 @@ class CacheProvider extends ChangeNotifier {
 
   // ============ Initialization ============
 
-  /// Initialize cache provider
-  ///
-  /// TODO: Integrate with CacheService once implemented
+  /// Initialize cache provider and underlying service.
   Future<void> init() async {
     try {
-      // TODO: Initialize CacheService here
-      // await _cacheService.init();
-
+      await _cacheService.init();
       _isInitialized = true;
-      await refreshStats();
-
+      refreshStats();
       debugPrint('CacheProvider: Initialized');
     } catch (e) {
       debugPrint('CacheProvider: Failed to init - $e');
@@ -87,64 +88,78 @@ class CacheProvider extends ChangeNotifier {
     }
   }
 
-  // ============ Cache Management ============
+  // ============ Cache Operations ============
 
-  /// Refresh cache statistics
-  Future<void> refreshStats() async {
+  /// Store a string value with optional TTL.
+  Future<void> put(String key, String value, {Duration? ttl}) async {
+    if (!_isInitialized) return;
     try {
-      // TODO: Get stats from CacheService
-      // final size = await _cacheService.getSize();
-      // final entryCount = await _cacheService.getEntryCount();
-
-      // Placeholder stats for now
-      _stats = CacheStats.empty;
-
-      notifyListeners();
+      await _cacheService.put(key, value, ttl: ttl);
+      refreshStats();
     } catch (e) {
-      debugPrint('CacheProvider: Failed to refresh stats - $e');
+      debugPrint('CacheProvider: Failed to put $key - $e');
     }
   }
 
-  /// Clear entire cache
-  Future<void> clearCache() async {
+  /// Retrieve a cached string value, or null if missing/expired.
+  String? getString(String key) {
+    if (!_isInitialized) return null;
     try {
-      // TODO: Call CacheService.clear()
-      // await _cacheService.clear();
-
-      await refreshStats();
-      debugPrint('CacheProvider: Cache cleared');
-    } catch (e) {
-      debugPrint('CacheProvider: Failed to clear cache - $e');
-    }
-  }
-
-  /// Invalidate specific cache entry
-  Future<void> invalidate(String key) async {
-    try {
-      // TODO: Call CacheService.delete()
-      // await _cacheService.delete(key);
-
-      await refreshStats();
-    } catch (e) {
-      debugPrint('CacheProvider: Failed to invalidate $key - $e');
-    }
-  }
-
-  /// Get cache entry (for debugging/inspection)
-  Future<T?> get<T>(String key) async {
-    try {
-      // TODO: Call CacheService.get()
-      // return await _cacheService.get<T>(key);
-      return null;
+      return _cacheService.get(key);
     } catch (e) {
       debugPrint('CacheProvider: Failed to get $key - $e');
       return null;
     }
   }
 
-  @override
-  void dispose() {
-    // TODO: Dispose CacheService if needed
-    super.dispose();
+  /// Refresh cache statistics from the service.
+  void refreshStats() {
+    if (!_isInitialized) return;
+    try {
+      _stats = CacheStats(
+        totalSize: _cacheService.totalSizeBytes,
+        entryCount: _cacheService.entryCount,
+        hits: _cacheService.hits,
+        misses: _cacheService.misses,
+      );
+      notifyListeners();
+    } catch (e) {
+      debugPrint('CacheProvider: Failed to refresh stats - $e');
+    }
+  }
+
+  /// Clear entire cache.
+  Future<void> clearCache() async {
+    if (!_isInitialized) return;
+    try {
+      await _cacheService.clear();
+      refreshStats();
+      debugPrint('CacheProvider: Cache cleared');
+    } catch (e) {
+      debugPrint('CacheProvider: Failed to clear cache - $e');
+    }
+  }
+
+  /// Invalidate specific cache entry.
+  Future<void> invalidate(String key) async {
+    if (!_isInitialized) return;
+    try {
+      await _cacheService.delete(key);
+      refreshStats();
+    } catch (e) {
+      debugPrint('CacheProvider: Failed to invalidate $key - $e');
+    }
+  }
+
+  /// Get cache entry (for debugging/inspection).
+  Future<T?> get<T>(String key) async {
+    if (!_isInitialized) return null;
+    try {
+      final value = _cacheService.get(key);
+      return value as T?;
+    } catch (e) {
+      debugPrint('CacheProvider: Failed to get $key - $e');
+      return null;
+    }
   }
 }

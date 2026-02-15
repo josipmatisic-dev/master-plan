@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:marine_nav_app/models/nmea_error.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
@@ -17,6 +18,7 @@ void main() {
     late NMEAProvider nmeaProvider;
 
     setUp(() async {
+      SharedPreferences.setMockInitialValues({});
       settingsProvider = SettingsProvider();
       themeProvider = ThemeProvider();
       cacheProvider = CacheProvider();

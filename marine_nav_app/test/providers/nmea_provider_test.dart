@@ -4,6 +4,7 @@ import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/nmea_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/services/nmea_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // Mock NMEA Service for testing
 class MockNMEAService extends NMEAService {
@@ -18,6 +19,7 @@ void main() {
     bool providerDisposed = false;
 
     setUp(() async {
+      SharedPreferences.setMockInitialValues({});
       providerDisposed = false;
       settingsProvider = SettingsProvider();
       await settingsProvider.init();
@@ -114,6 +116,7 @@ void main() {
     late NMEAProvider provider;
 
     setUp(() async {
+      SharedPreferences.setMockInitialValues({});
       final settings = SettingsProvider();
       await settings.init();
 

@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 
 import '../models/nmea_data.dart';
 import '../models/nmea_error.dart';
@@ -23,10 +25,8 @@ import 'settings_provider.dart';
 /// }
 /// ```
 class NMEAProvider extends ChangeNotifier {
-  // ignore: unused_field
-  final SettingsProvider _settingsProvider; // Reserved for future use
-  // ignore: unused_field
-  final CacheProvider _cacheProvider; // Reserved for future use
+  final SettingsProvider _settingsProvider;
+  final CacheProvider _cacheProvider;
   final NMEAService _service;
 
   NMEAData? _currentData;
@@ -93,9 +93,24 @@ class NMEAProvider extends ChangeNotifier {
   /// Load cached NMEA data from previous session
   Future<void> _loadCachedData() async {
     try {
-      final cached = await _cacheProvider.get<NMEAData>('nmea_last_data');
+      final cached = _cacheProvider.getString('nmea_last_position');
       if (cached != null) {
-        _currentData = cached;
+        final map = jsonDecode(cached) as Map<String, dynamic>;
+        final lat = map['lat'] as double;
+        final lng = map['lng'] as double;
+        final sog = map['sog'] as double?;
+        final cog = map['cog'] as double?;
+
+        _currentData = NMEAData(
+          timestamp: DateTime.now(),
+          gprmc: GPRMCData(
+            position: latlong2.LatLng(lat, lng),
+            speedKnots: sog,
+            trackTrue: cog,
+            time: DateTime.now(),
+            valid: true,
+          ),
+        );
         notifyListeners();
       }
     } catch (e) {
@@ -149,8 +164,18 @@ class NMEAProvider extends ChangeNotifier {
     _lastUpdateTime = DateTime.now();
     _lastError = null;
 
-    // TODO: Cache latest data when cache API is available
-    // _cacheProvider.set('nmea_last_data', data, ttl: const Duration(hours: 1));
+    // Cache latest position for persistence across restarts
+    final pos = data.position;
+    if (pos != null) {
+      final json = jsonEncode({
+        'lat': pos.latitude,
+        'lng': pos.longitude,
+        'sog': data.speedOverGroundKnots,
+        'cog': data.courseOverGroundDegrees,
+      });
+      _cacheProvider.put('nmea_last_position', json,
+          ttl: const Duration(hours: 24));
+    }
 
     notifyListeners();
   }
@@ -167,9 +192,10 @@ class NMEAProvider extends ChangeNotifier {
     final oldStatus = _status;
     _status = newStatus;
 
-    // Handle disconnection - attempt reconnect
-    // TODO: Make auto-reconnect configurable in settings
-    if (oldStatus.isConnected && newStatus == ConnectionStatus.disconnected) {
+    // Handle disconnection - attempt reconnect if enabled
+    if (oldStatus.isConnected &&
+        newStatus == ConnectionStatus.disconnected &&
+        _settingsProvider.autoConnectNMEA) {
       _scheduleReconnect();
     }
 

@@ -52,6 +52,7 @@ lib/
 │   └── weather_provider.dart     # Weather data fetching, caching, overlay layer toggles
 │
 ├── services/
+│   ├── cache_service.dart        # Disk-backed KV cache (SharedPreferences, TTL, LRU eviction)
 │   ├── geo_utils.dart            # Geographic calculations (haversine distance, bearing, XTE)
 │   ├── location_service.dart     # Phone GPS wrapper (geolocator package)
 │   ├── nmea_isolate_messages.dart # Messages for NMEA parser isolate communication
@@ -162,6 +163,7 @@ test/
 │   ├── timeline_provider_test.dart # TimelineProvider tests
 │   └── weather_provider_test.dart # WeatherProvider tests
 ├── services/
+│   ├── cache_service_test.dart   # Cache service tests (TTL, LRU, persistence)
 │   ├── geo_utils_test.dart       # Geographic calculation tests
 │   ├── nmea_parser_test.dart     # NMEA parser tests
 │   ├── nmea_service_test.dart    # NMEA service tests
@@ -646,6 +648,7 @@ NavigationModeScreen (StatefulWidget)
 
 | Module | Primary Owner | Lines | Tests | Coverage |
 |--------|---------------|-------|-------|----------|
+| `services/cache_service.dart` | CacheProvider | 203 | 16 | ✅ 80%+ |
 | `services/nmea_parser.dart` | NMEAProvider | 258 | 47 | 94% |
 | `services/nmea_parser_instruments.dart` | NMEAProvider | 109 | — | — |
 | `services/nmea_service.dart` | NMEAProvider | 282 | 14 | ✅ 80%+ |
