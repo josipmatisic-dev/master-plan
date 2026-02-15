@@ -2,8 +2,8 @@
 library;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:latlong2/latlong.dart';
 import 'package:marine_nav_app/models/boat_position.dart';
+import 'package:marine_nav_app/models/lat_lng.dart';
 import 'package:marine_nav_app/providers/boat_provider.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
@@ -46,36 +46,117 @@ void main() {
   });
 
   group('BoatPosition model', () {
-    test('equality based on position and timestamp', () {
+    test('constructs with required fields and defaults', () {
+      final t = DateTime(2025, 1, 1);
+      const pos = LatLng(latitude: 43.5, longitude: 16.4);
+      final bp = BoatPosition(position: pos, timestamp: t);
+
+      expect(bp.latitude, 43.5);
+      expect(bp.longitude, 16.4);
+      expect(bp.speedKnots, isNull);
+      expect(bp.courseTrue, isNull);
+      expect(bp.heading, isNull);
+      expect(bp.accuracy, 0.0);
+      expect(bp.fixQuality, 0);
+      expect(bp.satellites, 0);
+      expect(bp.altitudeMeters, isNull);
+    });
+
+    test('isValid reflects fixQuality', () {
+      final valid = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        fixQuality: 1,
+      );
+      final invalid = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+      );
+      expect(valid.isValid, isTrue);
+      expect(invalid.isValid, isFalse);
+    });
+
+    test('isAccurate reflects accuracy threshold', () {
+      final accurate = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        accuracy: 50.0,
+      );
+      final inaccurate = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        accuracy: 50.1,
+      );
+      expect(accurate.isAccurate, isTrue);
+      expect(inaccurate.isAccurate, isFalse);
+    });
+
+    test('bestHeading prefers courseTrue over heading', () {
+      final bp = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        courseTrue: 90.0,
+        heading: 85.0,
+      );
+      expect(bp.bestHeading, 90.0);
+
+      final headingOnly = BoatPosition(
+        position: const LatLng(latitude: 0, longitude: 0),
+        timestamp: DateTime(2025),
+        heading: 85.0,
+      );
+      expect(headingOnly.bestHeading, 85.0);
+    });
+
+    test('copyWith preserves unchanged fields', () {
+      final original = BoatPosition(
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
+        timestamp: DateTime(2025),
+        speedKnots: 10.0,
+        courseTrue: 45.0,
+      );
+      final copied = original.copyWith(speedKnots: 15.0);
+      expect(copied.speedKnots, 15.0);
+      expect(copied.courseTrue, 45.0);
+      expect(copied.latitude, 43.5);
+    });
+
+    test('equality compares all fields', () {
       final t = DateTime(2025, 1, 1);
       final a = BoatPosition(
-        position: const LatLng(43.5, 16.4),
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
         timestamp: t,
         speedKnots: 5.0,
+        courseTrue: 90.0,
       );
       final b = BoatPosition(
-        position: const LatLng(43.5, 16.4),
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
         timestamp: t,
-        speedKnots: 10.0, // different speed, same identity
+        speedKnots: 5.0,
+        courseTrue: 90.0,
       );
       expect(a, equals(b));
+      expect(a.hashCode, equals(b.hashCode));
     });
 
     test('toString includes coords and speed', () {
       final pos = BoatPosition(
-        position: const LatLng(43.51234, 16.43210),
+        position: const LatLng(latitude: 43.51234, longitude: 16.43210),
         timestamp: DateTime(2025),
         speedKnots: 7.3,
+        courseTrue: 85.0,
       );
-      expect(pos.toString(), contains('43.51234'));
-      expect(pos.toString(), contains('7.3kn'));
+      final str = pos.toString();
+      expect(str, contains('43.51234'));
+      expect(str, contains('7.3'));
+      expect(str, contains('85.0'));
     });
   });
 
   group('TrackPoint', () {
     test('fromPosition creates compact point', () {
       final pos = BoatPosition(
-        position: const LatLng(43.5, 16.4),
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
         timestamp: DateTime(2025, 6, 1),
         speedKnots: 5.0,
       );
@@ -87,7 +168,7 @@ void main() {
 
     test('fromPosition uses zero speed when null', () {
       final pos = BoatPosition(
-        position: const LatLng(0, 0),
+        position: const LatLng(latitude: 0, longitude: 0),
         timestamp: DateTime(2025),
       );
       final tp = TrackPoint.fromPosition(pos);
@@ -161,17 +242,17 @@ void main() {
     });
   });
 
-  group('BoatProvider ISS-018 filtering', () {
-    test('maxRealisticSpeedMs is 50 m/s (~97 knots)', () {
-      expect(BoatProvider.maxRealisticSpeedMs, 50.0);
+  group('ISS-018 constants', () {
+    test('maxRealisticSpeedMps is 50 m/s (~97 knots)', () {
+      expect(maxRealisticSpeedMps, 50.0);
     });
 
-    test('maxAccuracyMeters is 50m', () {
-      expect(BoatProvider.maxAccuracyMeters, 50.0);
+    test('maxAccuracyThresholdMeters is 50m', () {
+      expect(maxAccuracyThresholdMeters, 50.0);
     });
 
-    test('maxTrackPoints is 1000', () {
-      expect(BoatProvider.maxTrackPoints, 1000);
+    test('maxTrackHistoryPoints is 1000', () {
+      expect(maxTrackHistoryPoints, 1000);
     });
   });
 }

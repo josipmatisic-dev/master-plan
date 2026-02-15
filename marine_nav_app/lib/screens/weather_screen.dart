@@ -102,8 +102,9 @@ class WeatherScreen extends StatelessWidget {
           Flexible(
             child: DataOrb(
               label: 'Wind Dir',
-              value:
-                  wind != null ? _compassDirection(wind.directionDegrees) : '--',
+              value: wind != null
+                  ? _compassDirection(wind.directionDegrees)
+                  : '--',
               unit: wind != null ? '${wind.directionDegrees.round()}°' : '',
               size: DataOrbSize.small,
             ),

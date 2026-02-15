@@ -3,8 +3,8 @@
 
 ## Marine Navigation App - Flutter Project Structure
 
-**Version:** 3.1  
-**Last Updated:** 2026-02-03  
+**Version:** 3.2
+**Last Updated:** 2026-02-09
 **Purpose:** Complete map of codebase structure, dependencies, and data flow (includes SailStream UI)
 
 ---
@@ -24,12 +24,12 @@
 
 The Flutter scaffold includes Android and iOS native folders under `marine_nav_app/android` and `marine_nav_app/ios` for parallel platform work.
 
-```text
+```
 ```text
 lib/
 ├── main.dart                     # App entry, provider setup
 ├── models/                       # Data models
-│   ├── boat_position.dart       # GPS position with heading/speed
+│   ├── boat_position.dart       # ✅ GPS position with heading/speed (ISS-018 filtering constants)
 │   ├── bounds.dart              # Geographic bounds (SW/NE corners)
 │   ├── cache_entry.dart         # Cache metadata (TTL, LRU)
 │   ├── forecast_data.dart       # Weather forecast time series
@@ -44,10 +44,11 @@ lib/
 │   └── ais_target.dart          # AIS vessel information
 │
 ├── providers/                    # State management (Provider pattern)
-│   ├── boat_provider.dart       # Boat position & tracking state
+│   ├── boat_provider.dart       # ✅ Boat position & tracking state (ISS-018, LRU track, MOB)
 │   ├── cache_provider.dart      # Cache coordination
 │   ├── map_provider.dart        # Map viewport & interaction state
-│   ├── nmea_provider.dart       # ✅ NMEA data stream provider (connection mgmt, auto-reconnect)
+│   ├── nmea_provider.dart       # ✅ NMEA data stream processing
+│   ├── route_provider.dart      # ✅ Route management & navigation metrics
 │   ├── settings_provider.dart   # User preferences & configuration
 │   ├── theme_provider.dart      # Theme & dark mode state
 │   ├── timeline_provider.dart   # Forecast playback state
@@ -58,7 +59,6 @@ lib/
 │   ├── http_client.dart         # HTTP with retry & backoff
 │   ├── location_service.dart    # GPS/location wrapper
 │   ├── nmea_parser.dart         # ✅ NMEA 0183 sentence parser (checksum, coordinate conversion)
-│   ├── nmea_service.dart        # ✅ Background isolate for NMEA TCP/UDP (200ms batching)
 │   ├── projection_service.dart  # Coordinate transformations
 │   ├── weather_api.dart         # Open-Meteo API client
 │   ├── noaa_api.dart            # NOAA tides/buoys API
@@ -82,12 +82,6 @@ lib/
 │   │   ├── glass_card.dart     # Base frosted glass container
 │   │   ├── glass_button.dart   # Glass-styled button
 │   │   └── glass_modal.dart    # Glass modal/dialog
-│   ├── home/                    # Home screen widgets
-│   │   ├── welcome_card.dart   # Welcome message and status
-│   │   ├── navigation_shortcuts.dart # Quick navigation buttons
-│   │   ├── theme_controls.dart # Theme switching controls
-│   │   ├── settings_card.dart  # Settings display
-│   │   └── cache_info_card.dart # Cache status display
 │   ├── navigation/              # Navigation components
 │   │   ├── navigation_sidebar.dart # Primary app navigation menu
 │   │   ├── compass_widget.dart    # Compass with heading/speed/wind
@@ -100,8 +94,8 @@ lib/
 │   │   ├── wind_overlay.dart   # Wind arrow rendering
 │   │   ├── wave_overlay.dart   # Wave height visualization
 │   │   ├── current_overlay.dart # Ocean current vectors
-│   │   ├── boat_marker.dart    # Boat position indicator
-│   │   ├── track_overlay.dart  # Breadcrumb trail
+│   │   ├── boat_marker.dart    # ✅ Boat position indicator (directional arrow + accuracy ring)
+│   │   ├── track_overlay.dart  # ✅ Breadcrumb trail (gradient line)
 │   │   └── ais_overlay.dart    # AIS vessel markers
 │   ├── controls/                # UI controls
 │   │   ├── timeline_controls.dart # Play/pause/speed
@@ -133,7 +127,7 @@ lib/
 │   └── dimensions.dart          # Spacing/sizing
 │
 └── l10n/                         # Localization
-```text
+```
     ├── app_en.arb               # English strings
     ├── app_es.arb               # Spanish strings
     └── app_fr.arb               # French strings
@@ -167,7 +161,7 @@ test/
 
 ## Provider Dependency Graph
 
-```text
+```
 
 Layer 0 (No Dependencies):
 ┌─────────────────────┐
@@ -205,7 +199,7 @@ RULES:
 - Dependencies documented in code
 - `MapViewportService` is the ONLY source of viewport truth; MapProvider owns it and exposes read-only viewport snapshots to widgets/overlays.
 
-```text
+```
 
 ---
 
@@ -213,7 +207,7 @@ RULES:
 
 ### Weather Data Flow
 
-```text
+```
 
 User Pans Map
       ↓
@@ -240,11 +234,11 @@ Widget Rebuild:
 - WeatherCard shows new data
 - ForecastScreen updates timeline
 
-```text
+```
 
 ### NMEA Data Flow
 
-```text
+```
 
 GPS Device
       ↓
@@ -274,11 +268,11 @@ Widget Rebuild:
 - BoatInfoCard updates speed/heading
 - TrackOverlay adds breadcrumb
 
-```text
+```
 
 ### Overlay Rendering Flow
 
-```text
+```
 
 WeatherProvider has new data
       ↓
@@ -300,7 +294,7 @@ Canvas rendered to screen
       ↓
 60 FPS smooth animation
 
-```text
+```
 
 ---
 
@@ -343,7 +337,7 @@ void main() async {
     ),
   );
 }
-```text
+```
 
 ---
 
@@ -483,7 +477,7 @@ void main() async {
 
 ### MapScreen Widget Tree (SailStream UI)
 
-```text
+```
 MapScreen (StatefulWidget)
 ├── Scaffold
 │   ├── Body
@@ -533,7 +527,7 @@ MapScreen (StatefulWidget)
 │
 └── FloatingActionButton (optional, for quick actions)
 
-```text
+```
 
 ## Screen Flows
 
@@ -557,7 +551,7 @@ MapScreen (StatefulWidget)
 
 ### NavigationMode Screen Widget Tree
 
-```text
+```
 NavigationModeScreen (StatefulWidget)
 ├── Scaffold
 │   ├── AppBar (GlassCard)
@@ -594,28 +588,27 @@ NavigationModeScreen (StatefulWidget)
 │                   ├── GlassButton("Mark Position")
 │                   ├── GlassButton("Track")
 │                   └── GlassButton("Alerts")
-```text
+```
 
 ---
 
 ## Module Ownership
 
 | Module | Primary Owner | Lines | Tests | Coverage |
-| -------- | --------------- | ------- | ------- | ---------- |
+|--------|---------------|-------|-------|----------|
 | `services/nmea_parser.dart` | NMEAProvider | 280 | 47 | 94% |
 | `services/projection_service.dart` | MapProvider | 180 | 38 | 100% |
 | `services/cache_service.dart` | CacheProvider | 250 | 31 | 87% |
 | `services/weather_api.dart` | WeatherProvider | 220 | 28 | 82% |
 | `providers/weather_provider.dart` | WeatherProvider | 250 | 22 | 78% |
-| `providers/boat_provider.dart` | BoatProvider | 190 | 18 | 81% |
-| `screens/home_screen.dart` | UI | 101 | TBD | - |
-| `widgets/home/theme_controls.dart` | UI | 83 | TBD | - |
-| `widgets/home/settings_card.dart` | UI | 77 | TBD | - |
-| `widgets/home/cache_info_card.dart` | UI | 77 | TBD | - |
-| `widgets/home/navigation_shortcuts.dart` | UI | 62 | TBD | - |
-| `widgets/home/welcome_card.dart` | UI | 43 | TBD | - |
+| `providers/boat_provider.dart` | BoatProvider | 230 | 25 | ✅ 80%+ |
+| `providers/nmea_provider.dart` | NMEAProvider | 231 | 14 | ✅ 80%+ |
+| `providers/route_provider.dart` | RouteProvider | 175 | 30 | ✅ 80%+ |
+| `models/boat_position.dart` | BoatProvider | 135 | 14 | ✅ 80%+ |
 | `widgets/map_webview.dart` | MapProvider | 200 | 12 | 65% |
 | `widgets/overlays/wind_overlay.dart` | WeatherProvider | 180 | 15 | 73% |
+| `widgets/overlays/boat_marker.dart` | BoatProvider | 221 | - | ✅ |
+| `widgets/overlays/track_overlay.dart` | BoatProvider | 169 | - | ✅ |
 | `widgets/glass/glass_card.dart` | UI Library | < 100 | TBD | - |
 | `widgets/data_displays/data_orb.dart` | UI Library | < 150 | TBD | - |
 | `widgets/navigation/compass_widget.dart` | BoatProvider | < 200 | TBD | - |
@@ -650,14 +643,12 @@ NavigationModeScreen (StatefulWidget)
 ## File Size Compliance
 
 | Category | Max Lines | Current Max | Compliant |
-| ---------- | ----------- | ------------- | ----------- |
-| Providers | 300 | 150 | ✅ |
-| Services | 300 | 94 | ✅ |
-| Screens | 300 | 196 | ✅ |
-| Widgets | 300 | 206 | ✅ |
-| Models | 150 | 120 | ✅ |
-
-**Note:** All files are now compliant with Architecture Rule C.5 (Max 300 lines per file). The `home_screen.dart` was refactored from 323 lines to 101 lines by extracting reusable widgets into `lib/widgets/home/` directory. Widget files follow the same 300-line limit as other categories for consistency.
+|----------|-----------|-------------|-----------|
+| Providers | 300 | 231 (NMEAProvider) | ✅ |
+| Services | 300 | > 300 (NMEAService) | ❌ Over limit |
+| Screens | 300 | 285 | ✅ |
+| Widgets | 300 | 221 (BoatMarker) | ✅ |
+| Models | 300 | 135 (BoatPosition) | ✅ |
 
 ---
 

@@ -7,14 +7,14 @@ library;
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart' as geo;
-import 'package:latlong2/latlong.dart';
+import 'package:latlong2/latlong.dart' as latlong2;
 
 import '../models/boat_position.dart';
-import '../models/lat_lng.dart' as app;
+import '../models/lat_lng.dart';
+import '../services/geo_utils.dart';
 import '../services/location_service.dart';
 import 'map_provider.dart';
 import 'nmea_provider.dart';
@@ -48,18 +48,6 @@ class BoatProvider extends ChangeNotifier {
 
   StreamSubscription<geo.Position>? _gpsSub;
   StreamSubscription<LocationStatus>? _gpsStatusSub;
-
-  /// Max track history points (LRU eviction).
-  static const int maxTrackPoints = 1000;
-
-  /// Max realistic speed in m/s (~97 kn). ISS-018 filter.
-  static const double maxRealisticSpeedMs = 50.0;
-
-  /// Max acceptable accuracy in meters. ISS-018 filter.
-  static const double maxAccuracyMeters = 50.0;
-
-  /// Min distance between track points (meters).
-  static const double minTrackDistanceM = 5.0;
 
   /// Creates a BoatProvider consuming NMEA, map, and location services.
   BoatProvider({
@@ -121,7 +109,6 @@ class BoatProvider extends ChangeNotifier {
 
   void _onNmeaUpdate() {
     if (!_nmeaProvider.isConnected) {
-      // NMEA disconnected — phone GPS takes over automatically
       if (_source == PositionSource.nmea) {
         _source = PositionSource.phoneGps;
         notifyListeners();
@@ -136,11 +123,18 @@ class BoatProvider extends ChangeNotifier {
     if (position == null) return;
 
     final newPos = BoatPosition(
-      position: position,
+      position: LatLng(
+        latitude: position.latitude,
+        longitude: position.longitude,
+      ),
       timestamp: data.timestamp,
-      headingDegrees: data.headingTrue ?? data.courseOverGroundDegrees,
+      courseTrue: data.courseOverGroundDegrees,
+      heading: data.headingTrue,
       speedKnots: data.speedOverGroundKnots,
-      accuracyMeters: _hdopToMeters(data.gpgga?.hdop),
+      accuracy: _hdopToAccuracy(data.gpgga?.hdop),
+      fixQuality: data.gpgga?.fixQuality ?? 0,
+      satellites: data.gpgga?.satellites ?? 0,
+      altitudeMeters: data.gpgga?.altitudeMeters,
     );
 
     _processPosition(newPos, PositionSource.nmea);
@@ -159,16 +153,22 @@ class BoatProvider extends ChangeNotifier {
   }
 
   void _onPhoneGpsUpdate(geo.Position geoPos) {
-    debugPrint('BoatProvider: 📍 GPS fix ${geoPos.latitude},${geoPos.longitude} acc=${geoPos.accuracy}m');
-    // Skip phone GPS when NMEA is active
+    debugPrint(
+      'BoatProvider: 📍 GPS fix '
+      '${geoPos.latitude},${geoPos.longitude} acc=${geoPos.accuracy}m',
+    );
     if (_nmeaProvider.isConnected) return;
 
     final newPos = BoatPosition(
-      position: LatLng(geoPos.latitude, geoPos.longitude),
+      position: LatLng(
+        latitude: geoPos.latitude,
+        longitude: geoPos.longitude,
+      ),
       timestamp: geoPos.timestamp,
-      headingDegrees: geoPos.heading != 0 ? geoPos.heading : null,
+      courseTrue: geoPos.heading != 0 ? geoPos.heading : null,
       speedKnots: geoPos.speed > 0 ? geoPos.speed * 1.94384 : null,
-      accuracyMeters: geoPos.accuracy,
+      accuracy: geoPos.accuracy,
+      fixQuality: 1,
     );
 
     _processPosition(newPos, PositionSource.phoneGps);
@@ -183,13 +183,12 @@ class BoatProvider extends ChangeNotifier {
     _source = src;
     _addTrackPoint(newPos);
     _syncBoatToMap();
-    _routeProvider?.updatePosition(newPos.position);
+
+    final latLng2Pos = _toLatLng2(newPos.position);
+    _routeProvider?.updatePosition(latLng2Pos);
 
     if (_followBoat) {
-      _mapProvider.setCenter(app.LatLng(
-        latitude: newPos.position.latitude,
-        longitude: newPos.position.longitude,
-      ));
+      _mapProvider.setCenter(newPos.position);
     }
 
     notifyListeners();
@@ -198,22 +197,20 @@ class BoatProvider extends ChangeNotifier {
   // ============ ISS-018 Position Filtering ============
 
   bool _isPositionValid(BoatPosition newPos) {
-    if (newPos.accuracyMeters != null &&
-        newPos.accuracyMeters! > maxAccuracyMeters) {
+    if (newPos.accuracy > maxAccuracyThresholdMeters) {
       return false;
     }
 
     final prev = _currentPosition;
     if (prev != null) {
-      final distM = _haversine(
-        prev.position.latitude,
-        prev.position.longitude,
-        newPos.position.latitude,
-        newPos.position.longitude,
+      final distNm = GeoUtils.distanceBetween(
+        _toLatLng2(prev.position),
+        _toLatLng2(newPos.position),
       );
+      final distM = distNm * 1852.0;
       final dtS =
           newPos.timestamp.difference(prev.timestamp).inMilliseconds / 1000.0;
-      if (dtS > 0 && (distM / dtS) > maxRealisticSpeedMs) return false;
+      if (dtS > 0 && (distM / dtS) > maxRealisticSpeedMps) return false;
     }
 
     return true;
@@ -222,19 +219,20 @@ class BoatProvider extends ChangeNotifier {
   // ============ Track History ============
 
   void _addTrackPoint(BoatPosition pos) {
+    const minTrackDistanceM = 5.0;
     if (_trackHistory.isNotEmpty) {
       final last = _trackHistory.last;
-      final dist = _haversine(
-        last.lat,
-        last.lng,
-        pos.position.latitude,
-        pos.position.longitude,
+      final lastLatLng2 = latlong2.LatLng(last.lat, last.lng);
+      final distNm = GeoUtils.distanceBetween(
+        lastLatLng2,
+        _toLatLng2(pos.position),
       );
-      if (dist < minTrackDistanceM) return;
+      final distM = distNm * 1852.0;
+      if (distM < minTrackDistanceM) return;
     }
 
     _trackHistory.addLast(TrackPoint.fromPosition(pos));
-    while (_trackHistory.length > maxTrackPoints) {
+    while (_trackHistory.length > maxTrackHistoryPoints) {
       _trackHistory.removeFirst();
     }
   }
@@ -244,11 +242,10 @@ class BoatProvider extends ChangeNotifier {
   void _syncBoatToMap() {
     final pos = _currentPosition;
     if (pos == null) return;
-    debugPrint('BoatProvider: 🚤 Syncing boat to map → ${pos.position.latitude},${pos.position.longitude}');
     _mapProvider.updateBoatMarker(
-      pos.position.latitude,
-      pos.position.longitude,
-      pos.headingDegrees ?? 0,
+      pos.latitude,
+      pos.longitude,
+      pos.bestHeading ?? 0,
     );
   }
 
@@ -264,24 +261,12 @@ class BoatProvider extends ChangeNotifier {
 
   // ============ Utilities ============
 
-  static double? _hdopToMeters(double? hdop) =>
-      hdop != null ? hdop * 5.0 : null;
+  static double _hdopToAccuracy(double? hdop) => hdop != null ? hdop * 5.0 : 0;
 
-  static double _haversine(
-    double lat1,
-    double lon1,
-    double lat2,
-    double lon2,
-  ) {
-    const r = 6371000.0;
-    final dLat = _rad(lat2 - lat1);
-    final dLon = _rad(lon2 - lon1);
-    final a = sin(dLat / 2) * sin(dLat / 2) +
-        cos(_rad(lat1)) * cos(_rad(lat2)) * sin(dLon / 2) * sin(dLon / 2);
-    return r * 2 * atan2(sqrt(a), sqrt(1 - a));
+  /// Convert app LatLng to latlong2 LatLng for RouteProvider compatibility.
+  static latlong2.LatLng _toLatLng2(LatLng pos) {
+    return latlong2.LatLng(pos.latitude, pos.longitude);
   }
-
-  static double _rad(double deg) => deg * pi / 180;
 
   @override
   void dispose() {

@@ -1,8 +1,8 @@
-# Provider Dependency Graph - Phase 1
+# Provider Dependency Graph - Phase 2
 
-**Version:** 3.0  
-**Date:** 2026-02-04  
-**Status:** Implemented (WeatherProvider added)
+**Version:** 3.1  
+**Date:** 2026-02-15  
+**Status:** Implemented (BoatProvider, WeatherProvider, TimelineProvider added)
 
 ---
 
@@ -18,7 +18,14 @@ Following **CON-004** from MASTER_DEVELOPMENT_BIBLE.md, all providers are organi
 │  │ MapProvider  │  │NMEAProvider  │  │RouteProvider │  │WeatherProv. │  │
 │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬──────┘  │
 │         │                  │                 │                  │         │
-│         └──────────┬───────┴─────────────────┴──────────────────┘         │
+│         │          ┌───────┘                 │                  │         │
+│         │          ▼                         │                  │         │
+│         │   ┌──────────────┐                 │      ┌──────────┘         │
+│         │   │BoatProvider  │                 │      ▼                    │
+│         │   │(←NMEA,Map,Rt)│                 │  ┌──────────────┐        │
+│         │   └──────────────┘                 │  │TimelineProv. │        │
+│         │                                    │  └──────────────┘        │
+│         └──────────┬───────┴─────────────────┴──────────────────┘        │
 └────────────────────┼────────────────────────────────────────────────────┘
                      │
 ┌────────────────────┼────────────────────────────────────┐
@@ -37,7 +44,7 @@ Following **CON-004** from MASTER_DEVELOPMENT_BIBLE.md, all providers are organi
 │                    │  (No Dependencies)  │            │
 │                    └─────────────────────┘            │
 └────────────────────────────────────────────────────────┘
-```text
+```
 
 ## Implementation Status
 
@@ -68,7 +75,7 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> setMapRefreshRate(int ms);
   Future<void> resetToDefaults();
 }
-```text
+```
 
 ### ✅ Layer 1: UI Coordination (Complete)
 
@@ -96,7 +103,7 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> enableRedLightMode();
   Future<void> disableRedLightMode();
 }
-```text
+```
 
 #### CacheProvider
 
@@ -121,56 +128,53 @@ class CacheProvider extends ChangeNotifier {
   Future<void> invalidate(String key);
   Future<T?> get<T>(String key);
 }
-```text
+```
 
-### ⏳ Layer 2: Feature Providers (Partial)
+### ✅ Layer 2: Feature Providers (Implemented)
 
-#### MapProvider (Implemented)
+#### MapProvider
 
 - File: `lib/providers/map_provider.dart`
+- Lines: ~100 (under 300 limit ✅)
 - Dependencies: SettingsProvider, CacheProvider
 - Responsibilities:
   - Owns viewport state (center/zoom/size/rotation)
   - Emits map errors to UI
   - Coordinates with ProjectionService
 
-#### NMEAProvider (Implemented)
+#### NMEAProvider
 
 - File: `lib/providers/nmea_provider.dart`
-- Lines: ~216 (under 300 limit ✅)
+- Lines: ~231 (under 300 limit ✅)
 - Dependencies: SettingsProvider, CacheProvider
 - Responsibilities:
   - Manage NMEA data connection lifecycle (TCP/UDP)
   - Provide real-time marine navigation data (SOG, COG, depth, wind, GPS position)
   - Auto-reconnect with exponential backoff
   - Stream parsed NMEA sentences to UI
-  
+
 **API:**
 
 ```dart
 class NMEAProvider extends ChangeNotifier {
-  // Connection state
   ConnectionStatus get status;
   bool get isConnected;
   bool get isActive;
   int get reconnectAttempts;
   NMEAError? get lastError;
-  
-  // Data streams
   NMEAData? get currentData;
   DateTime? get lastUpdateTime;
   
-  // Actions
   Future<void> connect();
   Future<void> disconnect();
   void clearError();
 }
-```text
+```
 
-#### RouteProvider (NEW - Phase 1)
+#### RouteProvider
 
 - File: `lib/providers/route_provider.dart`
-- Lines: ~168 (under 300 limit ✅)
+- Lines: ~175 (under 300 limit ✅)
 - Dependencies: None (uses GeoUtils service)
 - Responsibilities:
   - Manage active route state
@@ -182,23 +186,19 @@ class NMEAProvider extends ChangeNotifier {
 
 ```dart
 class RouteProvider extends ChangeNotifier {
-  // State getters
   Route? get activeRoute;
   int get currentWaypointIndex;
   LatLng? get currentPosition;
   Waypoint? get nextWaypoint;
   
-  // Metrics
   double get distanceToNextWaypoint;
   double get bearingToNextWaypoint;
   double get totalRouteDistance;
   double get distanceRemaining;
   double get routeProgress;
   
-  // ETA calculation
   double getETAToNextWaypoint(double speedKnots);
   
-  // Actions
   void activateRoute(Route route);
   void updatePosition(LatLng position);
   void advanceWaypoint();
@@ -206,7 +206,7 @@ class RouteProvider extends ChangeNotifier {
   void deactivateRoute();
   void clearPosition();
 }
-```text
+```
 
 #### Weather Provider (Implemented - FEAT-004)
 
@@ -241,56 +241,191 @@ class WeatherProvider extends ChangeNotifier {
 }
 ```
 
+#### BoatProvider (NEW - Phase 2)
+
+- File: `lib/providers/boat_provider.dart`
+- Lines: ~230 (under 300 limit ✅)
+- Dependencies: NMEAProvider (Layer 2 peer, listens via ChangeNotifier)
+- Responsibilities:
+  - Consume NMEAProvider position data
+  - Maintain current vessel position state
+  - Track history with LRU eviction (max 1000 points)
+  - ISS-018 position jump filtering (reject speed >50 m/s + accuracy >50 m)
+  - Man Overboard (MOB) marker capability
+
+**API:**
+
+```dart
+class BoatProvider extends ChangeNotifier {
+  BoatPosition? get currentPosition;
+  List<BoatPosition> get trackHistory;
+  int get trackHistoryLength;
+  BoatPosition? get mobPosition;
+  bool get hasMob;
+  bool get isTracking;
+  bool get hasPosition;
+  
+  void updateFromNMEA(NMEAData? data);
+  void markMOB();
+  void clearMOB();
+  void clearTrack();
+  void setTracking({required bool enabled});
+}
+```
+
 ## Provider Initialization Order
 
 In `main.dart`, providers are initialized in dependency order:
 
 ```dart
 void main() async {
-  // 1. Create Layer 0 providers (no dependencies)
+  // 1. Layer 0: Foundation (no dependencies)
   final settingsProvider = SettingsProvider();
-  
-  // 2. Create Layer 1 providers (depend on Layer 0)
+
+  // 2. Layer 1: UI coordination (depends on Layer 0)
   final themeProvider = ThemeProvider();
   final cacheProvider = CacheProvider();
-  
-  // 3. Create Layer 2 providers (depend on Layers 0+1, services)
-  final mapProvider = MapProvider(...);
-  final nmeaProvider = NMEAProvider(...);
+
+  // 3. Layer 2: Domain / feature providers
+  final mapProvider = MapProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
+  final nmeaProvider = NMEAProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
   final routeProvider = RouteProvider();
   final weatherProvider = WeatherProvider(
     settingsProvider: settingsProvider,
     cacheProvider: cacheProvider,
   );
+  final boatProvider = BoatProvider(
+    nmeaProvider: nmeaProvider,
+    mapProvider: mapProvider,
+    routeProvider: routeProvider,
+  );
+  final timelineProvider = TimelineProvider(
+    weatherProvider: weatherProvider,
+  );
   
   // 4. Initialize all providers
-  await Future.wait([...]);
+  await Future.wait([
+    settingsProvider.init(),
+    themeProvider.init(),
+    cacheProvider.init(),
+    mapProvider.init(),
+  ]);
   
   // 5. Setup app with all providers
   runApp(MarineNavigationApp(...));
 }
-```text
+```
 
-## Constraint Compliance
+## Provider Wiring in Widget Tree
 
-✅ **CON-004**: Acyclic provider dependencies
+```dart
+MultiProvider(
+  providers: [
+    // Layer 0: No dependencies
+    ChangeNotifierProvider<SettingsProvider>.value(
+      value: settingsProvider,
+    ),
+
+    // Layer 1: Can depend on Layer 0
+    ChangeNotifierProvider<ThemeProvider>.value(
+      value: themeProvider,
+    ),
+    ChangeNotifierProvider<CacheProvider>.value(
+      value: cacheProvider,
+    ),
+
+    // Layer 2: Feature providers
+    ChangeNotifierProvider<MapProvider>.value(
+      value: mapProvider,
+    ),
+    ChangeNotifierProvider<NMEAProvider>.value(
+      value: nmeaProvider,
+    ),
+    ChangeNotifierProvider<RouteProvider>.value(
+      value: routeProvider,
+    ),
+    ChangeNotifierProvider<BoatProvider>.value(
+      value: boatProvider,
+    ),
+  ],
+  child: ...,
+)
+```
+
+## Architecture Rules Compliance
+
+✅ **CON-004**: Provider hierarchy is documented and acyclic
+
+- Maximum 3 layers
+- Dependencies only flow downward
+- No circular references
+- Clear documentation
+
 ✅ **CON-001**: All providers under 300 lines
+
+- SettingsProvider: ~130 lines
+- ThemeProvider: ~115 lines
+- CacheProvider: ~120 lines
+- MapProvider: ~100 lines
+- NMEAProvider: ~231 lines
+- RouteProvider: ~175 lines
+- BoatProvider: ~230 lines
+
 ✅ **CON-002**: Single Source of Truth
+
+- Each provider manages distinct state
+- No duplicate state across providers
+- Clear ownership of data
+
 ✅ **CON-006**: Proper disposal
 
-## Phase 1 Test Coverage Summary
+- All providers implement dispose()
+- Resources cleaned up properly
+- BoatProvider removes NMEAProvider listener on dispose
 
-- **SettingsProvider**: 18 tests ✅
-- **ThemeProvider**: 15 tests ✅
-- **CacheProvider**: 12 tests ✅
-- **MapProvider**: 20 tests ✅
-- **NMEAProvider**: 27 tests ✅
-- **RouteProvider**: 30 tests ✅ NEW
+## Testing Summary
 
-**Total:** 142/142 tests passing ✅
+| Provider | Tests | Coverage |
+| ---------- | ------- | ---------- |
+| SettingsProvider | 18 | ✅ |
+| ThemeProvider | 15 | ✅ |
+| CacheProvider | 12 | ✅ |
+| MapProvider | 20 | ✅ |
+| NMEAProvider | 14 | ✅ |
+| RouteProvider | 30 | ✅ |
+| BoatProvider | 25 | ✅ |
+| BoatPosition (model) | 14 | ✅ |
+| **Total** | **148+** | **185 including widget/integration** |
+
+Key test areas per provider:
+
+1. **SettingsProvider** — Default values, persistence, validation, reset
+2. **ThemeProvider** — Mode switching, persistence, red light mode, system theme
+3. **CacheProvider** — Statistics tracking, clearing, invalidation
+4. **MapProvider** — Viewport state, errors, projection coordination
+5. **NMEAProvider** — Connection lifecycle, data parsing, reconnection, errors
+6. **RouteProvider** — Route activation, waypoint navigation, metrics, progress
+7. **BoatProvider** — NMEA consumption, ISS-018 filtering, track history LRU, MOB, dispose
+
+## Future Extensions
+
+When adding new providers in Layer 2:
+
+1. **Determine layer** based on dependencies
+2. **Document** in this file
+3. **Verify acyclic** - no circular dependencies
+4. **Keep under 300 lines** (CON-001)
+5. **Add to main.dart** in correct order
+6. **Write tests** with 80%+ coverage
 
 ---
 
-**Created:** 2026-02-01  
-**Last Updated:** 2026-02-03  
-**Status:** Phase 1 - Core Navigation (50% complete) - RouteProvider added ✅
+**Created:** 2026-02-01
+**Last Updated:** 2026-02-09
+**Status:** Phase 2 — Boat Position Tracking ✅

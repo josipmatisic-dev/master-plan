@@ -194,8 +194,7 @@ class WindTextureGenerator {
   }
 
   /// Generates GeoJSON from wave data points for MapLibre heatmap layer.
-  static WaveTextureData? generateWaveGeoJson(
-      List<WaveDataPoint> wavePoints) {
+  static WaveTextureData? generateWaveGeoJson(List<WaveDataPoint> wavePoints) {
     if (wavePoints.isEmpty) return null;
 
     var maxHeight = 0.0;

@@ -250,8 +250,7 @@ class WeatherProvider extends ChangeNotifier {
         west: west,
         east: east,
       );
-      _waveTexture =
-          WindTextureGenerator.generateWaveGeoJson(wavePoints);
+      _waveTexture = WindTextureGenerator.generateWaveGeoJson(wavePoints);
 
       if (_windTexture != null || _waveTexture != null) {
         debugPrint(
