@@ -8,7 +8,9 @@ import '../../theme/dimensions.dart';
 import '../../theme/text_styles.dart';
 import '../glass/glass_card.dart';
 
+/// Overlay widget for managing anchor alarm state.
 class AnchorControlOverlay extends StatelessWidget {
+  /// Creates an anchor control overlay.
   const AnchorControlOverlay({super.key});
 
   @override
