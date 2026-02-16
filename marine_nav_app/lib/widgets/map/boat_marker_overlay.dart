@@ -7,7 +7,7 @@ library;
 
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Viewport;
 
 import '../../models/boat_position.dart';
 import '../../models/lat_lng.dart';

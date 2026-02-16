@@ -7,7 +7,7 @@ library;
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Viewport;
 import 'package:flutter/scheduler.dart';
 
 import '../../models/viewport.dart';

@@ -7,7 +7,7 @@ library;
 
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Viewport;
 
 import '../../models/ais_target.dart';
 import '../../models/lat_lng.dart';
@@ -131,7 +131,8 @@ class _AisTargetPainter extends CustomPainter {
 
       // Draw heading/COG vector line
       if (target.sog != null && target.sog! > 0.5) {
-        _drawHeadingVector(canvas, screen, symbolSize, angle, target.sog!, colors);
+        _drawHeadingVector(
+            canvas, screen, symbolSize, angle, target.sog!, colors);
       }
 
       // Draw name label at higher zoom

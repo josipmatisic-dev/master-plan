@@ -3,7 +3,7 @@
 /// https://github.com/cambecc/earth
 library;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Viewport;
 
 import '../../../models/lat_lng.dart';
 import '../../../models/viewport.dart';
@@ -120,8 +120,10 @@ class WindPainter extends CustomPainter {
       // Use seafoam green base but vary intensity more smoothly
       if (speedKnots < 5) return Color.fromRGBO(255, 255, 255, 0.4 * alpha);
       if (speedKnots < 10) return Color.fromRGBO(0, 201, 167, 0.6 * alpha);
-      if (speedKnots < 20) return Color.fromRGBO(0, 229, 255, 0.8 * alpha); // Blue for mid
-      if (speedKnots < 30) return Color.fromRGBO(255, 154, 61, 0.9 * alpha); // Orange
+      if (speedKnots < 20)
+        return Color.fromRGBO(0, 229, 255, 0.8 * alpha); // Blue for mid
+      if (speedKnots < 30)
+        return Color.fromRGBO(255, 154, 61, 0.9 * alpha); // Orange
       return Color.fromRGBO(255, 82, 82, 1.0 * alpha); // Red
     }
     return Colors.white.withValues(alpha: alpha); // Fallback
