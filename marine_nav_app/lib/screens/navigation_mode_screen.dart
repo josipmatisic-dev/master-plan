@@ -18,6 +18,7 @@ import '../widgets/effects/particle_background.dart';
 import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/map/weather_layer_stack.dart';
+import '../widgets/navigation/anchor_control_overlay.dart';
 import '../widgets/navigation/collision_alert_overlay.dart';
 import '../widgets/navigation/course_deviation_indicator.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
@@ -32,6 +33,8 @@ class NavigationModeScreen extends StatefulWidget {
 }
 
 class _NavigationModeScreenState extends State<NavigationModeScreen> {
+  bool _showAnchorControls = false;
+
   @override
   Widget build(BuildContext context) {
     final isHolographic = context.watch<ThemeProvider>().isHolographic;
@@ -61,6 +64,13 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
                 right: 0,
                 child: CollisionAlertOverlay(),
               ),
+              if (_showAnchorControls)
+                const Positioned(
+                  top: 250,
+                  left: 16,
+                  right: 16,
+                  child: AnchorControlOverlay(),
+                ),
               _buildDataOrbsRow(context),
               _buildSidebar(context),
               _buildRouteInfoCard(context, isHolographic),
@@ -286,7 +296,8 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
                     () => _snack(context, 'Route creation coming soon')),
                 _btn('Mark', cs, () => _markPosition(context)),
                 _btn('Track', cs, () => _snack(context, 'Tracking toggled')),
-                _btn('Alerts', cs, () => _snack(context, 'No active alerts')),
+                _btn('Anchor', cs,
+                    () => setState(() => _showAnchorControls = !_showAnchorControls)),
               ],
             ),
           ),

@@ -9,9 +9,11 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/ais_provider.dart';
 import '../../providers/map_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/weather_provider.dart';
+import 'ais_target_overlay.dart';
 import 'fog_overlay.dart';
 import 'lightning_overlay.dart';
 import 'maplibre_map_widget.dart';
@@ -41,6 +43,7 @@ class WeatherLayerStack extends StatelessWidget {
     final isHolographic = context.watch<ThemeProvider>().isHolographic;
     final weather = context.watch<WeatherProvider>();
     final mapProvider = context.watch<MapProvider>();
+    final aisProvider = context.watch<AisProvider>();
 
     final windPoints = weather.data.windPoints;
     final wavePoints = weather.data.wavePoints;
@@ -114,6 +117,19 @@ class WeatherLayerStack extends StatelessWidget {
                 windPoints: windPoints,
                 isHolographic: isHolographic,
                 bounds: geoBounds,
+              ),
+            ),
+          ),
+
+        // Layer 3.5: AIS vessel targets — above wind, below atmosphere
+        if (geoBounds != null && aisProvider.targets.isNotEmpty)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: AisTargetOverlay(
+                targets: aisProvider.targets,
+                bounds: geoBounds,
+                zoom: vp.zoom,
+                isHolographic: isHolographic,
               ),
             ),
           ),
