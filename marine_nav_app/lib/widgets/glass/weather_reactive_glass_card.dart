@@ -16,6 +16,7 @@ import 'package:flutter/material.dart';
 import '../../theme/colors.dart';
 import '../../theme/dimensions.dart';
 import '../../theme/holographic_colors.dart';
+import '../effects/scan_line_effect.dart';
 
 /// Severity level derived from weather conditions.
 enum WeatherSeverity {
@@ -178,6 +179,14 @@ class _WeatherReactiveGlassCardState extends State<WeatherReactiveGlassCard>
     final glowIntensity =
         animated ? 0.5 + 0.5 * math.sin(_controller.value * math.pi * 2) : 1.0;
 
+    // Holographic storm: border pulses between magenta and electric blue
+    final effectiveBorder =
+        (widget.isHolographic && severity == WeatherSeverity.storm && animated)
+            ? Color.lerp(HolographicColors.neonMagenta,
+                    HolographicColors.electricBlue, glowIntensity)!
+                .withValues(alpha: 0.8)
+            : borderColor;
+
     return RepaintBoundary(
       child: Container(
         decoration: BoxDecoration(
@@ -187,7 +196,7 @@ class _WeatherReactiveGlassCardState extends State<WeatherReactiveGlassCard>
                   .withValues(alpha: OceanDimensions.glassOpacity),
           borderRadius: BorderRadius.circular(radius),
           border: Border.all(
-            color: borderColor,
+            color: effectiveBorder,
             width: severity.index >= WeatherSeverity.moderate.index ? 1.5 : 1.0,
           ),
           boxShadow: [
@@ -202,6 +211,16 @@ class _WeatherReactiveGlassCardState extends State<WeatherReactiveGlassCard>
                 color: glowColor.withValues(alpha: 0.08 * glowIntensity),
                 blurRadius: 24,
                 spreadRadius: 4,
+              ),
+            // Holographic storm: intense outer neon glow
+            if (widget.isHolographic &&
+                severity == WeatherSeverity.storm &&
+                animated)
+              BoxShadow(
+                color: HolographicColors.neonMagenta
+                    .withValues(alpha: 0.12 * glowIntensity),
+                blurRadius: 40,
+                spreadRadius: 8,
               ),
             BoxShadow(
               color: OceanColors.glassShadow,
@@ -247,6 +266,20 @@ class _WeatherReactiveGlassCardState extends State<WeatherReactiveGlassCard>
                                   alpha: _fogOpacity(severity) * 0.2),
                             ],
                           ),
+                        ),
+                      ),
+                    ),
+                  ),
+                // Holographic scan line interference during storms
+                if (widget.isHolographic &&
+                    severity.index >= WeatherSeverity.heavy.index)
+                  Positioned.fill(
+                    child: IgnorePointer(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(radius),
+                        child: ScanLineEffect(
+                          intensity:
+                              severity == WeatherSeverity.storm ? 0.10 : 0.06,
                         ),
                       ),
                     ),
