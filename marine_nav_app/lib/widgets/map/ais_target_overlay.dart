@@ -7,10 +7,13 @@ library;
 
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Viewport;
 
 import '../../models/ais_target.dart';
+import '../../models/lat_lng.dart';
+import '../../models/viewport.dart';
 import '../../services/ais_collision.dart';
+import '../../services/projection_service.dart';
 
 /// Threat level derived from CPA/TCPA for visual styling.
 enum _ThreatLevel { safe, warning, danger }
@@ -18,16 +21,14 @@ enum _ThreatLevel { safe, warning, danger }
 /// Renders AIS vessel targets as map overlay symbols.
 ///
 /// Each target is drawn as a directional icon colored by collision
-/// threat level, with optional name labels at zoom ≥ 10.
+/// threat level. Uses [ProjectionService] for geo-anchored Mercator
+/// projection so targets track correctly during pan/zoom.
 class AisTargetOverlay extends StatelessWidget {
   /// AIS targets to render (from AisProvider).
   final Map<int, AisTarget> targets;
 
-  /// Geographic bounds of the current map viewport.
-  final ({double south, double north, double west, double east}) bounds;
-
-  /// Current map zoom level (for label visibility).
-  final double zoom;
+  /// Full map viewport for Mercator projection.
+  final Viewport viewport;
 
   /// Whether the holographic theme is active.
   final bool isHolographic;
@@ -36,8 +37,7 @@ class AisTargetOverlay extends StatelessWidget {
   const AisTargetOverlay({
     super.key,
     required this.targets,
-    required this.bounds,
-    required this.zoom,
+    required this.viewport,
     this.isHolographic = false,
   });
 
@@ -49,8 +49,7 @@ class AisTargetOverlay extends StatelessWidget {
       child: CustomPaint(
         painter: _AisTargetPainter(
           targets: targets,
-          bounds: bounds,
-          zoom: zoom,
+          viewport: viewport,
           isHolographic: isHolographic,
         ),
         size: Size.infinite,
@@ -62,8 +61,7 @@ class AisTargetOverlay extends StatelessWidget {
 /// CustomPainter that draws AIS vessel symbols on the map.
 class _AisTargetPainter extends CustomPainter {
   final Map<int, AisTarget> targets;
-  final ({double south, double north, double west, double east}) bounds;
-  final double zoom;
+  final Viewport viewport;
   final bool isHolographic;
 
   // Reusable paints
@@ -82,47 +80,49 @@ class _AisTargetPainter extends CustomPainter {
 
   _AisTargetPainter({
     required this.targets,
-    required this.bounds,
-    required this.zoom,
+    required this.viewport,
     required this.isHolographic,
   });
 
+  double get zoom => viewport.zoom;
+
   @override
   void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
+    if (size.isEmpty || viewport.size.isEmpty) return;
 
-    final latRange = bounds.north - bounds.south;
-    final lngRange = bounds.east - bounds.west;
-    if (latRange <= 0 || lngRange <= 0) return;
-
+    final bounds = viewport.bounds;
     final showLabels = zoom >= 10;
     final symbolSize = _symbolSizeForZoom(zoom);
 
     for (final target in targets.values) {
       // Cull targets outside viewport (with padding)
-      if (!_isInBounds(target.position.latitude, target.position.longitude)) {
+      if (!_isInBounds(
+          target.position.latitude, target.position.longitude, bounds)) {
         continue;
       }
 
-      // Geo-to-screen projection (same as WindParticleOverlay)
-      final sx =
-          (target.position.longitude - bounds.west) / lngRange * size.width;
-      final sy = (1.0 - (target.position.latitude - bounds.south) / latRange) *
-          size.height;
+      // Geo-to-screen projection via ProjectionService (Mercator)
+      final screen = ProjectionService.latLngToScreen(
+        LatLng(
+          latitude: target.position.latitude,
+          longitude: target.position.longitude,
+        ),
+        viewport,
+      );
 
       final threat = _threatLevel(target);
       final colors = _colorsForThreat(threat);
 
       // Draw CPA warning ring for threatened targets
       if (threat != _ThreatLevel.safe) {
-        _drawWarningRing(canvas, Offset(sx, sy), symbolSize, threat, colors);
+        _drawWarningRing(canvas, screen, symbolSize, threat, colors);
       }
 
       // Draw vessel symbol (rotated by COG/heading)
       final angle = _vesselAngle(target);
       _drawVesselSymbol(
         canvas,
-        Offset(sx, sy),
+        screen,
         symbolSize,
         angle,
         target.category,
@@ -132,12 +132,12 @@ class _AisTargetPainter extends CustomPainter {
       // Draw heading/COG vector line
       if (target.sog != null && target.sog! > 0.5) {
         _drawHeadingVector(
-            canvas, Offset(sx, sy), symbolSize, angle, target.sog!, colors);
+            canvas, screen, symbolSize, angle, target.sog!, colors);
       }
 
       // Draw name label at higher zoom
       if (showLabels) {
-        _drawLabel(canvas, Offset(sx, sy), symbolSize, target, colors);
+        _drawLabel(canvas, screen, symbolSize, target, colors);
       }
     }
   }
@@ -152,7 +152,11 @@ class _AisTargetPainter extends CustomPainter {
   }
 
   /// Check if lat/lng is within viewport bounds (with 10% padding).
-  bool _isInBounds(double lat, double lng) {
+  bool _isInBounds(
+    double lat,
+    double lng,
+    ({double south, double north, double west, double east}) bounds,
+  ) {
     final latPad = (bounds.north - bounds.south) * 0.1;
     final lngPad = (bounds.east - bounds.west) * 0.1;
     return lat >= bounds.south - latPad &&
@@ -391,8 +395,9 @@ class _AisTargetPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _AisTargetPainter oldDelegate) {
     return oldDelegate.targets != targets ||
-        oldDelegate.bounds != bounds ||
-        oldDelegate.zoom != zoom ||
+        oldDelegate.viewport.center != viewport.center ||
+        oldDelegate.viewport.zoom != viewport.zoom ||
+        oldDelegate.viewport.rotation != viewport.rotation ||
         oldDelegate.isHolographic != isHolographic;
   }
 }

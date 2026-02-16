@@ -110,24 +110,23 @@ void main() {
       api.dispose();
     });
 
-    test('fetchWeatherData throws on marine server error', () async {
+    test('fetchWeatherData returns wind-only data on marine server error',
+        () async {
       final api = WeatherApiService(
         client: _dualMockClient(marineStatus: 500),
       );
 
-      expect(
-        () => api.fetchWeatherData(
-          south: 58.0,
-          north: 62.0,
-          west: 8.0,
-          east: 12.0,
-        ),
-        throwsA(isA<WeatherApiException>().having(
-          (e) => e.type,
-          'type',
-          WeatherApiErrorType.server,
-        )),
+      // Marine failure is non-fatal — should still return wind data
+      final data = await api.fetchWeatherData(
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
       );
+
+      expect(data.hasWind, true);
+      expect(data.windPoints.length, 1);
+      expect(data.wavePoints, isEmpty);
 
       api.dispose();
     });

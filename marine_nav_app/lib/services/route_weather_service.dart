@@ -98,49 +98,91 @@ class RouteWeatherService {
     }
 
     if (totalNm < 0.01) {
-      final _p = waypoints.first.position; return [models.LatLng(latitude: _p.latitude, longitude: _p.longitude)];
+      final p = waypoints.first.position;
+      return [models.LatLng(latitude: p.latitude, longitude: p.longitude)];
     }
 
     final idealPoints = max(2, (totalNm / minSpacingNm).ceil() + 1);
     final pointCount = min(idealPoints, maxSamplePoints);
     final spacing = totalNm / (pointCount - 1);
 
+    // Simplified uniform sampling
     final points = <models.LatLng>[];
-    double traveled = 0;
-    var legIdx = 0;
-
-    for (var i = 0; i < pointCount; i++) {
-      final targetDist = i * spacing;
-
-      while (legIdx < legDistances.length - 1 &&
-          traveled + legDistances[legIdx] < targetDist) {
-        traveled += legDistances[legIdx];
-        legIdx++;
+    if (waypoints.isEmpty) return points;
+    
+    // Add first point
+    points.add(models.LatLng(
+      latitude: waypoints.first.position.latitude,
+      longitude: waypoints.first.position.longitude,
+    ));
+    
+    if (pointCount <= 2) {
+      if (pointCount == 2) {
+        points.add(models.LatLng(
+          latitude: waypoints.last.position.latitude,
+          longitude: waypoints.last.position.longitude,
+        ));
       }
-
-      final remaining = targetDist - traveled;
-      final legDist = legDistances[legIdx];
-      final fraction = legDist > 0 ? remaining / legDist : 0.0;
-
-      final from = waypoints[legIdx].position;
-      final to = waypoints[legIdx + 1].position;
-      final lat = from.latitude + (to.latitude - from.latitude) * fraction;
-      final lng = from.longitude + (to.longitude - from.longitude) * fraction;
-
-      points.add(models.LatLng(latitude: lat, longitude: lng));
+      return points;
     }
 
+    // Points in between start and end
+    var totalTraveled = 0.0;
+    var currentLeg = 0;
+    
+    for (var i = 1; i < pointCount - 1; i++) {
+      final targetDist = i * spacing;
+      
+      while (currentLeg < legDistances.length && 
+             totalTraveled + legDistances[currentLeg] < targetDist) {
+        totalTraveled += legDistances[currentLeg];
+        currentLeg++;
+      }
+      
+      if (currentLeg < legDistances.length) {
+        final legDist = legDistances[currentLeg];
+        final legStartDist = totalTraveled;
+        final distOnLeg = targetDist - legStartDist;
+        final fraction = legDist > 0 ? distOnLeg / legDist : 0.0;
+        
+        final start = waypoints[currentLeg].position;
+        final end = waypoints[currentLeg + 1].position;
+        
+        points.add(models.LatLng(
+          latitude: start.latitude + (end.latitude - start.latitude) * fraction,
+          longitude: start.longitude + (end.longitude - start.longitude) * fraction,
+        ));
+      }
+    }
+    
+    // Add last point
+    if (points.length < pointCount) {
+      points.add(models.LatLng(
+        latitude: waypoints.last.position.latitude,
+        longitude: waypoints.last.position.longitude,
+      ));
+    }
+    
     return points;
   }
 
   static _Bbox _computeBbox(List<models.LatLng> points) {
-    double south = 90, north = -90, west = 180, east = -180;
-    for (final p in points) {
-      south = min(south, p.latitude);
-      north = max(north, p.latitude);
-      west = min(west, p.longitude);
-      east = max(east, p.longitude);
+    if (points.isEmpty) {
+      return const _Bbox(south: 0, north: 0, west: 0, east: 0);
     }
+    
+    var south = 90.0;
+    var north = -90.0;
+    var west = 180.0;
+    var east = -180.0;
+    
+    for (final p in points) {
+      if (p.latitude < south) south = p.latitude;
+      if (p.latitude > north) north = p.latitude;
+      if (p.longitude < west) west = p.longitude;
+      if (p.longitude > east) east = p.longitude;
+    }
+    
     const pad = 0.08;
     return _Bbox(
       south: south - pad,

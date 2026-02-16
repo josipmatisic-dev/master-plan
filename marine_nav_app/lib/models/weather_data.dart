@@ -30,8 +30,8 @@ class WeatherData {
   final double gridResolution;
 
   /// Optimized spatial index for O(1) lookup.
-  /// Key: "latIdx_lngIdx"
-  final Map<String, WindDataPoint> _gridIndex = {};
+  /// Key: (latIdx + 1000) << 16 | (lngIdx + 2000)
+  final Map<int, WindDataPoint> _gridIndex = {};
 
   /// Creates a weather data snapshot.
   WeatherData({
@@ -48,9 +48,10 @@ class WeatherData {
   void _buildGridIndex() {
     _gridIndex.clear();
     for (final p in windPoints) {
-      final latKey = (p.position.latitude / gridResolution).floor();
-      final lngKey = (p.position.longitude / gridResolution).floor();
-      _gridIndex['${latKey}_$lngKey'] = p;
+      final latIdx = (p.position.latitude / gridResolution).floor();
+      final lngIdx = (p.position.longitude / gridResolution).floor();
+      final key = ((latIdx + 1000) << 16) | (lngIdx + 2000);
+      _gridIndex[key] = p;
     }
   }
 
@@ -61,9 +62,12 @@ class WeatherData {
     final latIdx = (lat / gridResolution).floor();
     final lngIdx = (lng / gridResolution).floor();
 
+    // Helper to generate key
+    int getKey(int la, int lo) => ((la + 1000) << 16) | (lo + 2000);
+
     // 2. Get the four corner points
     // P00 (South-West)
-    final p00 = _gridIndex['${latIdx}_$lngIdx'];
+    final p00 = _gridIndex[getKey(latIdx, lngIdx)];
 
     // If we have no data at the base point, return zero wind
     if (p00 == null) {
@@ -71,13 +75,13 @@ class WeatherData {
     }
 
     // P10 (South-East) - next longitude
-    final p10 = _gridIndex['${latIdx}_${lngIdx + 1}'] ?? p00;
+    final p10 = _gridIndex[getKey(latIdx, lngIdx + 1)] ?? p00;
 
     // P01 (North-West) - next latitude
-    final p01 = _gridIndex['${latIdx + 1}_$lngIdx'] ?? p00;
+    final p01 = _gridIndex[getKey(latIdx + 1, lngIdx)] ?? p00;
 
     // P11 (North-East) - next lat & lng
-    final p11 = _gridIndex['${latIdx + 1}_${lngIdx + 1}'] ?? p00;
+    final p11 = _gridIndex[getKey(latIdx + 1, lngIdx + 1)] ?? p00;
 
     // 3. Calculate fractional offsets (0.0 to 1.0) within the cell
     // latitude fraction (s)

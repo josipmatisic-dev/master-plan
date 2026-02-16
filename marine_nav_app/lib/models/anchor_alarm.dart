@@ -98,4 +98,34 @@ class AnchorAlarm {
       '${anchorPosition.longitude.toStringAsFixed(4)}, '
       'r=${radiusMeters.toStringAsFixed(0)}m, '
       'd=${currentDistanceMeters.toStringAsFixed(1)}m, $state)';
+
+  /// Serializes to JSON map.
+  Map<String, dynamic> toJson() => {
+        'anchorLat': anchorPosition.latitude,
+        'anchorLng': anchorPosition.longitude,
+        'radiusMeters': radiusMeters,
+        'setAt': setAt.toUtc().toIso8601String(),
+        'currentDistanceMeters': currentDistanceMeters,
+        'state': state.name,
+        'maxDriftMeters': maxDriftMeters,
+      };
+
+  /// Deserializes from JSON map.
+  factory AnchorAlarm.fromJson(Map<String, dynamic> json) {
+    return AnchorAlarm(
+      anchorPosition: LatLng(
+        latitude: (json['anchorLat'] as num).toDouble(),
+        longitude: (json['anchorLng'] as num).toDouble(),
+      ),
+      radiusMeters: (json['radiusMeters'] as num).toDouble(),
+      setAt: DateTime.parse(json['setAt'] as String),
+      currentDistanceMeters:
+          (json['currentDistanceMeters'] as num?)?.toDouble() ?? 0,
+      state: AnchorAlarmState.values.firstWhere(
+        (s) => s.name == json['state'],
+        orElse: () => AnchorAlarmState.safe,
+      ),
+      maxDriftMeters: (json['maxDriftMeters'] as num?)?.toDouble() ?? 0,
+    );
+  }
 }

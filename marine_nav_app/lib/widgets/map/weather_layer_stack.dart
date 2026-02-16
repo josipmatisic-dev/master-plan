@@ -57,17 +57,9 @@ class WeatherLayerStack extends StatelessWidget {
     final hasWind = windPoints.isNotEmpty && weather.isWindVisible;
     final hasWaves = wavePoints.isNotEmpty;
 
-    // Use MapProvider viewport bounds for geographic overlay positioning
+    // Use MapProvider viewport for Mercator-correct overlay projection
     final vp = mapProvider.viewport;
-    final vpBounds = vp.size.isEmpty ? null : vp.bounds;
-    final geoBounds = vpBounds != null
-        ? (
-            south: vpBounds.south,
-            north: vpBounds.north,
-            west: vpBounds.west,
-            east: vpBounds.east,
-          )
-        : null;
+    final vpReady = !vp.size.isEmpty;
 
     // Compute average wind speed/direction for rain angle
     double avgWindAngle = 0;
@@ -138,43 +130,41 @@ class WeatherLayerStack extends StatelessWidget {
             ),
           ),
 
-        // Layer 3: Wind flow particles — geographic, viewport-aware
-        if (hasWind && geoBounds != null && quality.showWind)
+        // Layer 3: Wind flow particles — geo-anchored via ProjectionService
+        if (hasWind && vpReady && quality.showWind)
           Positioned.fill(
             child: IgnorePointer(
               child: WindParticleOverlay(
                 windPoints: windPoints,
                 weatherData: weather.data,
                 isHolographic: isHolographic,
-                bounds: geoBounds,
+                viewport: vp,
                 maxParticles: quality.maxParticles,
               ),
             ),
           ),
 
         // Layer 3.5: AIS vessel targets — above wind, below atmosphere
-        if (geoBounds != null && aisProvider.targets.isNotEmpty)
+        if (vpReady && aisProvider.targets.isNotEmpty)
           Positioned.fill(
             child: IgnorePointer(
               child: AisTargetOverlay(
                 targets: aisProvider.targets,
-                bounds: geoBounds,
-                zoom: vp.zoom,
+                viewport: vp,
                 isHolographic: isHolographic,
               ),
             ),
           ),
 
         // Layer 3.7: Own vessel marker + track trail
-        if (geoBounds != null && boatProvider.currentPosition != null)
+        if (vpReady && boatProvider.currentPosition != null)
           Positioned.fill(
             child: IgnorePointer(
               child: BoatMarkerOverlay(
                 position: boatProvider.currentPosition,
                 trackHistory: boatProvider.trackHistory,
                 showTrack: boatProvider.showTrack,
-                bounds: geoBounds,
-                zoom: vp.zoom,
+                viewport: vp,
                 isHolographic: isHolographic,
               ),
             ),

@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:marine_nav_app/models/route.dart';
 import 'package:marine_nav_app/providers/route_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('RouteProvider', () {
@@ -453,6 +454,77 @@ void main() {
         routeProvider.advanceWaypoint(); // index 1
         routeProvider.advanceWaypoint(); // index 2 (last)
         expect(routeProvider.crossTrackError, 0.0);
+      });
+    });
+
+    group('persistence round-trip', () {
+      setUp(() {
+        SharedPreferences.setMockInitialValues({});
+      });
+
+      test('saveRoute and loadSavedRoutes round-trips correctly', () async {
+        await routeProvider.createRoute(
+          name: 'Persist Test',
+          waypoints: testWaypoints,
+          description: 'A test route',
+        );
+        expect(routeProvider.savedRoutes.length, 1);
+
+        // Create a new provider and load from SharedPreferences
+        final provider2 = RouteProvider();
+        await provider2.loadSavedRoutes();
+        expect(provider2.savedRoutes.length, 1);
+        expect(provider2.savedRoutes.first.name, 'Persist Test');
+        expect(provider2.savedRoutes.first.description, 'A test route');
+        expect(provider2.savedRoutes.first.waypoints.length, 3);
+        expect(provider2.savedRoutes.first.waypoints[0].name, 'Start');
+        expect(provider2.savedRoutes.first.waypoints[1].name, 'Mid');
+        expect(provider2.savedRoutes.first.waypoints[2].name, 'End');
+      });
+
+      test('loadSavedRoutes handles empty preferences', () async {
+        await routeProvider.loadSavedRoutes();
+        expect(routeProvider.savedRoutes, isEmpty);
+      });
+
+      test('deleteRoute persists removal', () async {
+        final route = await routeProvider.createRoute(
+          name: 'To Delete',
+          waypoints: testWaypoints,
+        );
+        expect(routeProvider.savedRoutes.length, 1);
+
+        await routeProvider.deleteRoute(route.id);
+        expect(routeProvider.savedRoutes, isEmpty);
+
+        final provider2 = RouteProvider();
+        await provider2.loadSavedRoutes();
+        expect(provider2.savedRoutes, isEmpty);
+      });
+
+      test('multiple routes persist and load', () async {
+        final now = DateTime.now();
+        await routeProvider.saveRoute(Route(
+          id: 'route_a',
+          name: 'Route A',
+          waypoints: testWaypoints,
+          createdAt: now,
+          updatedAt: now,
+        ));
+        await routeProvider.saveRoute(Route(
+          id: 'route_b',
+          name: 'Route B',
+          waypoints: testWaypoints,
+          createdAt: now,
+          updatedAt: now,
+        ));
+        expect(routeProvider.savedRoutes.length, 2);
+
+        final provider2 = RouteProvider();
+        await provider2.loadSavedRoutes();
+        expect(provider2.savedRoutes.length, 2);
+        final names = provider2.savedRoutes.map((r) => r.name).toSet();
+        expect(names, containsAll(['Route A', 'Route B']));
       });
     });
   });

@@ -73,7 +73,7 @@ void main() {
     });
 
     test('toString contains id and name', () {
-      final station = TideStation(
+      const station = TideStation(
         id: '123',
         name: 'TestPort',
         latitude: 0,
@@ -84,7 +84,7 @@ void main() {
   });
 
   group('TideData', () {
-    final station = TideStation(
+    const station = TideStation(
       id: '9414290',
       name: 'SF',
       latitude: 37.8,
@@ -159,7 +159,7 @@ void main() {
     test('latestObservation returns last entry', () {
       final data = TideData(
         station: station,
-        predictions: [],
+        predictions: const [],
         observations: [
           WaterLevel(time: past, heightMeters: 1.0),
           WaterLevel(time: now, heightMeters: 1.5),
@@ -172,7 +172,7 @@ void main() {
     test('latestObservation returns null when empty', () {
       final data = TideData(
         station: station,
-        predictions: [],
+        predictions: const [],
         fetchedAt: now,
       );
       expect(data.latestObservation, isNull);

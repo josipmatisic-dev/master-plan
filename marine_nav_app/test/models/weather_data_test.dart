@@ -110,7 +110,7 @@ void main() {
     const position = LatLng(latitude: 59.91, longitude: 10.75);
 
     test('constructs with required fields', () {
-      final point = WaveDataPoint(
+      const point = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
@@ -123,7 +123,7 @@ void main() {
     });
 
     test('constructs with optional period', () {
-      final point = WaveDataPoint(
+      const point = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
@@ -134,12 +134,12 @@ void main() {
     });
 
     test('equality compares position, height, and direction', () {
-      final a = WaveDataPoint(
+      const a = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
       );
-      final b = WaveDataPoint(
+      const b = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
@@ -151,12 +151,12 @@ void main() {
     });
 
     test('inequality when height differs', () {
-      final a = WaveDataPoint(
+      const a = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
       );
-      final b = WaveDataPoint(
+      const b = WaveDataPoint(
         position: position,
         heightMeters: 3.5,
         directionDegrees: 180.0,
@@ -165,7 +165,7 @@ void main() {
     });
 
     test('toString returns human-readable format', () {
-      final point = WaveDataPoint(
+      const point = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
@@ -194,7 +194,7 @@ void main() {
             directionDegrees: 270.0,
           ),
         ],
-        wavePoints: [
+        wavePoints: const [
           WaveDataPoint(
             position: position,
             heightMeters: 2.5,
@@ -213,8 +213,8 @@ void main() {
 
     test('isStale returns true for old data', () {
       final staleData = WeatherData(
-        windPoints: [],
-        wavePoints: [],
+        windPoints: const [],
+        wavePoints: const [],
         fetchedAt: DateTime.now().subtract(const Duration(hours: 2)),
       );
       expect(staleData.isStale, true);
@@ -222,8 +222,8 @@ void main() {
 
     test('isStale returns false for fresh data', () {
       final freshData = WeatherData(
-        windPoints: [],
-        wavePoints: [],
+        windPoints: const [],
+        wavePoints: const [],
         fetchedAt: DateTime.now(),
       );
       expect(freshData.isStale, false);
@@ -231,8 +231,8 @@ void main() {
 
     test('age returns duration since fetch', () {
       final data = WeatherData(
-        windPoints: [],
-        wavePoints: [],
+        windPoints: const [],
+        wavePoints: const [],
         fetchedAt: DateTime.now().subtract(const Duration(minutes: 30)),
       );
       expect(data.age.inMinutes, greaterThanOrEqualTo(29));
@@ -241,8 +241,8 @@ void main() {
 
     test('gridResolution defaults to 0.25', () {
       final data = WeatherData(
-        windPoints: [],
-        wavePoints: [],
+        windPoints: const [],
+        wavePoints: const [],
         fetchedAt: DateTime.now(),
       );
       expect(data.gridResolution, 0.25);
@@ -257,7 +257,7 @@ void main() {
             directionDegrees: 270.0,
           ),
         ],
-        wavePoints: [],
+        wavePoints: const [],
         fetchedAt: DateTime.now(),
       );
       final str = data.toString();
@@ -280,7 +280,7 @@ void main() {
             directionDegrees: 270.0,
           ),
         ],
-        wavePoints: [
+        wavePoints: const [
           WaveDataPoint(
             position: position,
             heightMeters: 2.0,
@@ -336,8 +336,8 @@ void main() {
   group('WeatherData frames', () {
     test('hasFrames and frameCount work', () {
       final data = WeatherData(
-        windPoints: [],
-        wavePoints: [],
+        windPoints: const [],
+        wavePoints: const [],
         frames: [
           WeatherFrame(time: DateTime(2026, 2, 9, 0, 0)),
           WeatherFrame(time: DateTime(2026, 2, 9, 1, 0)),

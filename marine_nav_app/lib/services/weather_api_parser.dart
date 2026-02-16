@@ -17,13 +17,13 @@ import 'weather_api.dart';
 /// Open-Meteo returns an array of results when given comma-separated
 /// lat/lng values. Each array element corresponds to one grid point.
 WeatherData parseGridResponse({
-  required String marineBody,
+  String? marineBody,
   required String forecastBody,
   required List<(double, double)> grid,
 }) {
   try {
     final forecastJson = jsonDecode(forecastBody);
-    final marineJson = jsonDecode(marineBody);
+    final marineJson = marineBody != null ? jsonDecode(marineBody) : null;
 
     final windPoints = <WindDataPoint>[];
     final wavePoints = <WaveDataPoint>[];
@@ -31,7 +31,8 @@ WeatherData parseGridResponse({
 
     // Multi-point response: array of result objects
     final forecastList = forecastJson is List ? forecastJson : [forecastJson];
-    final marineList = marineJson is List ? marineJson : [marineJson];
+    final marineList =
+        marineJson != null ? (marineJson is List ? marineJson : [marineJson]) : <dynamic>[];
 
     for (var i = 0; i < grid.length; i++) {
       final pos = LatLng(latitude: grid[i].$1, longitude: grid[i].$2);

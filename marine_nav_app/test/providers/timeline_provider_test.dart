@@ -4,6 +4,7 @@ library;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
+import 'package:marine_nav_app/models/lat_lng.dart';
 import 'package:marine_nav_app/models/weather_data.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
@@ -236,6 +237,106 @@ void main() {
       timelineProvider.dispose();
       // Recreate so tearDown doesn't double-dispose
       timelineProvider = TimelineProvider(weatherProvider: weatherProvider);
+    });
+  });
+
+  group('windowed frames (ISS-013)', () {
+    WeatherProvider createWeatherWithFrames(int frameCount) {
+      final frames = List.generate(
+        frameCount,
+        (i) => WeatherFrame(
+          time: DateTime.utc(2025, 1, 1, i),
+          windPoints: [
+            WindDataPoint(
+              position: const LatLng(latitude: 43.0, longitude: 16.0),
+              speedKnots: 5.0 + i,
+              directionDegrees: 180.0,
+            ),
+          ],
+        ),
+      );
+      final data = WeatherData(
+        windPoints: const [],
+        wavePoints: const [],
+        fetchedAt: DateTime.utc(2025),
+        frames: frames,
+      );
+      final api = WeatherApiService(
+        client: MockClient((_) async => http.Response('{}', 200)),
+      );
+      weatherProvider = WeatherProvider(
+        settingsProvider: settingsProvider,
+        cacheProvider: cacheProvider,
+        api: api,
+      );
+      weatherProvider.updateData(data);
+      return weatherProvider;
+    }
+
+    test('windowedFrames returns max 5 frames', () {
+      createWeatherWithFrames(20);
+      timelineProvider = TimelineProvider(weatherProvider: weatherProvider);
+      expect(timelineProvider.windowedFrames.length, 5);
+    });
+
+    test('windowedFrames centered on current index', () {
+      createWeatherWithFrames(20);
+      timelineProvider = TimelineProvider(weatherProvider: weatherProvider);
+      timelineProvider.setFrameIndex(10);
+      final windowed = timelineProvider.windowedFrames;
+      expect(windowed.length, 5);
+      // Frame at index 10 should be in the window
+      expect(windowed.any((f) => f.time.hour == 10), isTrue);
+    });
+
+    test('windowedIndex tracks position within window', () {
+      createWeatherWithFrames(20);
+      timelineProvider = TimelineProvider(weatherProvider: weatherProvider);
+      timelineProvider.setFrameIndex(10);
+      final idx = timelineProvider.windowedIndex;
+      expect(idx, greaterThanOrEqualTo(0));
+      expect(idx, lessThan(5));
+      // The windowed frame at windowedIndex should match activeFrame
+      expect(
+        timelineProvider.windowedFrames[idx].time,
+        timelineProvider.activeFrame!.time,
+      );
+    });
+
+    test('window shifts when navigating near start', () {
+      createWeatherWithFrames(20);
+      timelineProvider = TimelineProvider(weatherProvider: weatherProvider);
+      timelineProvider.setFrameIndex(0);
+      final windowed = timelineProvider.windowedFrames;
+      expect(windowed.length, 5);
+      expect(windowed.first.time.hour, 0);
+    });
+
+    test('window shifts when navigating near end', () {
+      createWeatherWithFrames(20);
+      timelineProvider = TimelineProvider(weatherProvider: weatherProvider);
+      timelineProvider.setFrameIndex(19);
+      final windowed = timelineProvider.windowedFrames;
+      expect(windowed.length, 5);
+      expect(windowed.last.time.hour, 19);
+    });
+
+    test('windowedFrames returns all when fewer than max', () {
+      createWeatherWithFrames(3);
+      timelineProvider = TimelineProvider(weatherProvider: weatherProvider);
+      expect(timelineProvider.windowedFrames.length, 3);
+    });
+
+    test('windowedFrames returns empty when no frames', () {
+      createWeatherWithFrames(0);
+      timelineProvider = TimelineProvider(weatherProvider: weatherProvider);
+      expect(timelineProvider.windowedFrames, isEmpty);
+    });
+
+    test('maxFramesInMemory constant is 5', () {
+      createWeatherWithFrames(0);
+      timelineProvider = TimelineProvider(weatherProvider: weatherProvider);
+      expect(TimelineProvider.maxFramesInMemory, 5);
     });
   });
 }

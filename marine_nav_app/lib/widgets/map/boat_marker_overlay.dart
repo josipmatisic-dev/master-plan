@@ -7,14 +7,18 @@ library;
 
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Viewport;
 
 import '../../models/boat_position.dart';
+import '../../models/lat_lng.dart';
+import '../../models/viewport.dart';
+import '../../services/projection_service.dart';
 
 /// Renders own vessel marker and track trail on the map.
 ///
 /// The boat icon rotates by heading/COG, with an accuracy ring
 /// and a speed-colored track trail behind it.
+/// Uses [ProjectionService] for geo-anchored Mercator projection.
 class BoatMarkerOverlay extends StatelessWidget {
   /// Current boat position (null = no fix).
   final BoatPosition? position;
@@ -25,11 +29,8 @@ class BoatMarkerOverlay extends StatelessWidget {
   /// Whether to show the track trail.
   final bool showTrack;
 
-  /// Geographic bounds of the current map viewport.
-  final ({double south, double north, double west, double east}) bounds;
-
-  /// Current map zoom level.
-  final double zoom;
+  /// Full map viewport for Mercator projection.
+  final Viewport viewport;
 
   /// Whether the holographic theme is active.
   final bool isHolographic;
@@ -40,8 +41,7 @@ class BoatMarkerOverlay extends StatelessWidget {
     required this.position,
     required this.trackHistory,
     required this.showTrack,
-    required this.bounds,
-    required this.zoom,
+    required this.viewport,
     this.isHolographic = false,
   });
 
@@ -55,8 +55,7 @@ class BoatMarkerOverlay extends StatelessWidget {
           position: position!,
           trackHistory: trackHistory,
           showTrack: showTrack,
-          bounds: bounds,
-          zoom: zoom,
+          viewport: viewport,
           isHolographic: isHolographic,
         ),
         size: Size.infinite,
@@ -70,8 +69,7 @@ class _BoatMarkerPainter extends CustomPainter {
   final BoatPosition position;
   final List<TrackPoint> trackHistory;
   final bool showTrack;
-  final ({double south, double north, double west, double east}) bounds;
-  final double zoom;
+  final Viewport viewport;
   final bool isHolographic;
 
   // Reusable paints
@@ -102,34 +100,30 @@ class _BoatMarkerPainter extends CustomPainter {
     required this.position,
     required this.trackHistory,
     required this.showTrack,
-    required this.bounds,
-    required this.zoom,
+    required this.viewport,
     required this.isHolographic,
   });
 
+  double get zoom => viewport.zoom;
+
   @override
   void paint(Canvas canvas, Size size) {
-    if (size.isEmpty) return;
-
-    final latRange = bounds.north - bounds.south;
-    final lngRange = bounds.east - bounds.west;
-    if (latRange <= 0 || lngRange <= 0) return;
+    if (size.isEmpty || viewport.size.isEmpty) return;
 
     // Draw track trail first (behind boat)
     if (showTrack && trackHistory.length >= 2) {
-      _drawTrackTrail(canvas, size, latRange, lngRange);
+      _drawTrackTrail(canvas, size);
     }
 
-    // Project boat position to screen
-    final sx =
-        (position.position.longitude - bounds.west) / lngRange * size.width;
-    final sy = (1.0 - (position.position.latitude - bounds.south) / latRange) *
-        size.height;
-    final center = Offset(sx, sy);
+    // Project boat position to screen via Mercator
+    final center = ProjectionService.latLngToScreen(
+      position.position,
+      viewport,
+    );
 
     // Draw accuracy circle
     if (position.accuracy > 1) {
-      _drawAccuracyCircle(canvas, center, size, latRange);
+      _drawAccuracyCircle(canvas, center, size);
     }
 
     // Draw glow (holographic theme)
@@ -148,31 +142,33 @@ class _BoatMarkerPainter extends CustomPainter {
   }
 
   /// Draw speed-colored track trail breadcrumbs.
-  void _drawTrackTrail(
-      Canvas canvas, Size size, double latRange, double lngRange) {
+  void _drawTrackTrail(Canvas canvas, Size size) {
     final path = Path();
     var started = false;
+    final b = viewport.bounds;
 
     for (int i = 0; i < trackHistory.length; i++) {
       final pt = trackHistory[i];
 
       // Cull off-screen points
-      if (pt.lat < bounds.south ||
-          pt.lat > bounds.north ||
-          pt.lng < bounds.west ||
-          pt.lng > bounds.east) {
+      if (pt.lat < b.south ||
+          pt.lat > b.north ||
+          pt.lng < b.west ||
+          pt.lng > b.east) {
         started = false;
         continue;
       }
 
-      final sx = (pt.lng - bounds.west) / lngRange * size.width;
-      final sy = (1.0 - (pt.lat - bounds.south) / latRange) * size.height;
+      final screen = ProjectionService.latLngToScreen(
+        LatLng(latitude: pt.lat, longitude: pt.lng),
+        viewport,
+      );
 
       if (!started) {
-        path.moveTo(sx, sy);
+        path.moveTo(screen.dx, screen.dy);
         started = true;
       } else {
-        path.lineTo(sx, sy);
+        path.lineTo(screen.dx, screen.dy);
       }
     }
 
@@ -188,13 +184,19 @@ class _BoatMarkerPainter extends CustomPainter {
   }
 
   /// Draw GPS accuracy circle.
-  void _drawAccuracyCircle(
-      Canvas canvas, Offset center, Size size, double latRange) {
-    // Convert accuracy meters to screen pixels
-    // ~111320 meters per degree of latitude
+  void _drawAccuracyCircle(Canvas canvas, Offset center, Size size) {
+    // Convert accuracy meters to screen pixels using projection
+    // Project a point 'accuracy' meters north of boat position
     const degreesPerMeter = 1.0 / 111320.0;
     final accuracyDegrees = position.accuracy * degreesPerMeter;
-    final radiusPx = (accuracyDegrees / latRange) * size.height;
+    final edgePoint = ProjectionService.latLngToScreen(
+      LatLng(
+        latitude: position.position.latitude + accuracyDegrees,
+        longitude: position.position.longitude,
+      ),
+      viewport,
+    );
+    final radiusPx = (center.dy - edgePoint.dy).abs();
 
     // Only draw if meaningful (> 3px, < half screen)
     if (radiusPx < 3 || radiusPx > size.height * 0.5) return;
@@ -295,8 +297,9 @@ class _BoatMarkerPainter extends CustomPainter {
     return oldDelegate.position != position ||
         oldDelegate.showTrack != showTrack ||
         oldDelegate.trackHistory.length != trackHistory.length ||
-        oldDelegate.bounds != bounds ||
-        oldDelegate.zoom != zoom ||
+        oldDelegate.viewport.center != viewport.center ||
+        oldDelegate.viewport.zoom != viewport.zoom ||
+        oldDelegate.viewport.rotation != viewport.rotation ||
         oldDelegate.isHolographic != isHolographic;
   }
 }

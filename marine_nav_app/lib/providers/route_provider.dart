@@ -259,41 +259,7 @@ class RouteProvider extends ChangeNotifier {
     }
   }
 
-  static Map<String, dynamic> _routeToJson(Route r) => {
-        'id': r.id,
-        'name': r.name,
-        'description': r.description,
-        'isActive': r.isActive,
-        'createdAt': r.createdAt.toIso8601String(),
-        'updatedAt': r.updatedAt.toIso8601String(),
-        'waypoints': r.waypoints
-            .map((w) => {
-                  'id': w.id,
-                  'name': w.name,
-                  'description': w.description,
-                  'lat': w.position.latitude,
-                  'lng': w.position.longitude,
-                  'timestamp': w.timestamp.toIso8601String(),
-                })
-            .toList(),
-      };
+  static Map<String, dynamic> _routeToJson(Route r) => r.toJson();
 
-  static Route _routeFromJson(Map<String, dynamic> j) => Route(
-        id: j['id'] as String,
-        name: j['name'] as String,
-        description: j['description'] as String?,
-        isActive: j['isActive'] as bool? ?? false,
-        createdAt: DateTime.parse(j['createdAt'] as String),
-        updatedAt: DateTime.parse(j['updatedAt'] as String),
-        waypoints: (j['waypoints'] as List<dynamic>).map((w) {
-          final m = w as Map<String, dynamic>;
-          return Waypoint(
-            id: m['id'] as String,
-            name: m['name'] as String,
-            description: m['description'] as String?,
-            position: LatLng(m['lat'] as double, m['lng'] as double),
-            timestamp: DateTime.parse(m['timestamp'] as String),
-          );
-        }).toList(),
-      );
+  static Route _routeFromJson(Map<String, dynamic> j) => Route.fromJson(j);
 }

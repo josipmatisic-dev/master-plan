@@ -102,7 +102,37 @@ class TimelineProvider extends ChangeNotifier {
     return frame?.wavePoints ?? [];
   }
 
-  /// All available frames (no sliding window for now).
+  /// Frames within the sliding window around the current index.
+  ///
+  /// Returns up to [maxFramesInMemory] frames centered on [_frameIndex],
+  /// enabling pre-rendering of adjacent frames while limiting memory.
+  List<WeatherFrame> get windowedFrames {
+    final all = _allFrames;
+    if (all.isEmpty) return const [];
+    const halfWindow = maxFramesInMemory ~/ 2;
+    var start = (_frameIndex - halfWindow).clamp(0, all.length);
+    final end = (start + maxFramesInMemory).clamp(0, all.length);
+    // Shift start back if we're near the end
+    if (end - start < maxFramesInMemory) {
+      start = (end - maxFramesInMemory).clamp(0, all.length);
+    }
+    return all.sublist(start, end);
+  }
+
+  /// Index of the active frame within [windowedFrames].
+  int get windowedIndex {
+    final all = _allFrames;
+    if (all.isEmpty) return 0;
+    const halfWindow = maxFramesInMemory ~/ 2;
+    var start = (_frameIndex - halfWindow).clamp(0, all.length);
+    final end = (start + maxFramesInMemory).clamp(0, all.length);
+    if (end - start < maxFramesInMemory) {
+      start = (end - maxFramesInMemory).clamp(0, all.length);
+    }
+    return _frameIndex - start;
+  }
+
+  /// All available frames.
   List<WeatherFrame> get _allFrames => _weather.data.frames;
 
   // ============ Frame Navigation ============

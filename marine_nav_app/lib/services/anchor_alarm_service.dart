@@ -2,10 +2,14 @@
 ///
 /// Uses [GeoUtils] haversine distance to detect drift beyond the anchor
 /// radius. Emits alarm state changes via a stream.
+/// Persists anchor state to SharedPreferences for app restart recovery.
 library;
+
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/anchor_alarm.dart';
 import '../models/boat_position.dart';
@@ -67,6 +71,7 @@ class AnchorAlarmService extends ChangeNotifier {
       'radius=${clampedRadius.toStringAsFixed(0)}m',
     );
     notifyListeners();
+    _persist();
   }
 
   /// Set anchor at current boat position.
@@ -86,7 +91,26 @@ class AnchorAlarmService extends ChangeNotifier {
     debugPrint('AnchorAlarm: 🔓 Cleared');
     _alarm = null;
     notifyListeners();
+    _persist();
   }
+
+  /// Loads persisted anchor alarm state from SharedPreferences.
+  Future<void> init() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final json = prefs.getString(_prefsKey);
+      if (json == null) return;
+      _alarm = AnchorAlarm.fromJson(
+        jsonDecode(json) as Map<String, dynamic>,
+      );
+      debugPrint('AnchorAlarm: 📦 Restored from storage');
+      notifyListeners();
+    } catch (e) {
+      debugPrint('AnchorAlarm: Failed to load persisted state - $e');
+    }
+  }
+
+  static const String _prefsKey = 'anchor_alarm';
 
   /// Update the geofence radius while anchor is active.
   void updateRadius(double radiusMeters) {
@@ -155,5 +179,18 @@ class AnchorAlarmService extends ChangeNotifier {
 
   static latlong2.LatLng _toLatLng2(LatLng pos) {
     return latlong2.LatLng(pos.latitude, pos.longitude);
+  }
+
+  Future<void> _persist() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (_alarm == null) {
+        await prefs.remove(_prefsKey);
+      } else {
+        await prefs.setString(_prefsKey, jsonEncode(_alarm!.toJson()));
+      }
+    } catch (e) {
+      debugPrint('AnchorAlarm: Failed to persist state - $e');
+    }
   }
 }

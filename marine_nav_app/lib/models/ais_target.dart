@@ -198,6 +198,49 @@ class AisTarget {
     this.tcpa,
   });
 
+  /// Creates a copy of this target with the given fields replaced.
+  AisTarget copyWith({
+    int? mmsi,
+    LatLng? position,
+    double? sog,
+    double? cog,
+    int? heading,
+    AisNavStatus? navStatus,
+    double? rateOfTurn,
+    String? name,
+    String? callSign,
+    int? imo,
+    int? shipType,
+    List<int>? dimensions,
+    String? destination,
+    double? draught,
+    DateTime? eta,
+    DateTime? lastUpdate,
+    double? cpa,
+    double? tcpa,
+  }) {
+    return AisTarget(
+      mmsi: mmsi ?? this.mmsi,
+      position: position ?? this.position,
+      lastUpdate: lastUpdate ?? this.lastUpdate,
+      sog: sog ?? this.sog,
+      cog: cog ?? this.cog,
+      heading: heading ?? this.heading,
+      navStatus: navStatus ?? this.navStatus,
+      rateOfTurn: rateOfTurn ?? this.rateOfTurn,
+      name: name ?? this.name,
+      callSign: callSign ?? this.callSign,
+      imo: imo ?? this.imo,
+      shipType: shipType ?? this.shipType,
+      dimensions: dimensions ?? this.dimensions,
+      destination: destination ?? this.destination,
+      draught: draught ?? this.draught,
+      eta: eta ?? this.eta,
+      cpa: cpa ?? this.cpa,
+      tcpa: tcpa ?? this.tcpa,
+    );
+  }
+
   /// Merges new data into this target, keeping existing values for nulls.
   AisTarget merge(AisTarget update) {
     return AisTarget(

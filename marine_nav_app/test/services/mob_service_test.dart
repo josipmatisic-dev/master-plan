@@ -179,5 +179,62 @@ void main() {
 
       expect(notifications, 3);
     });
+
+    test('recover with unknown ID does nothing', () {
+      final pos = BoatPosition(
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
+        timestamp: DateTime.now(),
+      );
+      service.markMob(pos);
+      service.recover('nonexistent-id');
+      expect(service.markers.first.state, MobState.active);
+    });
+
+    test('cancel with unknown ID does nothing', () {
+      final pos = BoatPosition(
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
+        timestamp: DateTime.now(),
+      );
+      service.markMob(pos);
+      service.cancel('nonexistent-id');
+      expect(service.markers.first.state, MobState.active);
+    });
+
+    test('markers list is unmodifiable', () {
+      expect(
+        () => service.markers.add(MobMarker(
+          id: 'x',
+          position: const LatLng(latitude: 0, longitude: 0),
+          timestamp: DateTime.now(),
+        )),
+        throwsA(isA<UnsupportedError>()),
+      );
+    });
+
+    test('latestActiveMob returns most recently added active', () {
+      final pos1 = BoatPosition(
+        position: const LatLng(latitude: 43.0, longitude: 16.0),
+        timestamp: DateTime.now(),
+      );
+      final pos2 = BoatPosition(
+        position: const LatLng(latitude: 44.0, longitude: 17.0),
+        timestamp: DateTime.now(),
+      );
+      service.markMob(pos1);
+      final second = service.markMob(pos2);
+      expect(service.latestActiveMob!.id, second.id);
+    });
+
+    test('fromJson defaults unknown state to active', () {
+      final json = {
+        'id': 'mob-1',
+        'lat': 43.5,
+        'lng': 16.4,
+        'timestamp': '2025-01-01T00:00:00.000Z',
+        'state': 'future_state',
+      };
+      final marker = MobMarker.fromJson(json);
+      expect(marker.state, MobState.active);
+    });
   });
 }
