@@ -29,6 +29,8 @@ import 'wind_particle_overlay.dart';
 /// 1. Map (maplibre_gl)
 /// 2. Ocean surface caustics (GLSL) — only when wave data exists
 /// 3. Wind flow particles (CustomPainter) — geographic, viewport-aware
+/// 3.5. AIS vessel targets (CustomPainter) — colored by threat level
+/// 3.7. Own vessel marker + track trail (CustomPainter)
 /// 4. Fog/atmosphere (GLSL)
 /// 5. Rain/snow/hail (GLSL)
 /// 6. Lightning/thunder (CustomPainter + flash)
