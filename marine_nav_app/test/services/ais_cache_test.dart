@@ -15,7 +15,7 @@ void main() {
   AisTarget makeTarget(int mmsi, {bool stale = false}) {
     return AisTarget(
       mmsi: mmsi,
-      position: LatLng(latitude: 43.5, longitude: 16.4),
+      position: const LatLng(latitude: 43.5, longitude: 16.4),
       sog: 5.0,
       cog: 180.0,
       heading: 178,
@@ -48,7 +48,7 @@ void main() {
         callSign: 'D5AB7',
         imo: 9876543,
         shipType: 70,
-        dimensions: [100, 50, 15, 15],
+        dimensions: const [100, 50, 15, 15],
         destination: 'SPLIT',
         draught: 8.5,
         lastUpdate: DateTime.utc(2026, 2, 16, 12, 0, 0),

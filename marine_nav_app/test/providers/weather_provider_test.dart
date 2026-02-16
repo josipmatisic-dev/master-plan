@@ -392,7 +392,7 @@ void main() {
         fetchedAt: DateTime.now(),
         windPoints: [
           WindDataPoint(
-            position: LatLng(latitude: 60.0, longitude: 10.0),
+            position: const LatLng(latitude: 60.0, longitude: 10.0),
             speedKnots: 15.0,
             directionDegrees: 180.0,
           ),
@@ -489,7 +489,7 @@ void main() {
             time: DateTime.now(),
             windPoints: [
               WindDataPoint(
-                position: LatLng(latitude: 60.0, longitude: 10.0),
+                position: const LatLng(latitude: 60.0, longitude: 10.0),
                 speedKnots: 15.0,
                 directionDegrees: 180.0,
               ),

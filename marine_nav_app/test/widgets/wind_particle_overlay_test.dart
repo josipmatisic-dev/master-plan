@@ -23,7 +23,7 @@ void main() {
 
     final weatherData = WeatherData(
       windPoints: windPoints,
-      wavePoints: [],
+      wavePoints: const [],
       fetchedAt: DateTime.now(),
     );
 
@@ -74,7 +74,7 @@ void main() {
 
     final weatherData = WeatherData(
       windPoints: windPoints,
-      wavePoints: [],
+      wavePoints: const [],
       fetchedAt: DateTime.now(),
       gridResolution: 1.0,
     );

@@ -6,7 +6,6 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import 'package:marine_nav_app/models/tide_data.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/providers/tide_provider.dart';

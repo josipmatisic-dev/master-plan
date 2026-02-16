@@ -4,7 +4,7 @@ import 'package:marine_nav_app/models/trip_log.dart';
 void main() {
   group('TripWaypoint', () {
     test('construction and fields', () {
-      final wp = TripWaypoint(
+      const wp = TripWaypoint(
         lat: 43.5,
         lng: 16.4,
         speedKnots: 7.2,
@@ -18,7 +18,7 @@ void main() {
     });
 
     test('JSON round-trip with all fields', () {
-      final original = TripWaypoint(
+      const original = TripWaypoint(
         lat: 43.5,
         lng: 16.4,
         speedKnots: 6.0,
@@ -35,7 +35,7 @@ void main() {
     });
 
     test('JSON round-trip without optional fields', () {
-      final original = TripWaypoint(
+      const original = TripWaypoint(
         lat: 43.5,
         lng: 16.4,
         speedKnots: 0,
@@ -52,19 +52,19 @@ void main() {
     final start = DateTime.utc(2026, 2, 16, 10);
     final end = DateTime.utc(2026, 2, 16, 14);
     final waypoints = [
-      TripWaypoint(
+      const TripWaypoint(
         lat: 43.5,
         lng: 16.4,
         speedKnots: 5,
         timestamp: '2026-02-16T10:00:00.000Z',
       ),
-      TripWaypoint(
+      const TripWaypoint(
         lat: 43.6,
         lng: 16.5,
         speedKnots: 8,
         timestamp: '2026-02-16T11:00:00.000Z',
       ),
-      TripWaypoint(
+      const TripWaypoint(
         lat: 43.7,
         lng: 16.6,
         speedKnots: 6,

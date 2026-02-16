@@ -42,7 +42,7 @@ class WindParticleOverlay extends StatefulWidget {
     required this.windPoints,
     this.isHolographic = false,
     required this.viewport,
-    this.maxParticles = 800,
+    this.maxParticles = 2000,
   });
 
   @override
@@ -59,8 +59,10 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   int _frameCount = 0;
 
   /// Velocity scale: converts knots to degrees/frame at ~60fps.
-  /// Adjusted to match Windy.com visual speed (approx 100x real-time).
-  static const _velocityScale = 0.00001;
+  /// Tuned to match Windy.com visual flow speed. At zoom 10, one degree
+  /// ≈ 600px, so 15 kts × 0.0003 = 0.0045 deg/frame ≈ 2.7 px/frame —
+  /// visible, smooth, streaming motion.
+  static const _velocityScale = 0.0003;
 
   @override
   void initState() {
@@ -108,7 +110,7 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
     final p = GeoParticle(
       lat: b.south + _random.nextDouble() * latRange,
       lng: b.west + _random.nextDouble() * lngRange,
-      maxAge: 60.0 + _random.nextInt(60), // 1-2 seconds at 60fps
+      maxAge: 180.0 + _random.nextInt(180), // 3-6 seconds at 60fps
     );
     // Stagger initial age to prevent all particles spawning at once
     p.age = _random.nextDouble() * p.maxAge * 0.5;
@@ -155,7 +157,7 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
 
       // Update trail
       p.trail.add((lat: p.lat, lng: p.lng));
-      if (p.trail.length > 20) {
+      if (p.trail.length > 60) {
         p.trail.removeAt(0);
       }
 

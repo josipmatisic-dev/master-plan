@@ -7,7 +7,7 @@ void main() {
 
   group('AtmosphericDataPoint', () {
     test('construction with required fields', () {
-      final p = AtmosphericDataPoint(
+      const p = AtmosphericDataPoint(
         position: pos,
         precipitationMmH: 2.5,
         cloudCoverPercent: 60,
@@ -19,7 +19,7 @@ void main() {
     });
 
     test('construction with all optional fields', () {
-      final p = AtmosphericDataPoint(
+      const p = AtmosphericDataPoint(
         position: pos,
         precipitationMmH: 0.0,
         cloudCoverPercent: 10,
@@ -38,7 +38,7 @@ void main() {
 
     group('isRaining', () {
       test('false when precip <= 0.1', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0.1,
           cloudCoverPercent: 50,
@@ -47,7 +47,7 @@ void main() {
       });
 
       test('true when precip > 0.1', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0.2,
           cloudCoverPercent: 50,
@@ -58,7 +58,7 @@ void main() {
 
     group('isFoggy', () {
       test('false when visibility null', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -67,7 +67,7 @@ void main() {
       });
 
       test('false when visibility >= 1000', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -77,7 +77,7 @@ void main() {
       });
 
       test('true when visibility < 1000', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -89,7 +89,7 @@ void main() {
 
     group('isLowVisibility', () {
       test('true when visibility < 5000', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -99,7 +99,7 @@ void main() {
       });
 
       test('false when visibility >= 5000', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -111,7 +111,7 @@ void main() {
 
     group('isOvercast', () {
       test('true when cloud > 80', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 81,
@@ -120,7 +120,7 @@ void main() {
       });
 
       test('false when cloud <= 80', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 80,
@@ -131,7 +131,7 @@ void main() {
 
     group('rainIntensity', () {
       test('returns 0.0 for no rain', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0.05,
           cloudCoverPercent: 50,
@@ -140,7 +140,7 @@ void main() {
       });
 
       test('returns 0.2 for light rain', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0.5,
           cloudCoverPercent: 50,
@@ -149,7 +149,7 @@ void main() {
       });
 
       test('returns 0.5 for moderate rain', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 3.0,
           cloudCoverPercent: 50,
@@ -158,7 +158,7 @@ void main() {
       });
 
       test('returns 0.8 for heavy rain', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 8.0,
           cloudCoverPercent: 50,
@@ -167,7 +167,7 @@ void main() {
       });
 
       test('returns 1.0 for extreme rain', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 15.0,
           cloudCoverPercent: 50,
@@ -178,7 +178,7 @@ void main() {
 
     group('fogDensity', () {
       test('returns 0.0 for null visibility', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -187,7 +187,7 @@ void main() {
       });
 
       test('returns 0.0 for >= 10000m', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -197,7 +197,7 @@ void main() {
       });
 
       test('returns 0.1 for 5000-9999m', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -207,7 +207,7 @@ void main() {
       });
 
       test('returns 0.3 for 2000-4999m', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -217,7 +217,7 @@ void main() {
       });
 
       test('returns 0.5 for 1000-1999m', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -227,7 +227,7 @@ void main() {
       });
 
       test('returns 0.7 for 500-999m', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -237,7 +237,7 @@ void main() {
       });
 
       test('returns 0.9 for < 500m', () {
-        final p = AtmosphericDataPoint(
+        const p = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0,
           cloudCoverPercent: 50,
@@ -249,7 +249,7 @@ void main() {
 
     group('JSON serialization', () {
       test('round-trips with all fields', () {
-        final original = AtmosphericDataPoint(
+        const original = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 3.5,
           cloudCoverPercent: 75,
@@ -272,7 +272,7 @@ void main() {
       });
 
       test('round-trips with only required fields', () {
-        final original = AtmosphericDataPoint(
+        const original = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 0.0,
           cloudCoverPercent: 10,
@@ -286,12 +286,12 @@ void main() {
 
     group('equality', () {
       test('equal when same position and precipitation', () {
-        final a = AtmosphericDataPoint(
+        const a = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 1.0,
           cloudCoverPercent: 50,
         );
-        final b = AtmosphericDataPoint(
+        const b = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 1.0,
           cloudCoverPercent: 90,
@@ -301,13 +301,13 @@ void main() {
       });
 
       test('not equal when different position', () {
-        final a = AtmosphericDataPoint(
+        const a = AtmosphericDataPoint(
           position: pos,
           precipitationMmH: 1.0,
           cloudCoverPercent: 50,
         );
-        final b = AtmosphericDataPoint(
-          position: const LatLng(latitude: 44, longitude: 17),
+        const b = AtmosphericDataPoint(
+          position: LatLng(latitude: 44, longitude: 17),
           precipitationMmH: 1.0,
           cloudCoverPercent: 50,
         );

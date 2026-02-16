@@ -36,13 +36,14 @@ class QualityProvider extends ChangeNotifier {
   int _upgradeCount = 0;
 
   /// Frames of sustained low/high FPS before changing quality.
-  static const _downgradeThreshold = 3;
-  static const _upgradeThreshold = 5;
+  static const _downgradeThreshold = 5;
+  static const _upgradeThreshold = 10;
 
-  /// FPS boundaries.
-  static const _fpsLow = 40.0;
-  static const _fpsMedium = 50.0;
-  static const _fpsHigh = 55.0;
+  /// FPS boundaries with hysteresis gap.
+  /// Downgrade when below _fpsLow, upgrade only when above _fpsUpgrade.
+  /// The gap prevents oscillation.
+  static const _fpsLow = 35.0;
+  static const _fpsUpgrade = 58.0;
 
   /// Creates a quality provider.
   QualityProvider() {
@@ -78,9 +79,9 @@ class QualityProvider extends ChangeNotifier {
   /// Max wind particle count based on quality.
   int get maxParticles {
     return switch (_level) {
-      QualityLevel.high => 800,
-      QualityLevel.medium => 400,
-      QualityLevel.low => 200,
+      QualityLevel.high => 2000,
+      QualityLevel.medium => 1200,
+      QualityLevel.low => 600,
     };
   }
 
@@ -120,21 +121,15 @@ class QualityProvider extends ChangeNotifier {
         _downgrade();
         _downgradeCount = 0;
       }
-    } else if (fps > _fpsHigh) {
+    } else if (fps >= _fpsUpgrade) {
       _downgradeCount = 0;
       _upgradeCount++;
       if (_upgradeCount >= _upgradeThreshold) {
         _upgrade();
         _upgradeCount = 0;
       }
-    } else if (fps < _fpsMedium && _level == QualityLevel.high) {
-      _downgradeCount++;
-      if (_downgradeCount >= _downgradeThreshold) {
-        _downgrade();
-        _downgradeCount = 0;
-      }
     } else {
-      // In acceptable range — reset counters
+      // In hysteresis band — reset both counters, hold current level
       _downgradeCount = 0;
       _upgradeCount = 0;
     }

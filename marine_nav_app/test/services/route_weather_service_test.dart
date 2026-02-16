@@ -106,7 +106,7 @@ void main() {
       test('constructor stores fields', () {
         final corridor = RouteWeatherCorridor(
           weather: WeatherData.empty,
-          samplePoints: [LatLng(latitude: 43.0, longitude: 16.0)],
+          samplePoints: [const LatLng(latitude: 43.0, longitude: 16.0)],
           totalDistanceNm: 42.5,
         );
         expect(corridor.samplePoints, hasLength(1));

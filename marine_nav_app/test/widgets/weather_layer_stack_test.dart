@@ -54,12 +54,12 @@ void main() {
     final weatherData = WeatherData(
       windPoints: [
         WindDataPoint(
-          position: LatLng(latitude: 45.0, longitude: 15.0),
+          position: const LatLng(latitude: 45.0, longitude: 15.0),
           speedKnots: 25.0, // Should trigger wind & storm
           directionDegrees: 90.0,
         )
       ],
-      wavePoints: [
+      wavePoints: const [
         WaveDataPoint(
           position: LatLng(latitude: 45.0, longitude: 15.0),
           heightMeters: 2.0,

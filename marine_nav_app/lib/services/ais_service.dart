@@ -11,6 +11,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../models/ais_target.dart';
 import 'ais_message_parser.dart';
+import 'cache_service.dart';
 
 /// Connection state for the AIS WebSocket.
 enum AisConnectionState {
@@ -73,12 +74,21 @@ class AisService {
   final _targetController = StreamController<AisTarget>.broadcast();
   final _stateController = StreamController<AisConnectionState>.broadcast();
   final _errorController = StreamController<String>.broadcast();
+  
+  final CacheService? _cache; // Optional cache dependency
+
+  // Cache metrics specific to AIS
+  int _cacheHits = 0;
+  int _cacheMisses = 0;
 
   AisConnectionState _state = AisConnectionState.disconnected;
   String? _apiKey;
   List<List<List<double>>>? _boundingBoxes;
   int _reconnectAttempts = 0;
   static const _maxReconnectAttempts = 5;
+
+  /// Creates a new [AisService] with optional cache.
+  AisService({CacheService? cache}) : _cache = cache;
 
   /// Stream of received AIS targets.
   Stream<AisTarget> get targetStream => _targetController.stream;
@@ -88,6 +98,12 @@ class AisService {
 
   /// Stream of error messages.
   Stream<String> get errorStream => _errorController.stream;
+
+  /// Number of successful cache hits for vessel data.
+  int get cacheHits => _cacheHits;
+
+  /// Number of cache misses for vessel data.
+  int get cacheMisses => _cacheMisses;
 
   /// Current connection state.
   AisConnectionState get state => _state;
@@ -109,7 +125,7 @@ class AisService {
     _setState(AisConnectionState.connecting);
     try {
       _channel = WebSocketChannel.connect(Uri.parse(_wsUrl));
-      await _channel!.ready;
+      await _channel?.ready;
 
       _setState(AisConnectionState.connected);
       _reconnectAttempts = 0;
@@ -124,9 +140,9 @@ class AisService {
           'StandardClassBCSPositionReport',
         ],
       });
-      _channel!.sink.add(subscription);
+      _channel?.sink.add(subscription);
 
-      _subscription = _channel!.stream.listen(
+      _subscription = _channel?.stream.listen(
         _onMessage,
         onError: _onError,
         onDone: _onDone,
@@ -160,8 +176,27 @@ class AisService {
       }
 
       final json = jsonDecode(raw) as Map<String, dynamic>;
-      final target = parseAisMessage(json);
+      var target = parseAisMessage(json);
       if (target != null) {
+        // If target has no name but we have it cached (from a previous ShipStaticData),
+        // try to enrich it.
+        if ((target.name == null || target.name!.isEmpty) && _cache != null) {
+          final cachedName = _cache.get('ais_name_${target.mmsi}');
+          if (cachedName != null) {
+            _cacheHits++;
+            // Enrich target with cached name
+            target = target.copyWith(name: cachedName);
+          } else {
+            _cacheMisses++;
+          }
+        }
+
+        // If this message contains static data (name), cache it for future use
+        if (target.name != null && target.name!.isNotEmpty && _cache != null) {
+          _cache.put('ais_name_${target.mmsi}', target.name!,
+              ttl: const Duration(days: 7));
+        }
+
         _targetController.add(target);
       }
     } catch (e) {
