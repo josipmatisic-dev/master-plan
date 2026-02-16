@@ -14,6 +14,7 @@ import 'package:latlong2/latlong.dart' as latlong2;
 
 import '../models/boat_position.dart';
 import '../models/lat_lng.dart';
+import '../services/anchor_alarm_service.dart';
 import '../services/geo_utils.dart';
 import '../services/location_service.dart';
 import 'map_provider.dart';

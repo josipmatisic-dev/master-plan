@@ -2,6 +2,7 @@
 ///
 /// Computes Closest Point of Approach (CPA) and Time to CPA (TCPA)
 /// between own vessel and AIS targets using vector-based relative motion.
+// ignore_for_file: avoid_classes_with_only_static_members
 library;
 
 import 'dart:math' as math;
@@ -10,7 +11,6 @@ import '../models/ais_target.dart';
 import '../models/lat_lng.dart';
 
 /// Calculates CPA/TCPA between own vessel and AIS targets.
-// ignore: avoid_classes_with_only_static_members
 class AisCollisionCalculator {
   /// CPA warning threshold in nautical miles.
   static const double cpaWarningNm = 1.0;
