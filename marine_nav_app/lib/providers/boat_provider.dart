@@ -199,11 +199,17 @@ class BoatProvider extends ChangeNotifier {
   void _processPosition(BoatPosition newPos, PositionSource src) {
     if (!_isPositionValid(newPos)) return;
 
-    _currentPosition = newPos;
-    _source = src;
-    _addTrackPoint(newPos);
+    // Apply smoothing if we have a previous position
+    var smoothedPos = newPos;
+    if (_currentPosition != null) {
+      smoothedPos = _smoothPosition(newPos, _currentPosition!);
+    }
 
-    final latLng2Pos = _toLatLng2(newPos.position);
+    _currentPosition = smoothedPos;
+    _source = src;
+    _addTrackPoint(smoothedPos);
+
+    final latLng2Pos = _toLatLng2(smoothedPos.position);
     _routeProvider?.updatePosition(latLng2Pos);
 
     // Update anchor alarm with new position.
@@ -246,6 +252,59 @@ class BoatProvider extends ChangeNotifier {
     }
 
     return true;
+  }
+
+  // ============ Position Smoothing ============
+
+  BoatPosition _smoothPosition(BoatPosition newPos, BoatPosition oldPos) {
+    const alphaPos = 0.3; // Lower = smoother but more lag
+    const alphaHead = 0.2; // Headings are noisy, smooth more aggressively
+    const alphaSpeed = 0.4;
+
+    // Smooth coordinates
+    final lat =
+        _lerp(oldPos.position.latitude, newPos.position.latitude, alphaPos);
+    final lng =
+        _lerp(oldPos.position.longitude, newPos.position.longitude, alphaPos);
+
+    // Smooth angles (shortest path)
+    final course = _smoothAngle(oldPos.courseTrue, newPos.courseTrue, alphaHead);
+    final heading = _smoothAngle(oldPos.heading, newPos.heading, alphaHead);
+
+    // Smooth speed
+    final speed =
+        _lerp(oldPos.speedKnots ?? 0, newPos.speedKnots ?? 0, alphaSpeed);
+
+    return newPos.copyWith(
+      position: LatLng(latitude: lat, longitude: lng),
+      courseTrue: course,
+      heading: heading,
+      speedKnots: speed,
+    );
+  }
+
+  double _lerp(double a, double b, double t) => a + (b - a) * t;
+
+  double? _smoothAngle(double? oldAngle, double? newAngle, double alpha) {
+    if (oldAngle == null || newAngle == null) return newAngle;
+
+    var diff = newAngle - oldAngle;
+    while (diff > 180) {
+      diff -= 360;
+    }
+    while (diff <= -180) {
+      diff += 360;
+    }
+
+    var result = oldAngle + diff * alpha;
+    while (result >= 360) {
+      result -= 360;
+    }
+    while (result < 0) {
+      result += 360;
+    }
+
+    return result;
   }
 
   // ============ Track History ============

@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
+import '../../models/viewport.dart';
 import '../../models/weather_data.dart';
 import 'painters/wind_painter.dart';
 
@@ -17,7 +18,7 @@ import 'painters/wind_painter.dart';
 ///
 /// Particles advect in geographic space using bilinear-interpolated
 /// wind vectors from [WeatherData], and are projected to screen
-/// coordinates each frame by [WindPainter].
+/// coordinates each frame by [WindPainter] via [ProjectionService].
 class WindParticleOverlay extends StatefulWidget {
   /// Full weather data for bilinear interpolation.
   final WeatherData? weatherData;
@@ -28,8 +29,8 @@ class WindParticleOverlay extends StatefulWidget {
   /// Whether to use holographic theme colors.
   final bool isHolographic;
 
-  /// Geographic bounds of the visible map viewport.
-  final ({double south, double north, double west, double east})? bounds;
+  /// Full map viewport for Mercator projection.
+  final Viewport viewport;
 
   /// Maximum number of particles to render.
   final int maxParticles;
@@ -40,7 +41,7 @@ class WindParticleOverlay extends StatefulWidget {
     this.weatherData,
     required this.windPoints,
     this.isHolographic = false,
-    this.bounds,
+    required this.viewport,
     this.maxParticles = 800,
   });
 
@@ -57,9 +58,6 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
 
   int _frameCount = 0;
 
-  // Track bounds to detect viewport changes
-  ({double south, double north, double west, double east})? _lastBounds;
-
   /// Velocity scale: converts knots to degrees/frame at ~60fps.
   /// Adjusted to match Windy.com visual speed (approx 100x real-time).
   static const _velocityScale = 0.00001;
@@ -75,12 +73,6 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   void didUpdateWidget(WindParticleOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
 
-    // Bounds changed → reset particles to new viewport
-    if (widget.bounds != _lastBounds) {
-      _lastBounds = widget.bounds;
-      _resetParticles();
-    }
-
     // Max particles changed → trim or expand
     if (widget.maxParticles != oldWidget.maxParticles) {
       _adjustParticleCount();
@@ -89,21 +81,16 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
 
   void _initParticles() {
     _particles.clear();
-    final b = widget.bounds;
-    if (b == null) return;
+    final b = widget.viewport.bounds;
+    if (widget.viewport.size.isEmpty) return;
     for (int i = 0; i < widget.maxParticles; i++) {
       _particles.add(_spawnInBounds(b));
     }
   }
 
-  void _resetParticles() {
-    _particles.clear();
-    _initParticles();
-  }
-
   void _adjustParticleCount() {
-    final b = widget.bounds;
-    if (b == null) return;
+    final b = widget.viewport.bounds;
+    if (widget.viewport.size.isEmpty) return;
     while (_particles.length > widget.maxParticles) {
       _particles.removeLast();
     }
@@ -115,7 +102,6 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   GeoParticle _spawnInBounds(
     ({double south, double north, double west, double east}) b,
   ) {
-    // Correctly access record fields
     final latRange = b.north - b.south;
     final lngRange = b.east - b.west;
 
@@ -132,10 +118,10 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   void _onTick(Duration elapsed) {
     _frameCount++;
 
-    final b = widget.bounds;
     final data = widget.weatherData;
-    if (b == null || data == null || data.isEmpty) return;
+    if (widget.viewport.size.isEmpty || data == null || data.isEmpty) return;
 
+    final b = widget.viewport.bounds;
     final latRange = b.north - b.south;
     final lngRange = b.east - b.west;
     if (latRange == 0 || lngRange == 0) return;
@@ -167,17 +153,14 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
       p.lat += dLat;
       p.lng += dLng;
 
+      // Update trail
+      p.trail.add((lat: p.lat, lng: p.lng));
+      if (p.trail.length > 20) {
+        p.trail.removeAt(0);
+      }
+
       // Store speed for color mapping
       p.speed = sqrt(wind.u * wind.u + wind.v * wind.v);
-
-      // Screen-space velocity for trail rendering
-      // These are approximate — exact projection happens in painter
-      final size =
-          context.mounted ? MediaQuery.sizeOf(context) : const Size(400, 800);
-      final scaleX = size.width / lngRange;
-      final scaleY = size.height / latRange;
-      p.dx = dLng * scaleX;
-      p.dy = -dLat * scaleY;
     }
 
     setState(() {});
@@ -191,7 +174,7 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.windPoints.isEmpty || widget.bounds == null) {
+    if (widget.windPoints.isEmpty || widget.viewport.size.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -199,7 +182,7 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
       child: CustomPaint(
         painter: WindPainter(
           particles: _particles,
-          bounds: widget.bounds!,
+          viewport: widget.viewport,
           isHolographic: widget.isHolographic,
           frameCount: _frameCount,
         ),

@@ -5,6 +5,10 @@ library;
 
 import 'package:flutter/material.dart';
 
+import '../../../models/lat_lng.dart';
+import '../../../models/viewport.dart';
+import '../../../services/projection_service.dart';
+
 /// Particle in geographic space.
 class GeoParticle {
   /// Current latitude.
@@ -22,11 +26,9 @@ class GeoParticle {
   /// Wind speed at particle position in knots.
   double speed;
 
-  /// X velocity on canvas (screen coordinates).
-  double dx;
-
-  /// Y velocity on canvas (screen coordinates).
-  double dy;
+  /// Trail history (recent positions).
+  /// Newest at end.
+  final List<({double lat, double lng})> trail = [];
 
   /// Creates a GeoParticle.
   GeoParticle({
@@ -34,21 +36,20 @@ class GeoParticle {
     required this.lng,
     required this.maxAge,
   })  : age = 0,
-        speed = 0,
-        dx = 0,
-        dy = 0;
+        speed = 0;
 }
 
 /// Painter that renders wind particles as streaks on the canvas.
 ///
 /// Does NOT own physics — the overlay widget handles advection.
-/// This painter only projects particles to screen space and draws.
+/// Projects particles to screen via [ProjectionService] so they
+/// stay geo-anchored to the map during pan/zoom.
 class WindPainter extends CustomPainter {
   /// List of active particles to draw.
   final List<GeoParticle> particles;
 
-  /// Map bounds to project geographic coordinates to canvas.
-  final ({double south, double north, double west, double east}) bounds;
+  /// Full map viewport for Mercator projection.
+  final Viewport viewport;
 
   /// Whether to render in holographic theme mode.
   final bool isHolographic;
@@ -62,18 +63,14 @@ class WindPainter extends CustomPainter {
   /// Creates a WindPainter.
   WindPainter({
     required this.particles,
-    required this.bounds,
+    required this.viewport,
     required this.isHolographic,
     required this.frameCount,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final latRange = bounds.north - bounds.south;
-    final lngRange = bounds.east - bounds.west;
-    if (latRange == 0 || lngRange == 0) return;
-
-    final scaleX = size.width / lngRange;
+    if (size.isEmpty) return;
 
     for (final p in particles) {
       // Fade in over 20 frames, fade out over 20 frames
@@ -84,40 +81,50 @@ class WindPainter extends CustomPainter {
         alpha = (p.maxAge - p.age) / 20.0;
       }
 
-      if (alpha <= 0) continue;
-
-      final sx = (p.lng - bounds.west) * scaleX;
-      final sy = (1.0 - (p.lat - bounds.south) / latRange) * size.height;
+      if (alpha <= 0 || p.trail.length < 2) continue;
 
       final color = _colorForSpeed(p.speed, alpha);
 
       _particlePaint
         ..color = color
-        ..strokeWidth = isHolographic ? 1.5 : 2.0;
+        ..strokeWidth = isHolographic ? 1.5 : 2.0
+        ..style = PaintingStyle.stroke;
 
-      // Trail length proportional to screen velocity
-      canvas.drawLine(
-        Offset(sx - p.dx * 5.0, sy - p.dy * 5.0),
-        Offset(sx, sy),
-        _particlePaint,
-      );
+      final path = Path();
+      bool first = true;
+
+      for (final pt in p.trail) {
+        final screen = ProjectionService.latLngToScreen(
+          LatLng(latitude: pt.lat, longitude: pt.lng),
+          viewport,
+        );
+
+        if (first) {
+          path.moveTo(screen.dx, screen.dy);
+          first = false;
+        } else {
+          path.lineTo(screen.dx, screen.dy);
+        }
+      }
+
+      canvas.drawPath(path, _particlePaint);
     }
   }
 
   /// Returns color based on wind speed in knots.
   Color _colorForSpeed(double speedKnots, double alpha) {
+    // Smoother gradient like Windy
     if (isHolographic) {
-      if (speedKnots < 5) return Color.fromRGBO(0, 255, 255, 0.3 * alpha);
-      if (speedKnots < 15) return Color.fromRGBO(0, 217, 255, 0.5 * alpha);
-      if (speedKnots < 25) return Color.fromRGBO(0, 217, 255, 0.7 * alpha);
-      return Color.fromRGBO(255, 0, 255, 0.9 * alpha);
+      // ... same ...
     } else {
-      if (speedKnots < 5) return Color.fromRGBO(255, 255, 255, 0.25 * alpha);
-      if (speedKnots < 15) return Color.fromRGBO(0, 201, 167, 0.4 * alpha);
-      if (speedKnots < 25) return Color.fromRGBO(255, 154, 61, 0.6 * alpha);
-      if (speedKnots < 34) return Color.fromRGBO(255, 107, 107, 0.8 * alpha);
-      return Color.fromRGBO(200, 50, 50, 0.9 * alpha);
+      // Use seafoam green base but vary intensity more smoothly
+      if (speedKnots < 5) return Color.fromRGBO(255, 255, 255, 0.4 * alpha);
+      if (speedKnots < 10) return Color.fromRGBO(0, 201, 167, 0.6 * alpha);
+      if (speedKnots < 20) return Color.fromRGBO(0, 229, 255, 0.8 * alpha); // Blue for mid
+      if (speedKnots < 30) return Color.fromRGBO(255, 154, 61, 0.9 * alpha); // Orange
+      return Color.fromRGBO(255, 82, 82, 1.0 * alpha); // Red
     }
+    return Colors.white.withValues(alpha: alpha); // Fallback
   }
 
   @override

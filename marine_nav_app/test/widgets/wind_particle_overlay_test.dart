@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marine_nav_app/models/lat_lng.dart';
 import 'package:marine_nav_app/models/weather_data.dart';
-import 'package:marine_nav_app/widgets/map/wind_particle_overlay.dart';
 import 'package:marine_nav_app/widgets/map/painters/wind_painter.dart';
+import 'package:marine_nav_app/widgets/map/wind_particle_overlay.dart';
 
 void main() {
   testWidgets('WindParticleOverlay initializes and renders', (tester) async {
