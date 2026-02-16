@@ -4,9 +4,6 @@
 /// radius. Emits alarm state changes via a stream.
 library;
 
-import 'dart:async';
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart' as latlong2;
 

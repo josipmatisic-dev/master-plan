@@ -39,6 +39,7 @@ class BoatProvider extends ChangeNotifier {
   final MapProvider _mapProvider;
   final LocationService _locationService;
   final RouteProvider? _routeProvider;
+  final AnchorAlarmService _anchorAlarm;
 
   BoatPosition? _currentPosition;
   PositionSource _source = PositionSource.none;
@@ -56,10 +57,12 @@ class BoatProvider extends ChangeNotifier {
     required MapProvider mapProvider,
     LocationService? locationService,
     RouteProvider? routeProvider,
+    AnchorAlarmService? anchorAlarmService,
   })  : _nmeaProvider = nmeaProvider,
         _mapProvider = mapProvider,
         _locationService = locationService ?? LocationService(),
-        _routeProvider = routeProvider {
+        _routeProvider = routeProvider,
+        _anchorAlarm = anchorAlarmService ?? AnchorAlarmService() {
     _nmeaProvider.addListener(_onNmeaUpdate);
     _startPhoneGps();
   }
@@ -83,6 +86,9 @@ class BoatProvider extends ChangeNotifier {
 
   /// Whether the track trail is visible.
   bool get showTrack => _showTrack;
+
+  /// The anchor alarm service for geofence monitoring.
+  AnchorAlarmService get anchorAlarm => _anchorAlarm;
 
   /// Toggle map auto-follow.
   set followBoat(bool value) {
@@ -184,6 +190,9 @@ class BoatProvider extends ChangeNotifier {
 
     final latLng2Pos = _toLatLng2(newPos.position);
     _routeProvider?.updatePosition(latLng2Pos);
+
+    // Update anchor alarm with new position.
+    _anchorAlarm.updatePosition(newPos);
 
     if (_followBoat) {
       _mapProvider.setCenter(newPos.position);
