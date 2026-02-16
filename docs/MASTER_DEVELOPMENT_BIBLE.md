@@ -96,7 +96,7 @@ class MapController extends ChangeNotifier {
 4. Impossible to test in isolation
 5. Changes cascaded across entire codebase
 
-**Lesson Learned:** Maximum 300 lines per controller. Use composition over inheritance. Dependencies flow in ONE direction only.
+**Lesson Learned:** Maximum 400 lines per controller. Use composition over inheritance. Dependencies flow in ONE direction only.
 
 ---
 
@@ -379,10 +379,10 @@ ALL coordinate transformations go through ProjectionService. No manual lat/lng t
 
 ### C.5 File Size Limits
 
-- Soft Limit: 300 lines per file
-- Hard Limit: 400 lines per file (relaxed for cohesion)
+- Soft Limit: 400 lines per file
+- Hard Limit: 500 lines per file (refactor immediately if exceeded)
 - Maximum 50 lines per method
-- Refactor if significantly exceeding 400 lines
+- Refactor if significantly exceeding 500 lines
 
 ### C.6 Overlay Rendering Pipeline
 
@@ -770,7 +770,7 @@ ALL animations MUST use curves (easeInOut, decelerate) and complete in 200-400ms
 
 ### G.6 Failure Guards (Directly Addressing Past Issues)
 
-1. **No God Widgets/Controllers** – Any UI class over 300 lines must be split; overlay state lives in providers, not widgets. (Prevents Attempt 1 god object.)
+1. **No God Widgets/Controllers** – Any UI class over 400 lines must be split; overlay state lives in providers, not widgets. (Prevents Attempt 1 god object.)
 2. **Projection Single Source** – All lat/lng ↔ screen math flows through `ProjectionService`/`ViewportProjector` to avoid overlay drift. (Fixes Attempt 2/4 projection mismatch.)
 3. **Provider Discipline** – Providers are created only in `main.dart` per documented layers; no provider creation in widget subtrees. (Fixes Attempt 2 wiring disasters.)
 4. **Viewport Sync Contract** – Map WebView publishes viewport deltas; Flutter overlays consume the same viewport; no duplicate viewport state. (Prevents dual-state divergence.)
