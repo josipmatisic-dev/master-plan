@@ -3,6 +3,7 @@ import 'package:marine_nav_app/models/anchor_alarm.dart';
 import 'package:marine_nav_app/models/boat_position.dart';
 import 'package:marine_nav_app/models/lat_lng.dart';
 import 'package:marine_nav_app/services/anchor_alarm_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   group('AnchorAlarm model', () {
@@ -272,6 +273,62 @@ void main() {
 
       service.clearAnchor();
       expect(count, 2);
+    });
+  });
+
+  group('persistence', () {
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+    });
+
+    test('setAnchor persists and init restores', () async {
+      final service = AnchorAlarmService();
+      service.setAnchor(
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
+        radiusMeters: 75,
+      );
+
+      // Wait for async persist
+      await Future<void>.delayed(Duration.zero);
+
+      // New service should restore alarm
+      final service2 = AnchorAlarmService();
+      await service2.init();
+      expect(service2.isActive, isTrue);
+      expect(service2.alarm!.anchorPosition.latitude, 43.5);
+      expect(service2.alarm!.anchorPosition.longitude, 16.4);
+      expect(service2.alarm!.radiusMeters, 75);
+    });
+
+    test('clearAnchor removes persisted state', () async {
+      final service = AnchorAlarmService();
+      service.setAnchor(
+        position: const LatLng(latitude: 43.5, longitude: 16.4),
+      );
+      await Future<void>.delayed(Duration.zero);
+
+      service.clearAnchor();
+      await Future<void>.delayed(Duration.zero);
+
+      final service2 = AnchorAlarmService();
+      await service2.init();
+      expect(service2.isActive, isFalse);
+    });
+
+    test('init handles empty preferences', () async {
+      final service = AnchorAlarmService();
+      await service.init();
+      expect(service.isActive, isFalse);
+      expect(service.alarm, isNull);
+    });
+
+    test('init handles corrupted data gracefully', () async {
+      SharedPreferences.setMockInitialValues({
+        'anchor_alarm': 'not valid json {{',
+      });
+      final service = AnchorAlarmService();
+      await service.init();
+      expect(service.isActive, isFalse);
     });
   });
 }
