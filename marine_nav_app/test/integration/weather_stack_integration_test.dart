@@ -4,6 +4,7 @@ import 'package:marine_nav_app/models/lat_lng.dart';
 import 'package:marine_nav_app/models/viewport.dart';
 import 'package:marine_nav_app/models/weather_data.dart';
 import 'package:marine_nav_app/providers/ais_provider.dart';
+import 'package:marine_nav_app/providers/boat_provider.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
 import 'package:marine_nav_app/providers/route_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
@@ -25,6 +26,7 @@ import 'weather_stack_integration_test.mocks.dart';
 
 @GenerateMocks([
   AisProvider,
+  BoatProvider,
   MapProvider,
   WeatherProvider,
   RouteProvider,
@@ -34,6 +36,7 @@ import 'weather_stack_integration_test.mocks.dart';
 ])
 void main() {
   late MockAisProvider mockAisProvider;
+  late MockBoatProvider mockBoatProvider;
   late MockMapProvider mockMapProvider;
   late MockWeatherProvider mockWeatherProvider;
   late MockRouteProvider mockRouteProvider;
@@ -43,6 +46,7 @@ void main() {
 
   setUp(() {
     mockAisProvider = MockAisProvider();
+    mockBoatProvider = MockBoatProvider();
     mockMapProvider = MockMapProvider();
     mockWeatherProvider = MockWeatherProvider();
     mockRouteProvider = MockRouteProvider();
@@ -107,6 +111,11 @@ void main() {
     // Stubs for AisProvider
     when(mockAisProvider.targets).thenReturn({});
     when(mockAisProvider.isConnected).thenReturn(false);
+
+    // Stubs for BoatProvider
+    when(mockBoatProvider.currentPosition).thenReturn(null);
+    when(mockBoatProvider.trackHistory).thenReturn([]);
+    when(mockBoatProvider.showTrack).thenReturn(true);
   });
 
   testWidgets(
@@ -116,6 +125,7 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider<AisProvider>.value(value: mockAisProvider),
+          ChangeNotifierProvider<BoatProvider>.value(value: mockBoatProvider),
           ChangeNotifierProvider<MapProvider>.value(value: mockMapProvider),
           ChangeNotifierProvider<WeatherProvider>.value(
               value: mockWeatherProvider),
@@ -164,6 +174,7 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider<AisProvider>.value(value: mockAisProvider),
+          ChangeNotifierProvider<BoatProvider>.value(value: mockBoatProvider),
           ChangeNotifierProvider<MapProvider>.value(value: mockMapProvider),
           ChangeNotifierProvider<WeatherProvider>.value(
               value: mockWeatherProvider),

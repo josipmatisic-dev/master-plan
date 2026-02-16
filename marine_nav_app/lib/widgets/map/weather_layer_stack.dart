@@ -10,10 +10,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../providers/ais_provider.dart';
+import '../../providers/boat_provider.dart';
 import '../../providers/map_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/weather_provider.dart';
 import 'ais_target_overlay.dart';
+import 'boat_marker_overlay.dart';
 import 'fog_overlay.dart';
 import 'lightning_overlay.dart';
 import 'maplibre_map_widget.dart';
@@ -44,6 +46,7 @@ class WeatherLayerStack extends StatelessWidget {
     final weather = context.watch<WeatherProvider>();
     final mapProvider = context.watch<MapProvider>();
     final aisProvider = context.watch<AisProvider>();
+    final boatProvider = context.watch<BoatProvider>();
 
     final windPoints = weather.data.windPoints;
     final wavePoints = weather.data.wavePoints;
@@ -127,6 +130,21 @@ class WeatherLayerStack extends StatelessWidget {
             child: IgnorePointer(
               child: AisTargetOverlay(
                 targets: aisProvider.targets,
+                bounds: geoBounds,
+                zoom: vp.zoom,
+                isHolographic: isHolographic,
+              ),
+            ),
+          ),
+
+        // Layer 3.7: Own vessel marker + track trail
+        if (geoBounds != null && boatProvider.currentPosition != null)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: BoatMarkerOverlay(
+                position: boatProvider.currentPosition,
+                trackHistory: boatProvider.trackHistory,
+                showTrack: boatProvider.showTrack,
                 bounds: geoBounds,
                 zoom: vp.zoom,
                 isHolographic: isHolographic,

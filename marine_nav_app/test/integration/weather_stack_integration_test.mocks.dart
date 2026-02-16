@@ -3,30 +3,33 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i12;
-import 'dart:ui' as _i14;
+import 'dart:async' as _i13;
+import 'dart:ui' as _i15;
 
-import 'package:flutter/foundation.dart' as _i8;
-import 'package:flutter/material.dart' as _i7;
-import 'package:latlong2/latlong.dart' as _i18;
-import 'package:marine_nav_app/models/ais_target.dart' as _i10;
-import 'package:marine_nav_app/models/lat_lng.dart' as _i13;
-import 'package:marine_nav_app/models/nmea_error.dart' as _i21;
-import 'package:marine_nav_app/models/route.dart' as _i6;
-import 'package:marine_nav_app/models/viewport.dart' as _i4;
-import 'package:marine_nav_app/models/weather_data.dart' as _i5;
-import 'package:marine_nav_app/providers/ais_provider.dart' as _i9;
-import 'package:marine_nav_app/providers/cache_provider.dart' as _i3;
-import 'package:marine_nav_app/providers/map_provider.dart' as _i15;
-import 'package:marine_nav_app/providers/route_provider.dart' as _i17;
-import 'package:marine_nav_app/providers/settings_provider.dart' as _i2;
-import 'package:marine_nav_app/providers/theme_provider.dart' as _i22;
-import 'package:marine_nav_app/providers/timeline_provider.dart' as _i19;
-import 'package:marine_nav_app/providers/weather_provider.dart' as _i16;
-import 'package:marine_nav_app/services/ais_service.dart' as _i11;
-import 'package:marine_nav_app/theme/theme_variant.dart' as _i23;
+import 'package:flutter/foundation.dart' as _i9;
+import 'package:flutter/material.dart' as _i8;
+import 'package:latlong2/latlong.dart' as _i21;
+import 'package:marine_nav_app/models/ais_target.dart' as _i11;
+import 'package:marine_nav_app/models/boat_position.dart' as _i17;
+import 'package:marine_nav_app/models/lat_lng.dart' as _i14;
+import 'package:marine_nav_app/models/nmea_error.dart' as _i24;
+import 'package:marine_nav_app/models/route.dart' as _i7;
+import 'package:marine_nav_app/models/viewport.dart' as _i5;
+import 'package:marine_nav_app/models/weather_data.dart' as _i6;
+import 'package:marine_nav_app/providers/ais_provider.dart' as _i10;
+import 'package:marine_nav_app/providers/boat_provider.dart' as _i16;
+import 'package:marine_nav_app/providers/cache_provider.dart' as _i4;
+import 'package:marine_nav_app/providers/map_provider.dart' as _i18;
+import 'package:marine_nav_app/providers/route_provider.dart' as _i20;
+import 'package:marine_nav_app/providers/settings_provider.dart' as _i3;
+import 'package:marine_nav_app/providers/theme_provider.dart' as _i25;
+import 'package:marine_nav_app/providers/timeline_provider.dart' as _i22;
+import 'package:marine_nav_app/providers/weather_provider.dart' as _i19;
+import 'package:marine_nav_app/services/ais_service.dart' as _i12;
+import 'package:marine_nav_app/services/anchor_alarm_service.dart' as _i2;
+import 'package:marine_nav_app/theme/theme_variant.dart' as _i26;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i20;
+import 'package:mockito/src/dummies.dart' as _i23;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -41,9 +44,9 @@ import 'package:mockito/src/dummies.dart' as _i20;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeSettingsProvider_0 extends _i1.SmartFake
-    implements _i2.SettingsProvider {
-  _FakeSettingsProvider_0(
+class _FakeAnchorAlarmService_0 extends _i1.SmartFake
+    implements _i2.AnchorAlarmService {
+  _FakeAnchorAlarmService_0(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -52,8 +55,9 @@ class _FakeSettingsProvider_0 extends _i1.SmartFake
         );
 }
 
-class _FakeCacheProvider_1 extends _i1.SmartFake implements _i3.CacheProvider {
-  _FakeCacheProvider_1(
+class _FakeSettingsProvider_1 extends _i1.SmartFake
+    implements _i3.SettingsProvider {
+  _FakeSettingsProvider_1(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -62,8 +66,8 @@ class _FakeCacheProvider_1 extends _i1.SmartFake implements _i3.CacheProvider {
         );
 }
 
-class _FakeViewport_2 extends _i1.SmartFake implements _i4.Viewport {
-  _FakeViewport_2(
+class _FakeCacheProvider_2 extends _i1.SmartFake implements _i4.CacheProvider {
+  _FakeCacheProvider_2(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -72,8 +76,8 @@ class _FakeViewport_2 extends _i1.SmartFake implements _i4.Viewport {
         );
 }
 
-class _FakeWeatherData_3 extends _i1.SmartFake implements _i5.WeatherData {
-  _FakeWeatherData_3(
+class _FakeViewport_3 extends _i1.SmartFake implements _i5.Viewport {
+  _FakeViewport_3(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -82,8 +86,8 @@ class _FakeWeatherData_3 extends _i1.SmartFake implements _i5.WeatherData {
         );
 }
 
-class _FakeRoute_4 extends _i1.SmartFake implements _i6.Route {
-  _FakeRoute_4(
+class _FakeWeatherData_4 extends _i1.SmartFake implements _i6.WeatherData {
+  _FakeWeatherData_4(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -92,8 +96,18 @@ class _FakeRoute_4 extends _i1.SmartFake implements _i6.Route {
         );
 }
 
-class _FakeThemeData_5 extends _i1.SmartFake implements _i7.ThemeData {
-  _FakeThemeData_5(
+class _FakeRoute_5 extends _i1.SmartFake implements _i7.Route {
+  _FakeRoute_5(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeThemeData_6 extends _i1.SmartFake implements _i8.ThemeData {
+  _FakeThemeData_6(
     Object parent,
     Invocation parentInvocation,
   ) : super(
@@ -102,35 +116,35 @@ class _FakeThemeData_5 extends _i1.SmartFake implements _i7.ThemeData {
         );
 
   @override
-  String toString({_i8.DiagnosticLevel? minLevel = _i8.DiagnosticLevel.info}) =>
+  String toString({_i9.DiagnosticLevel? minLevel = _i9.DiagnosticLevel.info}) =>
       super.toString();
 }
 
 /// A class which mocks [AisProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAisProvider extends _i1.Mock implements _i9.AisProvider {
+class MockAisProvider extends _i1.Mock implements _i10.AisProvider {
   MockAisProvider() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  Map<int, _i10.AisTarget> get targets => (super.noSuchMethod(
+  Map<int, _i11.AisTarget> get targets => (super.noSuchMethod(
         Invocation.getter(#targets),
-        returnValue: <int, _i10.AisTarget>{},
-      ) as Map<int, _i10.AisTarget>);
+        returnValue: <int, _i11.AisTarget>{},
+      ) as Map<int, _i11.AisTarget>);
 
   @override
-  List<_i10.AisTarget> get warnings => (super.noSuchMethod(
+  List<_i11.AisTarget> get warnings => (super.noSuchMethod(
         Invocation.getter(#warnings),
-        returnValue: <_i10.AisTarget>[],
-      ) as List<_i10.AisTarget>);
+        returnValue: <_i11.AisTarget>[],
+      ) as List<_i11.AisTarget>);
 
   @override
-  _i11.AisConnectionState get connectionState => (super.noSuchMethod(
+  _i12.AisConnectionState get connectionState => (super.noSuchMethod(
         Invocation.getter(#connectionState),
-        returnValue: _i11.AisConnectionState.disconnected,
-      ) as _i11.AisConnectionState);
+        returnValue: _i12.AisConnectionState.disconnected,
+      ) as _i12.AisConnectionState);
 
   @override
   int get targetCount => (super.noSuchMethod(
@@ -151,17 +165,17 @@ class MockAisProvider extends _i1.Mock implements _i9.AisProvider {
       ) as bool);
 
   @override
-  _i12.Future<void> init() => (super.noSuchMethod(
+  _i13.Future<void> init() => (super.noSuchMethod(
         Invocation.method(
           #init,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> connect({
+  _i13.Future<void> connect({
     required double? swLat,
     required double? swLng,
     required double? neLat,
@@ -178,12 +192,12 @@ class MockAisProvider extends _i1.Mock implements _i9.AisProvider {
             #neLng: neLng,
           },
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> updateViewport({
+  _i13.Future<void> updateViewport({
     required double? swLat,
     required double? swLng,
     required double? neLat,
@@ -200,13 +214,13 @@ class MockAisProvider extends _i1.Mock implements _i9.AisProvider {
             #neLng: neLng,
           },
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
   void updateOwnVessel({
-    required _i13.LatLng? position,
+    required _i14.LatLng? position,
     required double? sogKnots,
     required double? cogDegrees,
   }) =>
@@ -224,14 +238,14 @@ class MockAisProvider extends _i1.Mock implements _i9.AisProvider {
       );
 
   @override
-  _i12.Future<void> disconnect() => (super.noSuchMethod(
+  _i13.Future<void> disconnect() => (super.noSuchMethod(
         Invocation.method(
           #disconnect,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
   void dispose() => super.noSuchMethod(
@@ -243,7 +257,7 @@ class MockAisProvider extends _i1.Mock implements _i9.AisProvider {
       );
 
   @override
-  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -252,7 +266,124 @@ class MockAisProvider extends _i1.Mock implements _i9.AisProvider {
       );
 
   @override
-  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+        Invocation.method(
+          #notifyListeners,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
+/// A class which mocks [BoatProvider].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockBoatProvider extends _i1.Mock implements _i16.BoatProvider {
+  MockBoatProvider() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i16.PositionSource get source => (super.noSuchMethod(
+        Invocation.getter(#source),
+        returnValue: _i16.PositionSource.none,
+      ) as _i16.PositionSource);
+
+  @override
+  List<_i17.TrackPoint> get trackHistory => (super.noSuchMethod(
+        Invocation.getter(#trackHistory),
+        returnValue: <_i17.TrackPoint>[],
+      ) as List<_i17.TrackPoint>);
+
+  @override
+  int get trackPointCount => (super.noSuchMethod(
+        Invocation.getter(#trackPointCount),
+        returnValue: 0,
+      ) as int);
+
+  @override
+  bool get followBoat => (super.noSuchMethod(
+        Invocation.getter(#followBoat),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  bool get showTrack => (super.noSuchMethod(
+        Invocation.getter(#showTrack),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  _i2.AnchorAlarmService get anchorAlarm => (super.noSuchMethod(
+        Invocation.getter(#anchorAlarm),
+        returnValue: _FakeAnchorAlarmService_0(
+          this,
+          Invocation.getter(#anchorAlarm),
+        ),
+      ) as _i2.AnchorAlarmService);
+
+  @override
+  set followBoat(bool? value) => super.noSuchMethod(
+        Invocation.setter(
+          #followBoat,
+          value,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  set showTrack(bool? value) => super.noSuchMethod(
+        Invocation.setter(
+          #showTrack,
+          value,
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  void clearTrack() => super.noSuchMethod(
+        Invocation.method(
+          #clearTrack,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -273,43 +404,43 @@ class MockAisProvider extends _i1.Mock implements _i9.AisProvider {
 /// A class which mocks [MapProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
+class MockMapProvider extends _i1.Mock implements _i18.MapProvider {
   MockMapProvider() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i2.SettingsProvider get settingsProvider => (super.noSuchMethod(
+  _i3.SettingsProvider get settingsProvider => (super.noSuchMethod(
         Invocation.getter(#settingsProvider),
-        returnValue: _FakeSettingsProvider_0(
+        returnValue: _FakeSettingsProvider_1(
           this,
           Invocation.getter(#settingsProvider),
         ),
-      ) as _i2.SettingsProvider);
+      ) as _i3.SettingsProvider);
 
   @override
-  _i3.CacheProvider get cacheProvider => (super.noSuchMethod(
+  _i4.CacheProvider get cacheProvider => (super.noSuchMethod(
         Invocation.getter(#cacheProvider),
-        returnValue: _FakeCacheProvider_1(
+        returnValue: _FakeCacheProvider_2(
           this,
           Invocation.getter(#cacheProvider),
         ),
-      ) as _i3.CacheProvider);
+      ) as _i4.CacheProvider);
 
   @override
-  _i4.Viewport get viewport => (super.noSuchMethod(
+  _i5.Viewport get viewport => (super.noSuchMethod(
         Invocation.getter(#viewport),
-        returnValue: _FakeViewport_2(
+        returnValue: _FakeViewport_3(
           this,
           Invocation.getter(#viewport),
         ),
-      ) as _i4.Viewport);
+      ) as _i5.Viewport);
 
   @override
-  _i12.Stream<_i15.MapError> get errors => (super.noSuchMethod(
+  _i13.Stream<_i18.MapError> get errors => (super.noSuchMethod(
         Invocation.getter(#errors),
-        returnValue: _i12.Stream<_i15.MapError>.empty(),
-      ) as _i12.Stream<_i15.MapError>);
+        returnValue: _i13.Stream<_i18.MapError>.empty(),
+      ) as _i13.Stream<_i18.MapError>);
 
   @override
   bool get isInitialized => (super.noSuchMethod(
@@ -330,14 +461,14 @@ class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
       ) as bool);
 
   @override
-  _i12.Future<void> init() => (super.noSuchMethod(
+  _i13.Future<void> init() => (super.noSuchMethod(
         Invocation.method(
           #init,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
   void handleMapReady(dynamic controller) => super.noSuchMethod(
@@ -385,7 +516,7 @@ class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
       );
 
   @override
-  void updateViewport(_i4.Viewport? next) => super.noSuchMethod(
+  void updateViewport(_i5.Viewport? next) => super.noSuchMethod(
         Invocation.method(
           #updateViewport,
           [next],
@@ -394,7 +525,7 @@ class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
       );
 
   @override
-  void setCenter(_i13.LatLng? center) => super.noSuchMethod(
+  void setCenter(_i14.LatLng? center) => super.noSuchMethod(
         Invocation.method(
           #setCenter,
           [center],
@@ -421,7 +552,7 @@ class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
       );
 
   @override
-  void setSize(_i14.Size? size) => super.noSuchMethod(
+  void setSize(_i15.Size? size) => super.noSuchMethod(
         Invocation.method(
           #setSize,
           [size],
@@ -430,8 +561,8 @@ class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
       );
 
   @override
-  _i12.Future<void> flyTo(
-    _i13.LatLng? target, {
+  _i13.Future<void> flyTo(
+    _i14.LatLng? target, {
     double? zoom,
   }) =>
       (super.noSuchMethod(
@@ -440,12 +571,12 @@ class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
           [target],
           {#zoom: zoom},
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  void reportError(_i15.MapError? error) => super.noSuchMethod(
+  void reportError(_i18.MapError? error) => super.noSuchMethod(
         Invocation.method(
           #reportError,
           [error],
@@ -463,7 +594,7 @@ class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
       );
 
   @override
-  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -472,7 +603,7 @@ class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
       );
 
   @override
-  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -493,19 +624,19 @@ class MockMapProvider extends _i1.Mock implements _i15.MapProvider {
 /// A class which mocks [WeatherProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
+class MockWeatherProvider extends _i1.Mock implements _i19.WeatherProvider {
   MockWeatherProvider() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i5.WeatherData get data => (super.noSuchMethod(
+  _i6.WeatherData get data => (super.noSuchMethod(
         Invocation.getter(#data),
-        returnValue: _FakeWeatherData_3(
+        returnValue: _FakeWeatherData_4(
           this,
           Invocation.getter(#data),
         ),
-      ) as _i5.WeatherData);
+      ) as _i6.WeatherData);
 
   @override
   bool get hasData => (super.noSuchMethod(
@@ -538,22 +669,22 @@ class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
       ) as bool);
 
   @override
-  _i2.SettingsProvider get settings => (super.noSuchMethod(
+  _i3.SettingsProvider get settings => (super.noSuchMethod(
         Invocation.getter(#settings),
-        returnValue: _FakeSettingsProvider_0(
+        returnValue: _FakeSettingsProvider_1(
           this,
           Invocation.getter(#settings),
         ),
-      ) as _i2.SettingsProvider);
+      ) as _i3.SettingsProvider);
 
   @override
-  _i3.CacheProvider get cache => (super.noSuchMethod(
+  _i4.CacheProvider get cache => (super.noSuchMethod(
         Invocation.getter(#cache),
-        returnValue: _FakeCacheProvider_1(
+        returnValue: _FakeCacheProvider_2(
           this,
           Invocation.getter(#cache),
         ),
-      ) as _i3.CacheProvider);
+      ) as _i4.CacheProvider);
 
   @override
   bool get hasListeners => (super.noSuchMethod(
@@ -562,7 +693,7 @@ class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
       ) as bool);
 
   @override
-  bool isLayerActive(_i16.WeatherLayer? layer) => (super.noSuchMethod(
+  bool isLayerActive(_i19.WeatherLayer? layer) => (super.noSuchMethod(
         Invocation.method(
           #isLayerActive,
           [layer],
@@ -571,7 +702,7 @@ class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
       ) as bool);
 
   @override
-  void toggleLayer(_i16.WeatherLayer? layer) => super.noSuchMethod(
+  void toggleLayer(_i19.WeatherLayer? layer) => super.noSuchMethod(
         Invocation.method(
           #toggleLayer,
           [layer],
@@ -581,7 +712,7 @@ class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
 
   @override
   void setLayerActive(
-    _i16.WeatherLayer? layer, {
+    _i19.WeatherLayer? layer, {
     required bool? active,
   }) =>
       super.noSuchMethod(
@@ -615,7 +746,7 @@ class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
       );
 
   @override
-  _i12.Future<void> refresh({
+  _i13.Future<void> refresh({
     required double? south,
     required double? north,
     required double? west,
@@ -634,9 +765,9 @@ class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
             #force: force,
           },
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
   void clearData() => super.noSuchMethod(
@@ -657,7 +788,7 @@ class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
       );
 
   @override
-  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -666,7 +797,7 @@ class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
       );
 
   @override
-  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -687,16 +818,16 @@ class MockWeatherProvider extends _i1.Mock implements _i16.WeatherProvider {
 /// A class which mocks [RouteProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockRouteProvider extends _i1.Mock implements _i17.RouteProvider {
+class MockRouteProvider extends _i1.Mock implements _i20.RouteProvider {
   MockRouteProvider() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  List<_i6.Route> get savedRoutes => (super.noSuchMethod(
+  List<_i7.Route> get savedRoutes => (super.noSuchMethod(
         Invocation.getter(#savedRoutes),
-        returnValue: <_i6.Route>[],
-      ) as List<_i6.Route>);
+        returnValue: <_i7.Route>[],
+      ) as List<_i7.Route>);
 
   @override
   int get currentWaypointIndex => (super.noSuchMethod(
@@ -756,7 +887,7 @@ class MockRouteProvider extends _i1.Mock implements _i17.RouteProvider {
       ) as double);
 
   @override
-  void activateRoute(_i6.Route? route) => super.noSuchMethod(
+  void activateRoute(_i7.Route? route) => super.noSuchMethod(
         Invocation.method(
           #activateRoute,
           [route],
@@ -765,7 +896,7 @@ class MockRouteProvider extends _i1.Mock implements _i17.RouteProvider {
       );
 
   @override
-  void updatePosition(_i18.LatLng? position) => super.noSuchMethod(
+  void updatePosition(_i21.LatLng? position) => super.noSuchMethod(
         Invocation.method(
           #updatePosition,
           [position],
@@ -810,29 +941,29 @@ class MockRouteProvider extends _i1.Mock implements _i17.RouteProvider {
       );
 
   @override
-  _i12.Future<void> saveRoute(_i6.Route? route) => (super.noSuchMethod(
+  _i13.Future<void> saveRoute(_i7.Route? route) => (super.noSuchMethod(
         Invocation.method(
           #saveRoute,
           [route],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> deleteRoute(String? routeId) => (super.noSuchMethod(
+  _i13.Future<void> deleteRoute(String? routeId) => (super.noSuchMethod(
         Invocation.method(
           #deleteRoute,
           [routeId],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<_i6.Route> createRoute({
+  _i13.Future<_i7.Route> createRoute({
     required String? name,
-    required List<_i6.Waypoint>? waypoints,
+    required List<_i7.Waypoint>? waypoints,
     String? description,
   }) =>
       (super.noSuchMethod(
@@ -845,7 +976,7 @@ class MockRouteProvider extends _i1.Mock implements _i17.RouteProvider {
             #description: description,
           },
         ),
-        returnValue: _i12.Future<_i6.Route>.value(_FakeRoute_4(
+        returnValue: _i13.Future<_i7.Route>.value(_FakeRoute_5(
           this,
           Invocation.method(
             #createRoute,
@@ -857,20 +988,20 @@ class MockRouteProvider extends _i1.Mock implements _i17.RouteProvider {
             },
           ),
         )),
-      ) as _i12.Future<_i6.Route>);
+      ) as _i13.Future<_i7.Route>);
 
   @override
-  _i12.Future<void> loadSavedRoutes() => (super.noSuchMethod(
+  _i13.Future<void> loadSavedRoutes() => (super.noSuchMethod(
         Invocation.method(
           #loadSavedRoutes,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -879,7 +1010,7 @@ class MockRouteProvider extends _i1.Mock implements _i17.RouteProvider {
       );
 
   @override
-  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -909,7 +1040,7 @@ class MockRouteProvider extends _i1.Mock implements _i17.RouteProvider {
 /// A class which mocks [TimelineProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockTimelineProvider extends _i1.Mock implements _i19.TimelineProvider {
+class MockTimelineProvider extends _i1.Mock implements _i22.TimelineProvider {
   MockTimelineProvider() {
     _i1.throwOnMissingStub(this);
   }
@@ -933,10 +1064,10 @@ class MockTimelineProvider extends _i1.Mock implements _i19.TimelineProvider {
       ) as bool);
 
   @override
-  _i19.PlaybackState get playbackState => (super.noSuchMethod(
+  _i22.PlaybackState get playbackState => (super.noSuchMethod(
         Invocation.getter(#playbackState),
-        returnValue: _i19.PlaybackState.paused,
-      ) as _i19.PlaybackState);
+        returnValue: _i22.PlaybackState.paused,
+      ) as _i22.PlaybackState);
 
   @override
   bool get isPlaying => (super.noSuchMethod(
@@ -953,23 +1084,23 @@ class MockTimelineProvider extends _i1.Mock implements _i19.TimelineProvider {
   @override
   String get activeTimeLabel => (super.noSuchMethod(
         Invocation.getter(#activeTimeLabel),
-        returnValue: _i20.dummyValue<String>(
+        returnValue: _i23.dummyValue<String>(
           this,
           Invocation.getter(#activeTimeLabel),
         ),
       ) as String);
 
   @override
-  List<_i5.WindDataPoint> get activeWindPoints => (super.noSuchMethod(
+  List<_i6.WindDataPoint> get activeWindPoints => (super.noSuchMethod(
         Invocation.getter(#activeWindPoints),
-        returnValue: <_i5.WindDataPoint>[],
-      ) as List<_i5.WindDataPoint>);
+        returnValue: <_i6.WindDataPoint>[],
+      ) as List<_i6.WindDataPoint>);
 
   @override
-  List<_i5.WaveDataPoint> get activeWavePoints => (super.noSuchMethod(
+  List<_i6.WaveDataPoint> get activeWavePoints => (super.noSuchMethod(
         Invocation.getter(#activeWavePoints),
-        returnValue: <_i5.WaveDataPoint>[],
-      ) as List<_i5.WaveDataPoint>);
+        returnValue: <_i6.WaveDataPoint>[],
+      ) as List<_i6.WaveDataPoint>);
 
   @override
   bool get hasListeners => (super.noSuchMethod(
@@ -1059,7 +1190,7 @@ class MockTimelineProvider extends _i1.Mock implements _i19.TimelineProvider {
       );
 
   @override
-  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -1068,7 +1199,7 @@ class MockTimelineProvider extends _i1.Mock implements _i19.TimelineProvider {
       );
 
   @override
-  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -1089,28 +1220,28 @@ class MockTimelineProvider extends _i1.Mock implements _i19.TimelineProvider {
 /// A class which mocks [SettingsProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
+class MockSettingsProvider extends _i1.Mock implements _i3.SettingsProvider {
   MockSettingsProvider() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i2.SpeedUnit get speedUnit => (super.noSuchMethod(
+  _i3.SpeedUnit get speedUnit => (super.noSuchMethod(
         Invocation.getter(#speedUnit),
-        returnValue: _i2.SpeedUnit.knots,
-      ) as _i2.SpeedUnit);
+        returnValue: _i3.SpeedUnit.knots,
+      ) as _i3.SpeedUnit);
 
   @override
-  _i2.DistanceUnit get distanceUnit => (super.noSuchMethod(
+  _i3.DistanceUnit get distanceUnit => (super.noSuchMethod(
         Invocation.getter(#distanceUnit),
-        returnValue: _i2.DistanceUnit.nauticalMiles,
-      ) as _i2.DistanceUnit);
+        returnValue: _i3.DistanceUnit.nauticalMiles,
+      ) as _i3.DistanceUnit);
 
   @override
-  _i2.DepthUnit get depthUnit => (super.noSuchMethod(
+  _i3.DepthUnit get depthUnit => (super.noSuchMethod(
         Invocation.getter(#depthUnit),
-        returnValue: _i2.DepthUnit.meters,
-      ) as _i2.DepthUnit);
+        returnValue: _i3.DepthUnit.meters,
+      ) as _i3.DepthUnit);
 
   @override
   bool get showCompass => (super.noSuchMethod(
@@ -1139,7 +1270,7 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
   @override
   String get language => (super.noSuchMethod(
         Invocation.getter(#language),
-        returnValue: _i20.dummyValue<String>(
+        returnValue: _i23.dummyValue<String>(
           this,
           Invocation.getter(#language),
         ),
@@ -1154,7 +1285,7 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
   @override
   String get nmeaHost => (super.noSuchMethod(
         Invocation.getter(#nmeaHost),
-        returnValue: _i20.dummyValue<String>(
+        returnValue: _i23.dummyValue<String>(
           this,
           Invocation.getter(#nmeaHost),
         ),
@@ -1167,10 +1298,10 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
       ) as int);
 
   @override
-  _i21.ConnectionType get nmeaConnectionType => (super.noSuchMethod(
+  _i24.ConnectionType get nmeaConnectionType => (super.noSuchMethod(
         Invocation.getter(#nmeaConnectionType),
-        returnValue: _i21.ConnectionType.tcp,
-      ) as _i21.ConnectionType);
+        returnValue: _i24.ConnectionType.tcp,
+      ) as _i24.ConnectionType);
 
   @override
   bool get autoConnectNMEA => (super.noSuchMethod(
@@ -1181,7 +1312,7 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
   @override
   String get mapTilerApiKey => (super.noSuchMethod(
         Invocation.getter(#mapTilerApiKey),
-        returnValue: _i20.dummyValue<String>(
+        returnValue: _i23.dummyValue<String>(
           this,
           Invocation.getter(#mapTilerApiKey),
         ),
@@ -1196,7 +1327,7 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
   @override
   String get aisStreamApiKey => (super.noSuchMethod(
         Invocation.getter(#aisStreamApiKey),
-        returnValue: _i20.dummyValue<String>(
+        returnValue: _i23.dummyValue<String>(
           this,
           Invocation.getter(#aisStreamApiKey),
         ),
@@ -1221,180 +1352,180 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
       ) as bool);
 
   @override
-  _i12.Future<void> init() => (super.noSuchMethod(
+  _i13.Future<void> init() => (super.noSuchMethod(
         Invocation.method(
           #init,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setSpeedUnit(_i2.SpeedUnit? unit) => (super.noSuchMethod(
+  _i13.Future<void> setSpeedUnit(_i3.SpeedUnit? unit) => (super.noSuchMethod(
         Invocation.method(
           #setSpeedUnit,
           [unit],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setDistanceUnit(_i2.DistanceUnit? unit) =>
+  _i13.Future<void> setDistanceUnit(_i3.DistanceUnit? unit) =>
       (super.noSuchMethod(
         Invocation.method(
           #setDistanceUnit,
           [unit],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setDepthUnit(_i2.DepthUnit? unit) => (super.noSuchMethod(
+  _i13.Future<void> setDepthUnit(_i3.DepthUnit? unit) => (super.noSuchMethod(
         Invocation.method(
           #setDepthUnit,
           [unit],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setShowCompass(bool? value) => (super.noSuchMethod(
+  _i13.Future<void> setShowCompass(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setShowCompass,
           [value],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setShowDataOrbs(bool? value) => (super.noSuchMethod(
+  _i13.Future<void> setShowDataOrbs(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setShowDataOrbs,
           [value],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setShowSpeedArc(bool? value) => (super.noSuchMethod(
+  _i13.Future<void> setShowSpeedArc(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setShowSpeedArc,
           [value],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setShowWaveAnimation(bool? value) => (super.noSuchMethod(
+  _i13.Future<void> setShowWaveAnimation(bool? value) => (super.noSuchMethod(
         Invocation.method(
           #setShowWaveAnimation,
           [value],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setLanguage(String? lang) => (super.noSuchMethod(
+  _i13.Future<void> setLanguage(String? lang) => (super.noSuchMethod(
         Invocation.method(
           #setLanguage,
           [lang],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setMapRefreshRate(int? milliseconds) => (super.noSuchMethod(
+  _i13.Future<void> setMapRefreshRate(int? milliseconds) => (super.noSuchMethod(
         Invocation.method(
           #setMapRefreshRate,
           [milliseconds],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setNMEAHost(String? host) => (super.noSuchMethod(
+  _i13.Future<void> setNMEAHost(String? host) => (super.noSuchMethod(
         Invocation.method(
           #setNMEAHost,
           [host],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setNMEAPort(int? port) => (super.noSuchMethod(
+  _i13.Future<void> setNMEAPort(int? port) => (super.noSuchMethod(
         Invocation.method(
           #setNMEAPort,
           [port],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setNMEAConnectionType(_i21.ConnectionType? type) =>
+  _i13.Future<void> setNMEAConnectionType(_i24.ConnectionType? type) =>
       (super.noSuchMethod(
         Invocation.method(
           #setNMEAConnectionType,
           [type],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setAutoConnectNMEA(bool? autoConnect) =>
+  _i13.Future<void> setAutoConnectNMEA(bool? autoConnect) =>
       (super.noSuchMethod(
         Invocation.method(
           #setAutoConnectNMEA,
           [autoConnect],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setMapTilerApiKey(String? key) => (super.noSuchMethod(
+  _i13.Future<void> setMapTilerApiKey(String? key) => (super.noSuchMethod(
         Invocation.method(
           #setMapTilerApiKey,
           [key],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setAisStreamApiKey(String? key) => (super.noSuchMethod(
+  _i13.Future<void> setAisStreamApiKey(String? key) => (super.noSuchMethod(
         Invocation.method(
           #setAisStreamApiKey,
           [key],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> resetToDefaults() => (super.noSuchMethod(
+  _i13.Future<void> resetToDefaults() => (super.noSuchMethod(
         Invocation.method(
           #resetToDefaults,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -1403,7 +1534,7 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
       );
 
   @override
-  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],
@@ -1433,22 +1564,22 @@ class MockSettingsProvider extends _i1.Mock implements _i2.SettingsProvider {
 /// A class which mocks [ThemeProvider].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockThemeProvider extends _i1.Mock implements _i22.ThemeProvider {
+class MockThemeProvider extends _i1.Mock implements _i25.ThemeProvider {
   MockThemeProvider() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i22.AppThemeMode get themeMode => (super.noSuchMethod(
+  _i25.AppThemeMode get themeMode => (super.noSuchMethod(
         Invocation.getter(#themeMode),
-        returnValue: _i22.AppThemeMode.light,
-      ) as _i22.AppThemeMode);
+        returnValue: _i25.AppThemeMode.light,
+      ) as _i25.AppThemeMode);
 
   @override
-  _i23.ThemeVariant get themeVariant => (super.noSuchMethod(
+  _i26.ThemeVariant get themeVariant => (super.noSuchMethod(
         Invocation.getter(#themeVariant),
-        returnValue: _i23.ThemeVariant.oceanGlass,
-      ) as _i23.ThemeVariant);
+        returnValue: _i26.ThemeVariant.oceanGlass,
+      ) as _i26.ThemeVariant);
 
   @override
   bool get isRedLightMode => (super.noSuchMethod(
@@ -1475,23 +1606,23 @@ class MockThemeProvider extends _i1.Mock implements _i22.ThemeProvider {
       ) as bool);
 
   @override
-  _i7.ThemeData getTheme(_i14.Brightness? systemBrightness) =>
+  _i8.ThemeData getTheme(_i15.Brightness? systemBrightness) =>
       (super.noSuchMethod(
         Invocation.method(
           #getTheme,
           [systemBrightness],
         ),
-        returnValue: _FakeThemeData_5(
+        returnValue: _FakeThemeData_6(
           this,
           Invocation.method(
             #getTheme,
             [systemBrightness],
           ),
         ),
-      ) as _i7.ThemeData);
+      ) as _i8.ThemeData);
 
   @override
-  bool isDark(_i14.Brightness? systemBrightness) => (super.noSuchMethod(
+  bool isDark(_i15.Brightness? systemBrightness) => (super.noSuchMethod(
         Invocation.method(
           #isDark,
           [systemBrightness],
@@ -1500,79 +1631,79 @@ class MockThemeProvider extends _i1.Mock implements _i22.ThemeProvider {
       ) as bool);
 
   @override
-  _i12.Future<void> init() => (super.noSuchMethod(
+  _i13.Future<void> init() => (super.noSuchMethod(
         Invocation.method(
           #init,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setThemeMode(_i22.AppThemeMode? mode) =>
+  _i13.Future<void> setThemeMode(_i25.AppThemeMode? mode) =>
       (super.noSuchMethod(
         Invocation.method(
           #setThemeMode,
           [mode],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> toggleTheme() => (super.noSuchMethod(
+  _i13.Future<void> toggleTheme() => (super.noSuchMethod(
         Invocation.method(
           #toggleTheme,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> enableRedLightMode() => (super.noSuchMethod(
+  _i13.Future<void> enableRedLightMode() => (super.noSuchMethod(
         Invocation.method(
           #enableRedLightMode,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> disableRedLightMode() => (super.noSuchMethod(
+  _i13.Future<void> disableRedLightMode() => (super.noSuchMethod(
         Invocation.method(
           #disableRedLightMode,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> setThemeVariant(_i23.ThemeVariant? variant) =>
+  _i13.Future<void> setThemeVariant(_i26.ThemeVariant? variant) =>
       (super.noSuchMethod(
         Invocation.method(
           #setThemeVariant,
           [variant],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  _i12.Future<void> toggleThemeVariant() => (super.noSuchMethod(
+  _i13.Future<void> toggleThemeVariant() => (super.noSuchMethod(
         Invocation.method(
           #toggleThemeVariant,
           [],
         ),
-        returnValue: _i12.Future<void>.value(),
-        returnValueForMissingStub: _i12.Future<void>.value(),
-      ) as _i12.Future<void>);
+        returnValue: _i13.Future<void>.value(),
+        returnValueForMissingStub: _i13.Future<void>.value(),
+      ) as _i13.Future<void>);
 
   @override
-  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void addListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #addListener,
           [listener],
@@ -1581,7 +1712,7 @@ class MockThemeProvider extends _i1.Mock implements _i22.ThemeProvider {
       );
 
   @override
-  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+  void removeListener(_i15.VoidCallback? listener) => super.noSuchMethod(
         Invocation.method(
           #removeListener,
           [listener],

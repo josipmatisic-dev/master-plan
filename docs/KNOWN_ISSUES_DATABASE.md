@@ -62,13 +62,13 @@
 | ISS-013 | Timeline playback memory overflow | 🔴 CRITICAL | ✅ RESOLVED | 3 |
 | ISS-014 | WebView JavaScript bridge timeout | 🟡 MEDIUM | ✅ RESOLVED | 3 |
 | ISS-015 | Dark mode not persisting | 🟢 LOW | ✅ RESOLVED | 2 |
-| ISS-016 | AIS message buffer overflow | 🟠 HIGH | 🔄 IN PROGRESS | 4 |
+| ISS-016 | AIS message buffer overflow | 🟠 HIGH | ✅ RESOLVED | 4 |
 | ISS-017 | Tile cache growing indefinitely | 🟠 HIGH | ✅ RESOLVED | 3 |
 | ISS-018 | GPS position jumping on reconnect | 🟡 MEDIUM | ✅ RESOLVED | 4 |
 | ISS-019 | CacheProvider shell — no backend | 🟠 HIGH | ✅ RESOLVED | Current |
 | ISS-020 | NMEA data not cached across restarts | 🟡 MEDIUM | ✅ RESOLVED | Current |
 | ISS-021 | Unused provider deps in NMEAProvider | 🟢 LOW | ✅ RESOLVED | Current |
-| ISS-022 | Unused imports in WIP UI screens | 🟢 LOW | 🔄 IN PROGRESS | Current |
+| ISS-022 | Unused imports in WIP UI screens | 🟢 LOW | ✅ RESOLVED | Current |
 
 ---
 
@@ -904,7 +904,7 @@ class TimelineProvider {
 **Title:** AIS receiver buffer fills up, messages dropped  
 **Category:** Performance / Buffering  
 **Severity:** 🟠 HIGH  
-**Status:** 🔄 IN PROGRESS  
+**Status:** ✅ RESOLVED  
 **Repository:** Attempt 4  
 **Files Affected:**
 
@@ -926,26 +926,30 @@ AIS receivers can send 100+ messages per second. Current implementation:
 3. UI updates for every message
 4. Buffer grows unbounded
 
-#### Temporary Workaround
-Limit AIS update rate to 2 fps:
+#### Solution Applied
+Implemented batch processing in `AisProvider`:
+
+1. Incoming messages are buffered in `_pendingUpdates` list.
+2. `_batchTimer` processes updates every 500ms (2Hz cap).
+3. `maxTargets` limit (500) prevents unbounded memory growth.
+4. UI notifies listeners only once per batch.
+
+**Code Example:**
 
 ```dart
-Timer.periodic(Duration(milliseconds: 500), (_) {
-  if (_pendingAISUpdates.isNotEmpty) {
-    notifyListeners();
-    _pendingAISUpdates.clear();
-  }
-});
-```text
+void _startBatchTimer() {
+  _batchTimer = Timer.periodic(
+    const Duration(milliseconds: 500),
+    (_) => _processBatch(),
+  );
+}
 
-**Planned Solution:**
-
-1. Implement backpressure with StreamTransformer
-2. Spatial indexing to cull off-screen targets
-3. Level of detail based on zoom
-4. Batch updates every 500ms
-
-**Status:** Fix scheduled for Phase 3
+void _processBatch() {
+  if (_pendingUpdates.isEmpty) return;
+  // ... merge updates ...
+  notifyListeners(); // Once per batch
+}
+```
 
 ---
 
@@ -1104,7 +1108,7 @@ Both `_settingsProvider` and `_cacheProvider` are now actively used as part of I
 **Title:** Unused imports in VesselScreen and SettingsScreen during holographic theme integration  
 **Category:** Code Quality / Linting  
 **Severity:** 🟢 LOW  
-**Status:** 🔄 IN PROGRESS  
+**Status:** ✅ RESOLVED  
 **Repository:** Current  
 **Files Affected:**
 
@@ -1113,14 +1117,17 @@ Both `_settingsProvider` and `_cacheProvider` are now actively used as part of I
 
 **Symptoms:**
 
-- `flutter analyze` shows 6 warnings about unused imports (`holographic_colors.dart`, `particle_background.dart`, etc.)
+- `flutter analyze` shows 6 warnings about unused imports
 - CI fails if configured with `--fatal-warnings`
 
 #### Root Cause
-Slavko added imports for holographic theme components but hasn't yet implemented the widgets using them in these specific screens. Work is in progress.
+Holographic theme components were imported but not yet used in `build()` methods.
 
-#### Solution
-Complete the implementation of holographic theme overlays in these screens or remove the unused imports if not needed.
+#### Solution Applied
+Implemented the holographic UI layers in both screens:
+1. Added `ParticleBackground`, `ScanLineEffect`, and `HolographicShimmer`
+2. Used imported constants from `holographic_colors.dart`
+3. All imports are now active and necessary
 
 ---
 
