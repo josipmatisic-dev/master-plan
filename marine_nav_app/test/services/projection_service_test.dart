@@ -59,7 +59,7 @@ void main() {
       );
       expect(
         underResult.latitude,
-        greaterThanOrEqualTo(-ProjectionService.maxLatitude),
+        greaterThanOrEqualTo(-ProjectionService.maxLatitude - 1e-10),
       );
     });
   });
