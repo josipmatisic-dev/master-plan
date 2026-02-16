@@ -78,7 +78,8 @@ class TideCard extends StatelessWidget {
             else if (onRefresh != null)
               GestureDetector(
                 onTap: onRefresh,
-                child: Icon(Icons.refresh, size: 16, color: cs.onSurfaceVariant),
+                child:
+                    Icon(Icons.refresh, size: 16, color: cs.onSurfaceVariant),
               ),
           ],
         ),

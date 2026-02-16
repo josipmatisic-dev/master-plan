@@ -50,7 +50,9 @@ class TripControlCard extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     final accent = isHolographic ? HolographicColors.electricBlue : cs.primary;
     final recordColor = isRecording
-        ? (isHolographic ? HolographicColors.neonMagenta : const Color(0xFFFF6B6B))
+        ? (isHolographic
+            ? HolographicColors.neonMagenta
+            : const Color(0xFFFF6B6B))
         : accent;
 
     return Column(
@@ -288,7 +290,8 @@ class _RecordButtonState extends State<_RecordButton>
               boxShadow: widget.isRecording
                   ? [
                       BoxShadow(
-                        color: widget.color.withValues(alpha: 0.3 * _scale.value),
+                        color:
+                            widget.color.withValues(alpha: 0.3 * _scale.value),
                         blurRadius: 8 * _scale.value,
                         spreadRadius: 1,
                       ),
@@ -342,8 +345,7 @@ class _StatChip extends StatelessWidget {
         Text(value,
             style: tt.bodyMedium
                 ?.copyWith(color: color, fontWeight: FontWeight.w600)),
-        Text(label,
-            style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
+        Text(label, style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
       ],
     );
   }

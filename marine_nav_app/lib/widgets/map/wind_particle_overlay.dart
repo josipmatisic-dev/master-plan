@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import '../../models/weather_data.dart';
+import 'painters/wind_painter.dart';
 
 /// Renders wind flow particles over the map using CustomPainter.
 ///
@@ -26,12 +27,16 @@ class WindParticleOverlay extends StatefulWidget {
   /// Geographic bounds of the visible map viewport.
   final ({double south, double north, double west, double east})? bounds;
 
+  /// Maximum number of particles to render.
+  final int maxParticles;
+
   /// Creates a wind particle overlay with wind data for flow visualization.
   const WindParticleOverlay({
     super.key,
     required this.windPoints,
     this.isHolographic = false,
     this.bounds,
+    this.maxParticles = 800,
   });
 
   @override
@@ -44,12 +49,11 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   final _random = Random();
 
   // Geographic particles: lat/lng + velocity + trail in lat/lng
-  final List<_GeoParticle> _particles = [];
-  static const _maxParticles = 800;
+  final List<GeoParticle> _particles = [];
   static const _trailLength = 5;
 
   // Pre-computed wind grid (u,v components) for fast interpolation
-  List<_WindVector> _windGrid = [];
+  List<WindVector> _windGrid = [];
 
   // Frame throttle: paint at ~30fps
   int _frameCount = 0;
@@ -85,7 +89,7 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   void _rebuildWindGrid() {
     _windGrid = widget.windPoints.map((wp) {
       final rad = wp.directionDegrees * pi / 180.0;
-      return _WindVector(
+      return WindVector(
         lat: wp.position.latitude,
         lng: wp.position.longitude,
         u: -wp.speedKnots * sin(rad),
@@ -99,7 +103,7 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
     _particles.clear();
     final b = widget.bounds;
     if (b == null) return;
-    for (int i = 0; i < _maxParticles; i++) {
+    for (int i = 0; i < widget.maxParticles; i++) {
       _particles.add(_spawnInBounds(b));
     }
   }
@@ -109,10 +113,10 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
     _initParticles();
   }
 
-  _GeoParticle _spawnInBounds(
+  GeoParticle _spawnInBounds(
     ({double south, double north, double west, double east}) b,
   ) {
-    return _GeoParticle(
+    return GeoParticle(
       lat: b.south + _random.nextDouble() * (b.north - b.south),
       lng: b.west + _random.nextDouble() * (b.east - b.west),
       age: _random.nextDouble() * 4.0, // stagger births
@@ -237,7 +241,7 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
 
     return RepaintBoundary(
       child: CustomPaint(
-        painter: _WindPainter(
+        painter: WindPainter(
           particles: _particles,
           bounds: widget.bounds!,
           isHolographic: widget.isHolographic,
@@ -246,122 +250,4 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
       ),
     );
   }
-}
-
-/// Particle in geographic space.
-class _GeoParticle {
-  double lat;
-  double lng;
-  double age;
-  double lifetime;
-  double speed;
-  final List<double> trailLat;
-  final List<double> trailLng;
-
-  _GeoParticle({
-    required this.lat,
-    required this.lng,
-    this.age = 0,
-    this.lifetime = 6.0,
-  })  : speed = 0,
-        trailLat = [],
-        trailLng = [];
-
-  double get normalizedAge => (age / lifetime).clamp(0.0, 1.0);
-
-  double get alpha {
-    if (normalizedAge < 0.15) return normalizedAge / 0.15;
-    if (normalizedAge > 0.8) return (1.0 - normalizedAge) / 0.2;
-    return 1.0;
-  }
-}
-
-/// Pre-computed wind vector at a grid point.
-class _WindVector {
-  final double lat, lng, u, v, speed;
-  const _WindVector({
-    required this.lat,
-    required this.lng,
-    required this.u,
-    required this.v,
-    required this.speed,
-  });
-}
-
-class _WindPainter extends CustomPainter {
-  final List<_GeoParticle> particles;
-  final ({double south, double north, double west, double east}) bounds;
-  final bool isHolographic;
-
-  _WindPainter({
-    required this.particles,
-    required this.bounds,
-    required this.isHolographic,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final latRange = bounds.north - bounds.south;
-    final lngRange = bounds.east - bounds.west;
-    if (latRange == 0 || lngRange == 0) return;
-
-    // Reuse paint objects to avoid allocation per segment
-    final trailPaint = Paint()..strokeCap = StrokeCap.round;
-    final glowPaint = Paint()
-      ..strokeCap = StrokeCap.round
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5);
-
-    for (final p in particles) {
-      if (p.trailLat.length < 2) continue;
-      final alpha = p.alpha;
-      if (alpha < 0.02) continue;
-
-      final color = _colorForSpeed(p.speed, alpha);
-
-      for (int i = 0; i < p.trailLat.length - 1; i++) {
-        final sx0 = (p.trailLng[i] - bounds.west) / lngRange * size.width;
-        final sy0 =
-            (1.0 - (p.trailLat[i] - bounds.south) / latRange) * size.height;
-        final sx1 = (p.trailLng[i + 1] - bounds.west) / lngRange * size.width;
-        final sy1 =
-            (1.0 - (p.trailLat[i + 1] - bounds.south) / latRange) * size.height;
-
-        final trailFade = 1.0 - i / p.trailLat.length;
-        final w = isHolographic ? 1.0 + trailFade : 1.2 + trailFade * 1.3;
-        final segAlpha = alpha * trailFade * 0.8;
-
-        final from = Offset(sx0, sy0);
-        final to = Offset(sx1, sy1);
-
-        if (isHolographic && i == 0) {
-          glowPaint
-            ..color = color.withValues(alpha: segAlpha)
-            ..strokeWidth = w;
-          canvas.drawLine(from, to, glowPaint);
-        } else {
-          trailPaint
-            ..color = color.withValues(alpha: segAlpha)
-            ..strokeWidth = w;
-          canvas.drawLine(from, to, trailPaint);
-        }
-      }
-    }
-  }
-
-  Color _colorForSpeed(double speedKnots, double alpha) {
-    if (isHolographic) {
-      if (speedKnots < 5) return Color.fromRGBO(0, 255, 255, 0.4 * alpha);
-      if (speedKnots < 15) return Color.fromRGBO(0, 217, 255, 0.6 * alpha);
-      if (speedKnots < 25) return Color.fromRGBO(255, 0, 255, 0.7 * alpha);
-      return Color.fromRGBO(255, 0, 255, 0.9 * alpha);
-    } else {
-      if (speedKnots < 5) return Color.fromRGBO(255, 255, 255, 0.25 * alpha);
-      if (speedKnots < 15) return Color.fromRGBO(0, 201, 167, 0.45 * alpha);
-      if (speedKnots < 25) return Color.fromRGBO(255, 154, 61, 0.6 * alpha);
-      return Color.fromRGBO(255, 107, 107, 0.8 * alpha);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_WindPainter oldDelegate) => true;
 }

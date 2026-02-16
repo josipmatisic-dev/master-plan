@@ -175,9 +175,8 @@ class _WeatherReactiveGlassCardState extends State<WeatherReactiveGlassCard>
 
     final borderColor = _borderColorForSeverity(severity);
     final glowColor = _glowColorForSeverity(severity);
-    final glowIntensity = animated
-        ? 0.5 + 0.5 * math.sin(_controller.value * math.pi * 2)
-        : 1.0;
+    final glowIntensity =
+        animated ? 0.5 + 0.5 * math.sin(_controller.value * math.pi * 2) : 1.0;
 
     return RepaintBoundary(
       child: Container(
@@ -214,8 +213,7 @@ class _WeatherReactiveGlassCardState extends State<WeatherReactiveGlassCard>
         child: ClipRRect(
           borderRadius: BorderRadius.circular(radius),
           child: BackdropFilter(
-            filter:
-                ImageFilter.blur(sigmaX: totalBlur, sigmaY: totalBlur),
+            filter: ImageFilter.blur(sigmaX: totalBlur, sigmaY: totalBlur),
             child: Stack(
               children: [
                 // Rain/spray overlay
@@ -299,8 +297,7 @@ class _WeatherReactiveGlassCardState extends State<WeatherReactiveGlassCard>
       WeatherSeverity.light => OceanColors.glassBorder,
       WeatherSeverity.moderate =>
         OceanColors.seafoamGreen.withValues(alpha: 0.3),
-      WeatherSeverity.heavy =>
-        OceanColors.safetyOrange.withValues(alpha: 0.4),
+      WeatherSeverity.heavy => OceanColors.safetyOrange.withValues(alpha: 0.4),
       WeatherSeverity.storm => OceanColors.coralRed.withValues(alpha: 0.5),
     };
   }
@@ -424,7 +421,6 @@ class _RainDropPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RainDropPainter oldDelegate) {
-    return progress != oldDelegate.progress ||
-        severity != oldDelegate.severity;
+    return progress != oldDelegate.progress || severity != oldDelegate.severity;
   }
 }

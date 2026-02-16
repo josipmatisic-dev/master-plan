@@ -273,6 +273,13 @@ class WeatherProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates weather data for testing purposes.
+  @visibleForTesting
+  void updateData(WeatherData data) {
+    _data = data;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _debounceTimer?.cancel();

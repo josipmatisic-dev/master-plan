@@ -68,8 +68,8 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 HolographicShimmer(
                   enabled: isHolographic,
-                  child: _buildWindCard(context, cs, data, weather,
-                      isHolographic),
+                  child:
+                      _buildWindCard(context, cs, data, weather, isHolographic),
                 ),
                 const SizedBox(height: 16),
                 HolographicShimmer(

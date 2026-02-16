@@ -49,5 +49,13 @@
 	<string>SailStream uses your location to show your position on the navigation chart.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>SailStream uses your location for continuous navigation tracking.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>SailStream uses the local network to discover NMEA devices and AIS transponders.</string>
+
 </dict>
 </plist>
