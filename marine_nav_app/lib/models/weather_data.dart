@@ -177,9 +177,15 @@ class WeatherData {
   factory WeatherData.fromJson(Map<String, dynamic> json) {
     return WeatherData(
       windPoints:
-          (json['wind'] as List).map((e) => WindDataPoint.fromJson(e)).toList(),
+          (json['wind'] as List?)?.map((e) => WindDataPoint.fromJson(e)).toList() ??
+              const [],
       wavePoints:
-          (json['wave'] as List).map((e) => WaveDataPoint.fromJson(e)).toList(),
+          (json['wave'] as List?)?.map((e) => WaveDataPoint.fromJson(e)).toList() ??
+              const [],
+      frames: (json['frames'] as List?)
+              ?.map((e) => WeatherFrame.fromJson(e))
+              .toList() ??
+          const [],
       fetchedAt: DateTime.fromMillisecondsSinceEpoch(json['ts'] as int),
       gridResolution: (json['res'] as num).toDouble(),
     );
@@ -189,6 +195,7 @@ class WeatherData {
   Map<String, dynamic> toJson() => {
         'wind': windPoints.map((e) => e.toJson()).toList(),
         'wave': wavePoints.map((e) => e.toJson()).toList(),
+        'frames': frames.map((e) => e.toJson()).toList(),
         'ts': fetchedAt.millisecondsSinceEpoch,
         'res': gridResolution,
       };
@@ -201,7 +208,7 @@ class WeatherData {
   );
 
   /// Whether this data is empty (no measurements).
-  bool get isEmpty => windPoints.isEmpty && wavePoints.isEmpty;
+  bool get isEmpty => windPoints.isEmpty && wavePoints.isEmpty && frames.isEmpty;
 
   /// Whether this data has wind measurements.
   bool get hasWind => windPoints.isNotEmpty;
@@ -246,6 +253,30 @@ class WeatherFrame {
     this.windPoints = const [],
     this.wavePoints = const [],
   });
+
+  /// Creates WeatherFrame from JSON map.
+  factory WeatherFrame.fromJson(Map<String, dynamic> json) {
+    return WeatherFrame(
+      time: DateTime.fromMillisecondsSinceEpoch(json['ts'] as int),
+      windPoints: (json['wind'] as List?)
+              ?.map((e) => WindDataPoint.fromJson(e))
+              .toList() ??
+          const [],
+      wavePoints: (json['wave'] as List?)
+              ?.map((e) => WaveDataPoint.fromJson(e))
+              .toList() ??
+          const [],
+    );
+  }
+
+  /// Converts to JSON map.
+  Map<String, dynamic> toJson() => {
+        'ts': time.millisecondsSinceEpoch,
+        if (windPoints.isNotEmpty)
+          'wind': windPoints.map((e) => e.toJson()).toList(),
+        if (wavePoints.isNotEmpty)
+          'wave': wavePoints.map((e) => e.toJson()).toList(),
+      };
 
   /// Whether this frame has wind data.
   bool get hasWind => windPoints.isNotEmpty;
