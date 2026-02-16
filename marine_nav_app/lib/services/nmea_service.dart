@@ -20,7 +20,11 @@ class NMEAService {
 
   /// Stream of parsed NMEA data (batched every 200ms)
   Stream<NMEAData> get dataStream => _dataController.stream;
+
+  /// Stream of NMEA parsing and connection errors
   Stream<NMEAError> get errorStream => _errorController.stream;
+
+  /// Stream of connection status updates
   Stream<ConnectionStatus> get statusStream => _statusController.stream;
 
   bool _isRunning = false;

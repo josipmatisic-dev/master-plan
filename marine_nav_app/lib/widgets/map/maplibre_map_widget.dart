@@ -61,6 +61,7 @@ class _MapLibreMapWidgetState extends State<MapLibreMapWidget> {
     return 'https://api.maptiler.com/maps/ocean/style.json?key=$apiKey';
   }
 
+  // ignore: use_setters_to_change_properties
   void _onMapCreated(ml.MapLibreMapController controller) {
     _controller = controller;
   }
