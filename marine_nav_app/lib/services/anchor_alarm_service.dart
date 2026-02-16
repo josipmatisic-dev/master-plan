@@ -106,7 +106,8 @@ class AnchorAlarmService extends ChangeNotifier {
 
     // Recompute state with current distance.
     _alarm = _alarm!.withDistance(_alarm!.currentDistanceMeters);
-    debugPrint('AnchorAlarm: 📏 Radius updated to ${clamped.toStringAsFixed(0)}m');
+    debugPrint(
+        'AnchorAlarm: 📏 Radius updated to ${clamped.toStringAsFixed(0)}m');
     notifyListeners();
   }
 
