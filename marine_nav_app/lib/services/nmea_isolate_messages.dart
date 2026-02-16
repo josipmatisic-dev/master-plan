@@ -15,6 +15,9 @@ class IsolateContext {
   /// Active socket connection.
   Socket? socket;
 
+  /// Active UDP socket connection.
+  RawDatagramSocket? udpSocket;
+
   /// Creates an [IsolateContext].
   IsolateContext({required this.sendPort, required this.config});
 

@@ -7,16 +7,8 @@ import '../models/nmea_error.dart';
 import 'nmea_isolate_messages.dart';
 import 'nmea_parser.dart';
 
-/// NMEA Service - Background isolate for socket I/O and sentence parsing
+/// NMEA Service - Background isolate for socket I/O and sentence parsing.
 /// Prevents UI blocking by processing NMEA data in a separate isolate.
-///
-/// Usage:
-/// ```dart
-/// final service = NMEAService();
-/// service.dataStream.listen((data) => print(data));
-/// service.errorStream.listen((error) => print(error));
-/// await service.connect(config);
-/// ```
 class NMEAService {
   Isolate? _isolate;
   ReceivePort? _receivePort;
@@ -28,28 +20,18 @@ class NMEAService {
 
   /// Stream of parsed NMEA data (batched every 200ms)
   Stream<NMEAData> get dataStream => _dataController.stream;
-
-  /// Stream of parsing and connection errors
   Stream<NMEAError> get errorStream => _errorController.stream;
-
-  /// Stream of connection status changes
   Stream<ConnectionStatus> get statusStream => _statusController.stream;
 
   bool _isRunning = false;
 
-  /// Start the NMEA service with the given configuration
+  /// Start the NMEA service with the given configuration.
   Future<void> connect(ConnectionConfig config) async {
-    if (_isRunning) {
-      throw StateError('Service already running');
-    }
+    if (_isRunning) throw StateError('Service already running');
 
     try {
       _statusController.add(ConnectionStatus.connecting);
-
-      // Create receive port for isolate communication
       _receivePort = ReceivePort();
-
-      // Spawn isolate with entry point
       _isolate = await Isolate.spawn(
         _isolateEntryPoint,
         IsolateStartupMessage(
@@ -144,6 +126,7 @@ class NMEAService {
     await for (final message in receivePort) {
       if (message == IsolateCommand.shutdown) {
         await context.socket?.close();
+        context.udpSocket?.close();
         receivePort.close();
         break;
       }
@@ -153,27 +136,13 @@ class NMEAService {
   /// Run the socket connection and process NMEA sentences
   static Future<void> _runConnection(IsolateContext context) async {
     Socket? socket;
+    RawDatagramSocket? udpSocket;
     final buffer = StringBuffer();
     NMEAData? currentData;
     Timer? batchTimer;
 
     try {
-      // Connect to NMEA source
       context.sendStatus(ConnectionStatus.connecting);
-
-      if (context.config.type == ConnectionType.tcp) {
-        socket = await Socket.connect(
-          context.config.host,
-          context.config.port,
-          timeout: context.config.timeout,
-        );
-      } else {
-        // UDP not yet implemented
-        throw UnimplementedError('UDP support coming soon');
-      }
-
-      context.socket = socket;
-      context.sendStatus(ConnectionStatus.connected);
 
       // Set up batch update timer (200ms intervals)
       batchTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
@@ -183,45 +152,43 @@ class NMEAService {
         }
       });
 
-      // Process incoming data
-      await for (final data in socket) {
-        final chunk = String.fromCharCodes(data);
-        buffer.write(chunk);
+      if (context.config.type == ConnectionType.tcp) {
+        socket = await Socket.connect(
+          context.config.host,
+          context.config.port,
+          timeout: context.config.timeout,
+        );
+        context.socket = socket;
+        context.sendStatus(ConnectionStatus.connected);
 
-        // Process complete sentences (ending with \n or \r\n)
-        while (buffer.toString().contains('\n')) {
-          final text = buffer.toString();
-          final lineEnd = text.indexOf('\n');
-          final sentence = text.substring(0, lineEnd).trim();
-          buffer.clear();
-          buffer.write(text.substring(lineEnd + 1));
-
-          if (sentence.isEmpty) continue;
-
-          // Parse sentence
-          try {
-            final parsed = NMEAParser.parseSentence(sentence);
-            if (parsed != null) {
-              currentData = _updateNMEAData(currentData, parsed);
-            }
-          } on NMEAError catch (e) {
-            context.sendError(e);
-          } catch (e) {
-            context.sendError(NMEAError(
-              type: NMEAErrorType.parseError,
-              message: 'Parse error: $e',
-              sentence: sentence,
-            ));
-          }
+        await for (final data in socket) {
+          currentData = _processChunk(
+            String.fromCharCodes(data),
+            buffer,
+            currentData,
+            context,
+          );
         }
+      } else {
+        // UDP: bind to local port, receive datagrams
+        udpSocket = await RawDatagramSocket.bind(
+          InternetAddress.anyIPv4,
+          context.config.port,
+        );
+        context.udpSocket = udpSocket;
+        context.sendStatus(ConnectionStatus.connected);
 
-        // Check for buffer overflow (prevent memory leak)
-        if (buffer.length > 4096) {
-          context.sendError(NMEAError(
-            type: NMEAErrorType.bufferOverflow,
-            message: 'Buffer overflow - no line terminator found',
-          ));
-          buffer.clear();
+        await for (final event in udpSocket) {
+          if (event == RawSocketEvent.read) {
+            final datagram = udpSocket.receive();
+            if (datagram == null) continue;
+            currentData = _processChunk(
+              String.fromCharCodes(datagram.data),
+              buffer,
+              currentData,
+              context,
+            );
+          }
         }
       }
     } on SocketException catch (e) {
@@ -245,8 +212,55 @@ class NMEAService {
     } finally {
       batchTimer?.cancel();
       await socket?.close();
+      udpSocket?.close();
       context.sendStatus(ConnectionStatus.disconnected);
     }
+  }
+
+  /// Process a chunk of raw data, extracting complete NMEA sentences.
+  static NMEAData? _processChunk(
+    String chunk,
+    StringBuffer buffer,
+    NMEAData? currentData,
+    IsolateContext context,
+  ) {
+    buffer.write(chunk);
+
+    while (buffer.toString().contains('\n')) {
+      final text = buffer.toString();
+      final lineEnd = text.indexOf('\n');
+      final sentence = text.substring(0, lineEnd).trim();
+      buffer.clear();
+      buffer.write(text.substring(lineEnd + 1));
+
+      if (sentence.isEmpty) continue;
+
+      try {
+        final parsed = NMEAParser.parseSentence(sentence);
+        if (parsed != null) {
+          currentData = _updateNMEAData(currentData, parsed);
+        }
+      } on NMEAError catch (e) {
+        context.sendError(e);
+      } catch (e) {
+        context.sendError(NMEAError(
+          type: NMEAErrorType.parseError,
+          message: 'Parse error: $e',
+          sentence: sentence,
+        ));
+      }
+    }
+
+    // Prevent memory leak from missing line terminators
+    if (buffer.length > 4096) {
+      context.sendError(NMEAError(
+        type: NMEAErrorType.bufferOverflow,
+        message: 'Buffer overflow - no line terminator found',
+      ));
+      buffer.clear();
+    }
+
+    return currentData;
   }
 
   /// Update NMEAData with new parsed sentence

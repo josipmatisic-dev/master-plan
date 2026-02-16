@@ -117,7 +117,7 @@ void main() {
       await subscription.cancel();
     });
 
-    test('UDP throws UnimplementedError', () async {
+    test('UDP connection handles gracefully', () async {
       const config = ConnectionConfig(
         type: ConnectionType.udp,
         host: 'localhost',

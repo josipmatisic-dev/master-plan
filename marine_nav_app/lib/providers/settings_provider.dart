@@ -63,55 +63,27 @@ class SettingsProvider extends ChangeNotifier {
   ConnectionType _nmeaConnectionType = ConnectionType.tcp;
   bool _autoConnectNMEA = false;
   String _mapTilerApiKey = '';
+  String _aisStreamApiKey = '';
 
   // ============ Getters ============
 
-  /// Current speed unit preference
   SpeedUnit get speedUnit => _speedUnit;
-
-  /// Current distance unit preference
   DistanceUnit get distanceUnit => _distanceUnit;
-
-  /// Current depth unit preference
   DepthUnit get depthUnit => _depthUnit;
-
-  /// Whether to show compass
   bool get showCompass => _showCompass;
-
-  /// Whether to show data orbs
   bool get showDataOrbs => _showDataOrbs;
-
-  /// Whether to show speed arc
   bool get showSpeedArc => _showSpeedArc;
-
-  /// Whether to show wave animation
   bool get showWaveAnimation => _showWaveAnimation;
-
-  /// Current language code
   String get language => _language;
-
-  /// Map refresh rate in milliseconds
   int get mapRefreshRate => _mapRefreshRate;
-
-  /// NMEA host address
   String get nmeaHost => _nmeaHost;
-
-  /// NMEA port number
   int get nmeaPort => _nmeaPort;
-
-  /// NMEA connection type (TCP/UDP)
   ConnectionType get nmeaConnectionType => _nmeaConnectionType;
-
-  /// Auto-connect to NMEA on startup
   bool get autoConnectNMEA => _autoConnectNMEA;
-
-  /// MapTiler API key for map rendering
   String get mapTilerApiKey => _mapTilerApiKey;
-
-  /// True when a MapTiler API key is configured
   bool get hasMapTilerApiKey => _mapTilerApiKey.isNotEmpty;
-
-  /// Check if settings are initialized
+  String get aisStreamApiKey => _aisStreamApiKey;
+  bool get hasAisStreamApiKey => _aisStreamApiKey.isNotEmpty;
   bool get isInitialized => _prefs != null;
 
   /// Initialize and load settings from storage
@@ -171,6 +143,13 @@ class SettingsProvider extends ChangeNotifier {
       if (_mapTilerApiKey.isEmpty && env.mapTilerApiKey.isNotEmpty) {
         _mapTilerApiKey = env.mapTilerApiKey;
         await _prefs!.setString('mapTilerApiKey', _mapTilerApiKey);
+      }
+
+      // AIS settings
+      _aisStreamApiKey = _prefs!.getString('aisStreamApiKey') ?? '';
+      if (_aisStreamApiKey.isEmpty && env.aisStreamApiKey.isNotEmpty) {
+        _aisStreamApiKey = env.aisStreamApiKey;
+        await _prefs!.setString('aisStreamApiKey', _aisStreamApiKey);
       }
 
       notifyListeners();
@@ -280,6 +259,13 @@ class SettingsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Update AISStream.io API key
+  Future<void> setAisStreamApiKey(String key) async {
+    _aisStreamApiKey = key;
+    await _prefs?.setString('aisStreamApiKey', key);
+    notifyListeners();
+  }
+
   /// Reset all settings to defaults
   Future<void> resetToDefaults() async {
     _speedUnit = SpeedUnit.knots;
@@ -292,6 +278,7 @@ class SettingsProvider extends ChangeNotifier {
     _nmeaConnectionType = ConnectionType.tcp;
     _autoConnectNMEA = false;
     _mapTilerApiKey = '';
+    _aisStreamApiKey = '';
     _showCompass = _showDataOrbs = _showSpeedArc = _showWaveAnimation = true;
     await _prefs?.clear();
     notifyListeners();
