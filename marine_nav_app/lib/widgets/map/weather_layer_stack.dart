@@ -92,11 +92,32 @@ class WeatherLayerStack extends StatelessWidget {
       waveIntensity = (sum / wavePoints.length / 4.0).clamp(0.0, 1.0);
     }
 
-    // Derive precipitation/storm from wind speed (rough proxy until
-    // we have actual precip data from API)
-    final precipIntensity = avgWindSpeed > 20 ? 0.6 : 0.0;
-    const fogDensity = 0.0; // Will be driven by visibility data
-    final stormIntensity = avgWindSpeed > 30 ? 0.5 : 0.0;
+    // Derive precipitation from wind speed + wave height (proxy until
+    // we have actual precip/visibility data from API)
+    final precipIntensity = avgWindSpeed >= 34
+        ? 0.9
+        : avgWindSpeed >= 25
+            ? 0.6
+            : avgWindSpeed >= 15
+                ? 0.3
+                : avgWindSpeed >= 8
+                    ? 0.1
+                    : 0.0;
+
+    // Fog density derived from wave height (proxy for visibility)
+    final fogDensity = waveIntensity >= 0.8
+        ? 0.7
+        : waveIntensity >= 0.5
+            ? 0.4
+            : waveIntensity >= 0.3
+                ? 0.15
+                : 0.0;
+
+    final stormIntensity = avgWindSpeed >= 34
+        ? 0.8
+        : avgWindSpeed >= 25
+            ? 0.4
+            : 0.0;
 
     final stack = Stack(
       children: [

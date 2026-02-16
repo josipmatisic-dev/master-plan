@@ -322,18 +322,24 @@ class _WeatherReactiveGlassCardState extends State<WeatherReactiveGlassCard>
   }
 }
 
-/// Paints rain drops and spray streaks sliding down/across the glass.
+/// Paints rain drops, rivulets, condensation, and spray on glass.
+///
+/// Visual layers (bottom to top):
+/// 1. Condensation beads — static water droplets with refraction highlights
+/// 2. Rivulets — bezier curves crawling down glass with variable width
+/// 3. Falling drops — angled streaks driven by wind
+/// 4. Impact splashes — radial bursts where drops hit
+/// 5. Spray streaks — horizontal mist in heavy conditions
+/// 6. Water pooling — gradient at bottom edge
 class _RainDropPainter extends CustomPainter {
   final double progress;
   final WeatherSeverity severity;
   final double windAngle;
   final bool isHolographic;
 
-  // Pre-allocated paint objects
-  final Paint _dropPaint = Paint()..style = PaintingStyle.fill;
-  final Paint _streakPaint = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeCap = StrokeCap.round;
+  final Paint _paint = Paint();
+  final Paint _glowPaint = Paint()
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
 
   _RainDropPainter({
     required this.progress,
@@ -345,78 +351,289 @@ class _RainDropPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final rng = math.Random(42);
-    final dropCount = switch (severity) {
+    final windRad = (windAngle - 90) * math.pi / 180;
+    final windPush = math.sin(windRad);
+
+    // Layer 1: Condensation beads (static, always present when raining)
+    _drawCondensation(canvas, size, rng);
+
+    // Layer 2: Rivulets (bezier curves crawling down)
+    _drawRivulets(canvas, size, rng, windPush);
+
+    // Layer 3: Falling drops
+    _drawFallingDrops(canvas, size, rng, windPush);
+
+    // Layer 4: Impact splashes
+    _drawSplashes(canvas, size, rng);
+
+    // Layer 5: Spray streaks (heavy/storm only)
+    if (severity.index >= WeatherSeverity.heavy.index) {
+      _drawSpray(canvas, size, rng);
+    }
+
+    // Layer 6: Water pooling at bottom
+    if (severity.index >= WeatherSeverity.moderate.index) {
+      _drawPooling(canvas, size);
+    }
+  }
+
+  void _drawCondensation(Canvas canvas, Size size, math.Random rng) {
+    final count = switch (severity) {
       WeatherSeverity.calm => 0,
-      WeatherSeverity.light => 6,
-      WeatherSeverity.moderate => 14,
-      WeatherSeverity.heavy => 24,
-      WeatherSeverity.storm => 36,
+      WeatherSeverity.light => 8,
+      WeatherSeverity.moderate => 18,
+      WeatherSeverity.heavy => 28,
+      WeatherSeverity.storm => 40,
     };
 
-    // Wind pushes drops sideways (simplified: 0° = north, 90° = east)
-    final windRad = (windAngle - 90) * math.pi / 180;
-    final windPush = math.sin(windRad) * 0.15;
+    final baseAlpha = isHolographic ? 0.20 : 0.12;
+    final highlightAlpha = isHolographic ? 0.45 : 0.30;
+
+    for (var i = 0; i < count; i++) {
+      final x = rng.nextDouble() * size.width;
+      final y = rng.nextDouble() * size.height;
+      final radius = 1.2 + rng.nextDouble() * 2.5;
+
+      // Bead body
+      _paint
+        ..style = PaintingStyle.fill
+        ..color =
+            (isHolographic ? HolographicColors.electricBlue : Colors.white)
+                .withValues(alpha: baseAlpha);
+      canvas.drawCircle(Offset(x, y), radius, _paint);
+
+      // Refraction highlight — bright spot offset up-left
+      _paint.color = (isHolographic ? HolographicColors.neonCyan : Colors.white)
+          .withValues(alpha: highlightAlpha);
+      canvas.drawCircle(
+        Offset(x - radius * 0.3, y - radius * 0.3),
+        radius * 0.35,
+        _paint,
+      );
+    }
+  }
+
+  void _drawRivulets(
+      Canvas canvas, Size size, math.Random rng, double windPush) {
+    final count = switch (severity) {
+      WeatherSeverity.calm => 0,
+      WeatherSeverity.light => 2,
+      WeatherSeverity.moderate => 4,
+      WeatherSeverity.heavy => 6,
+      WeatherSeverity.storm => 9,
+    };
+
+    final color = isHolographic
+        ? HolographicColors.electricBlue.withValues(alpha: 0.18)
+        : Colors.white.withValues(alpha: 0.12);
+
+    for (var i = 0; i < count; i++) {
+      final startX = rng.nextDouble() * size.width;
+      final speed = 0.3 + rng.nextDouble() * 0.7;
+      final phase = (progress * speed + rng.nextDouble()) % 1.0;
+
+      // Rivulet flows from top, pausing at random points
+      final rivuletLength = size.height * (0.3 + rng.nextDouble() * 0.5);
+      final headY = phase * (size.height + rivuletLength) - rivuletLength * 0.3;
+      final tailY = headY - rivuletLength;
+
+      if (headY < 0 || tailY > size.height) continue;
+
+      // Build bezier path with wind-influenced wobble
+      final path = Path();
+      const segments = 5;
+      final clampedTail = tailY.clamp(0.0, size.height);
+      final clampedHead = headY.clamp(0.0, size.height);
+      path.moveTo(startX, clampedTail);
+
+      for (var s = 1; s <= segments; s++) {
+        final t = s / segments;
+        final segY = clampedTail + (clampedHead - clampedTail) * t;
+        final wobble = math.sin(t * math.pi * 3 + i * 1.7) * 4 * windPush +
+            windPush * 8 * t;
+        path.lineTo(startX + wobble, segY);
+      }
+
+      // Width tapers: thick at head, thin at tail
+      _paint
+        ..style = PaintingStyle.stroke
+        ..color = color
+        ..strokeWidth = 1.5 + severity.index * 0.3
+        ..strokeCap = StrokeCap.round;
+      canvas.drawPath(path, _paint);
+
+      // Glow effect for holographic
+      if (isHolographic) {
+        _glowPaint.color =
+            HolographicColors.electricBlue.withValues(alpha: 0.06);
+        _glowPaint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 4.0;
+        canvas.drawPath(path, _glowPaint);
+      }
+
+      // Drip bead at the head
+      _paint
+        ..style = PaintingStyle.fill
+        ..color =
+            (isHolographic ? HolographicColors.electricBlue : Colors.white)
+                .withValues(alpha: 0.25);
+      final headOffset = Offset(
+        startX + windPush * 8,
+        clampedHead,
+      );
+      canvas.drawOval(
+        Rect.fromCenter(center: headOffset, width: 3.5, height: 5.0),
+        _paint,
+      );
+    }
+  }
+
+  void _drawFallingDrops(
+      Canvas canvas, Size size, math.Random rng, double windPush) {
+    final count = switch (severity) {
+      WeatherSeverity.calm => 0,
+      WeatherSeverity.light => 5,
+      WeatherSeverity.moderate => 12,
+      WeatherSeverity.heavy => 20,
+      WeatherSeverity.storm => 30,
+    };
 
     final dropColor = isHolographic
-        ? HolographicColors.electricBlue.withValues(alpha: 0.25)
-        : Colors.white.withValues(alpha: 0.15);
+        ? HolographicColors.electricBlue.withValues(alpha: 0.22)
+        : Colors.white.withValues(alpha: 0.14);
 
-    _dropPaint.color = dropColor;
-
-    for (var i = 0; i < dropCount; i++) {
+    for (var i = 0; i < count; i++) {
       final seed = rng.nextDouble();
-      final speed = 0.5 + seed * 0.5;
-
-      // Each drop has its own phase offset so they don't all sync
+      final speed = 0.4 + seed * 0.6;
       final phase = (progress * speed + seed) % 1.0;
-      final x = (rng.nextDouble() + windPush * phase) * size.width;
+      final x = (rng.nextDouble() + windPush * 0.15 * phase) * size.width;
       final y = phase * size.height;
+      final length = 6.0 + severity.index * 3.0 + seed * 6.0;
+      final width = 1.0 + seed * 1.2;
 
-      // Drop length varies with speed and severity
-      final length = 4.0 + severity.index * 2.0 + seed * 4.0;
-      final width = 1.0 + seed * 1.5;
+      final dx = windPush * length * 0.4;
 
-      // Draw the drop as a short rounded line
-      _streakPaint
+      _paint
+        ..style = PaintingStyle.stroke
         ..color = dropColor
-        ..strokeWidth = width;
+        ..strokeWidth = width
+        ..strokeCap = StrokeCap.round;
 
-      final dx = windPush * length * 2;
       canvas.drawLine(
         Offset(x, y),
         Offset(x + dx, y + length),
-        _streakPaint,
+        _paint,
+      );
+    }
+  }
+
+  void _drawSplashes(Canvas canvas, Size size, math.Random rng) {
+    final count = switch (severity) {
+      WeatherSeverity.calm => 0,
+      WeatherSeverity.light => 2,
+      WeatherSeverity.moderate => 5,
+      WeatherSeverity.heavy => 8,
+      WeatherSeverity.storm => 14,
+    };
+
+    for (var i = 0; i < count; i++) {
+      final x = rng.nextDouble() * size.width;
+      final y = rng.nextDouble() * size.height;
+      final seed = rng.nextDouble();
+
+      // Each splash appears briefly during the animation cycle
+      final splashPhase = (progress * 2.0 + seed) % 1.0;
+      if (splashPhase > 0.15) continue; // Only visible for 15% of cycle
+
+      final splashProgress = splashPhase / 0.15; // 0→1 during splash
+      final radius = 3.0 + splashProgress * 8.0;
+      final alpha = (1.0 - splashProgress) * (isHolographic ? 0.20 : 0.12);
+
+      // Expanding ring
+      _paint
+        ..style = PaintingStyle.stroke
+        ..color = (isHolographic ? HolographicColors.neonCyan : Colors.white)
+            .withValues(alpha: alpha)
+        ..strokeWidth = 0.8;
+      canvas.drawCircle(Offset(x, y), radius, _paint);
+
+      // Tiny satellite droplets flying outward
+      for (var j = 0; j < 4; j++) {
+        final angle = j * math.pi / 2 + seed * math.pi;
+        final dist = radius * 1.2;
+        final sx = x + math.cos(angle) * dist;
+        final sy = y + math.sin(angle) * dist;
+        _paint
+          ..style = PaintingStyle.fill
+          ..color =
+              (isHolographic ? HolographicColors.electricBlue : Colors.white)
+                  .withValues(alpha: alpha * 0.7);
+        canvas.drawCircle(Offset(sx, sy), 0.8, _paint);
+      }
+    }
+  }
+
+  void _drawSpray(Canvas canvas, Size size, math.Random rng) {
+    final count = severity == WeatherSeverity.storm ? 10 : 5;
+    final color = isHolographic
+        ? HolographicColors.neonCyan.withValues(alpha: 0.07)
+        : Colors.white.withValues(alpha: 0.05);
+
+    _paint
+      ..style = PaintingStyle.stroke
+      ..color = color
+      ..strokeWidth = 0.6
+      ..strokeCap = StrokeCap.round;
+
+    for (var i = 0; i < count; i++) {
+      final sy = rng.nextDouble() * size.height;
+      final phase2 = (progress * 1.8 + rng.nextDouble()) % 1.0;
+      final sx = phase2 * size.width * 1.3 - size.width * 0.15;
+      final len = 12.0 + rng.nextDouble() * 30.0;
+      final jitter = rng.nextDouble() * 2 - 1;
+      canvas.drawLine(
+        Offset(sx, sy),
+        Offset(sx + len, sy + jitter),
+        _paint,
+      );
+    }
+  }
+
+  void _drawPooling(Canvas canvas, Size size) {
+    final intensity = switch (severity) {
+      WeatherSeverity.calm => 0.0,
+      WeatherSeverity.light => 0.0,
+      WeatherSeverity.moderate => 0.04,
+      WeatherSeverity.heavy => 0.07,
+      WeatherSeverity.storm => 0.10,
+    };
+
+    final poolColor =
+        isHolographic ? HolographicColors.electricBlue : Colors.white;
+
+    final poolHeight = 6.0 + severity.index * 3.0;
+
+    _paint
+      ..style = PaintingStyle.fill
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          poolColor.withValues(alpha: 0.0),
+          poolColor.withValues(alpha: intensity),
+        ],
+      ).createShader(
+        Rect.fromLTWH(0, size.height - poolHeight, size.width, poolHeight),
       );
 
-      // Small splash dot at the bottom of some drops
-      if (phase > 0.85 && i.isEven) {
-        _dropPaint.color = dropColor.withValues(alpha: 0.1);
-        canvas.drawCircle(Offset(x + dx, y + length), width * 2, _dropPaint);
-      }
-    }
+    canvas.drawRect(
+      Rect.fromLTWH(0, size.height - poolHeight, size.width, poolHeight),
+      _paint,
+    );
 
-    // Spray streaks for heavy/storm
-    if (severity.index >= WeatherSeverity.heavy.index) {
-      final sprayCount = severity == WeatherSeverity.storm ? 8 : 4;
-      final sprayColor = isHolographic
-          ? HolographicColors.neonCyan.withValues(alpha: 0.08)
-          : Colors.white.withValues(alpha: 0.06);
-      _streakPaint
-        ..color = sprayColor
-        ..strokeWidth = 0.8;
-
-      for (var i = 0; i < sprayCount; i++) {
-        final sy = rng.nextDouble() * size.height;
-        final phase2 = (progress * 1.5 + rng.nextDouble()) % 1.0;
-        final sx = phase2 * size.width * 1.2 - size.width * 0.1;
-        final len = 15.0 + rng.nextDouble() * 25.0;
-        canvas.drawLine(
-          Offset(sx, sy),
-          Offset(sx + len, sy + rng.nextDouble() * 3 - 1.5),
-          _streakPaint,
-        );
-      }
-    }
+    // Reset shader
+    _paint.shader = null;
   }
 
   @override

@@ -153,15 +153,14 @@ void main() {
     // Verify WindParticleOverlay is present (Layer 3) - conditional on wind/weather
     expect(find.byType(WindParticleOverlay), findsOneWidget);
 
-    // Verify other layers are NOT present (conditions not met in setup)
-    // FogOverlay requires fogDensity > 0.01 (default 0)
-    expect(find.byType(FogOverlay), findsNothing);
+    // Verify other layers are present (conditions now met by wave/wind data)
+    // FogOverlay triggers when wave intensity ≥ 0.3 (2.0m / 4.0 = 0.5)
+    expect(find.byType(FogOverlay), findsOneWidget);
 
-    // RainOverlay requires precipIntensity > 0.01 (default 0 for 20 knots wind)
-    // Our wind speed average is (20+15)/2 = 17.5 knots, so precipIntensity = 0.
-    expect(find.byType(RainOverlay), findsNothing);
+    // RainOverlay triggers at avgWindSpeed ≥ 8 kts ((20+15)/2 = 17.5)
+    expect(find.byType(RainOverlay), findsOneWidget);
 
-    // LightningOverlay requires stormIntensity > 0.01 (default 0 for 20 knots wind)
+    // LightningOverlay requires avgWindSpeed ≥ 25 (17.5 < 25, not met)
     expect(find.byType(LightningOverlay), findsNothing);
   });
 

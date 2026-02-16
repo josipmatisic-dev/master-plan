@@ -274,7 +274,8 @@ class BoatProvider extends ChangeNotifier {
 
   // ============ Utilities ============
 
-  static double _hdopToAccuracy(double? hdop) => hdop != null ? hdop * 5.0 : 0;
+  static double _hdopToAccuracy(double? hdop) =>
+      hdop != null ? hdop * 5.0 : 0.0;
 
   /// Convert app LatLng to latlong2 LatLng for RouteProvider compatibility.
   static latlong2.LatLng _toLatLng2(LatLng pos) {

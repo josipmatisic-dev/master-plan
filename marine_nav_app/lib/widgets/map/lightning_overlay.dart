@@ -1,6 +1,7 @@
 /// Lightning bolt overlay with procedural electric arcs and screen flash.
 library;
 
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -34,6 +35,7 @@ class _LightningOverlayState extends State<LightningOverlay>
   List<_BoltSegment> _currentBolt = [];
   double _flashOpacity = 0;
   bool _strikeScheduled = false;
+  Timer? _strikeTimer;
 
   @override
   void initState() {
@@ -73,12 +75,15 @@ class _LightningOverlayState extends State<LightningOverlay>
     final nextStrikeIn =
         minInterval + _random.nextDouble() * (maxInterval - minInterval);
 
-    Future.delayed(Duration(milliseconds: (nextStrikeIn * 1000).toInt()), () {
-      _strikeScheduled = false;
-      if (!mounted || widget.stormIntensity < 0.01) return;
-      _strike();
-      _scheduleNextStrike();
-    });
+    _strikeTimer = Timer(
+      Duration(milliseconds: (nextStrikeIn * 1000).toInt()),
+      () {
+        _strikeScheduled = false;
+        if (!mounted || widget.stormIntensity < 0.01) return;
+        _strike();
+        _scheduleNextStrike();
+      },
+    );
   }
 
   void _strike() {
@@ -159,6 +164,7 @@ class _LightningOverlayState extends State<LightningOverlay>
 
   @override
   void dispose() {
+    _strikeTimer?.cancel();
     _flashController.dispose();
     _boltController.dispose();
     super.dispose();
@@ -214,6 +220,18 @@ class _BoltPainter extends CustomPainter {
   final double progress;
   final bool isHolographic;
 
+  final Paint _outerGlow = Paint()
+    ..strokeCap = StrokeCap.round
+    ..strokeWidth = 14
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8);
+  final Paint _innerGlow = Paint()
+    ..strokeCap = StrokeCap.round
+    ..strokeWidth = 6
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
+  final Paint _core = Paint()
+    ..strokeCap = StrokeCap.round
+    ..strokeWidth = 2;
+
   _BoltPainter({
     required this.segments,
     required this.progress,
@@ -232,37 +250,29 @@ class _BoltPainter extends CustomPainter {
     for (final seg in segments) {
       final alpha = (progress * seg.brightness).clamp(0.0, 1.0);
 
-      // Outer glow (14px)
-      canvas.drawLine(
-        seg.start,
-        seg.end,
-        Paint()
-          ..color = glowColor.withValues(alpha: alpha * 0.25)
-          ..strokeWidth = 14
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
-      );
+      // Outer glow
+      _outerGlow.color = glowColor.withValues(alpha: alpha * 0.25);
+      canvas.drawLine(seg.start, seg.end, _outerGlow);
 
-      // Inner glow (6px)
-      canvas.drawLine(
-        seg.start,
-        seg.end,
-        Paint()
-          ..color = glowColor.withValues(alpha: alpha * 0.6)
-          ..strokeWidth = 6
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
-      );
+      // Inner glow
+      _innerGlow.color = glowColor.withValues(alpha: alpha * 0.6);
+      canvas.drawLine(seg.start, seg.end, _innerGlow);
 
-      // Core line (2px)
-      canvas.drawLine(
-        seg.start,
-        seg.end,
-        Paint()
-          ..color = coreColor.withValues(alpha: alpha)
-          ..strokeWidth = 2
-          ..strokeCap = StrokeCap.round,
-      );
+      // Core line
+      _core.color = coreColor.withValues(alpha: alpha);
+      canvas.drawLine(seg.start, seg.end, _core);
+    }
+
+    // Holographic: afterglow ring at bolt origin
+    if (isHolographic && segments.isNotEmpty && progress > 0.3) {
+      final origin = segments.first.start;
+      final ringAlpha = ((progress - 0.3) / 0.7).clamp(0.0, 1.0);
+      final ringRadius = (1.0 - ringAlpha) * 60;
+      _outerGlow
+        ..color = const Color(0xFF00D9FF).withValues(alpha: ringAlpha * 0.15)
+        ..strokeWidth = 2;
+      canvas.drawCircle(origin, ringRadius, _outerGlow);
+      _outerGlow.strokeWidth = 14; // restore
     }
   }
 

@@ -129,13 +129,11 @@ void main() {
     expect(find.byType(BoatMarkerOverlay), findsOneWidget);
 
     // Rain/Storm layers depend on wind speed logic in build method.
-    // > 20 knots -> RainOverlay
-    // > 30 knots -> LightningOverlay
-    // Our wind is 25 knots. So Rain yes, Lightning no.
+    // 25 knots → precipIntensity = 0.6, stormIntensity = 0.4
     expect(find.byType(RainOverlay), findsOneWidget);
-    expect(find.byType(LightningOverlay), findsNothing);
+    expect(find.byType(LightningOverlay), findsOneWidget);
 
-    // Fog depends on fogDensity hardcoded to 0.0 in current implementation
-    expect(find.byType(FogOverlay), findsNothing);
+    // Fog now derived from wave intensity (2.0m / 4.0 = 0.5 → fogDensity 0.4)
+    expect(find.byType(FogOverlay), findsOneWidget);
   });
 }
