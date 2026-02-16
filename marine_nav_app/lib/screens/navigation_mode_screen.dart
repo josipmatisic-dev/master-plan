@@ -17,7 +17,7 @@ import '../widgets/effects/holographic_shimmer.dart';
 import '../widgets/effects/particle_background.dart';
 import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
-import '../widgets/map/map_webview.dart';
+import '../widgets/map/weather_layer_stack.dart';
 import '../widgets/navigation/course_deviation_indicator.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
 import '../widgets/navigation/nmea_connection_widget.dart';
@@ -40,7 +40,7 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
         child: SizedBox.expand(
           child: Stack(
             children: [
-              const Positioned.fill(child: MapWebView(height: null)),
+              const Positioned.fill(child: WeatherLayerStack()),
               if (isHolographic)
                 const Positioned.fill(
                   child: IgnorePointer(
