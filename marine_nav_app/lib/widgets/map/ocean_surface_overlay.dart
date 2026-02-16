@@ -31,6 +31,7 @@ class _OceanSurfaceOverlayState extends State<OceanSurfaceOverlay>
   late Ticker _ticker;
   double _time = 0;
   bool _shaderLoaded = false;
+  int _frameCount = 0;
 
   @override
   void initState() {
@@ -51,6 +52,9 @@ class _OceanSurfaceOverlayState extends State<OceanSurfaceOverlay>
   }
 
   void _onTick(Duration elapsed) {
+    _frameCount++;
+    // Throttle to ~30fps
+    if (_frameCount % 2 != 0) return;
     setState(() {
       _time = elapsed.inMilliseconds / 1000.0;
     });

@@ -9,6 +9,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../providers/map_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/weather_provider.dart';
 import 'fog_overlay.dart';
@@ -22,8 +23,8 @@ import 'wind_particle_overlay.dart';
 ///
 /// Layer order (bottom to top):
 /// 1. Map (maplibre_gl)
-/// 2. Ocean surface caustics (GLSL)
-/// 3. Wind flow particles (CustomPainter)
+/// 2. Ocean surface caustics (GLSL) — only when wave data exists
+/// 3. Wind flow particles (CustomPainter) — geographic, viewport-aware
 /// 4. Fog/atmosphere (GLSL)
 /// 5. Rain/snow/hail (GLSL)
 /// 6. Lightning/thunder (CustomPainter + flash)
@@ -39,11 +40,24 @@ class WeatherLayerStack extends StatelessWidget {
   Widget build(BuildContext context) {
     final isHolographic = context.watch<ThemeProvider>().isHolographic;
     final weather = context.watch<WeatherProvider>();
+    final mapProvider = context.watch<MapProvider>();
 
-    // Extract weather conditions for layer parameters
     final windPoints = weather.data.windPoints;
     final wavePoints = weather.data.wavePoints;
-    final hasWeather = weather.hasData;
+    final hasWind = windPoints.isNotEmpty && weather.isWindVisible;
+    final hasWaves = wavePoints.isNotEmpty;
+
+    // Use MapProvider viewport bounds for geographic overlay positioning
+    final vp = mapProvider.viewport;
+    final vpBounds = vp.size.isEmpty ? null : vp.bounds;
+    final geoBounds = vpBounds != null
+        ? (
+            south: vpBounds.south,
+            north: vpBounds.north,
+            west: vpBounds.west,
+            east: vpBounds.east,
+          )
+        : null;
 
     // Compute average wind speed/direction for rain angle
     double avgWindAngle = 0;
@@ -60,43 +74,29 @@ class WeatherLayerStack extends StatelessWidget {
       avgWindSpeed = speedSum / windPoints.length;
     }
 
-    // Compute average wave height for ocean intensity
+    // Compute wave intensity from data
     double waveIntensity = 0;
-    if (wavePoints.isNotEmpty) {
+    if (hasWaves) {
       double sum = 0;
       for (final wp in wavePoints) {
         sum += wp.heightMeters;
       }
-      // Normalize: 0m=0.0, 4m+=1.0
       waveIntensity = (sum / wavePoints.length / 4.0).clamp(0.0, 1.0);
     }
 
-    // Compute wind data bounds for particle overlay
-    ({double south, double north, double west, double east})? windBounds;
-    if (windPoints.length >= 2) {
-      double south = 90, north = -90, west = 180, east = -180;
-      for (final wp in windPoints) {
-        if (wp.position.latitude < south) south = wp.position.latitude;
-        if (wp.position.latitude > north) north = wp.position.latitude;
-        if (wp.position.longitude < west) west = wp.position.longitude;
-        if (wp.position.longitude > east) east = wp.position.longitude;
-      }
-      windBounds = (south: south, north: north, west: west, east: east);
-    }
-
-    // TODO: These values would come from actual weather conditions
-    // For now, derive from wind speed as a rough proxy
-    final precipIntensity = hasWeather ? (avgWindSpeed > 20 ? 0.6 : 0.0) : 0.0;
+    // Derive precipitation/storm from wind speed (rough proxy until
+    // we have actual precip data from API)
+    final precipIntensity = avgWindSpeed > 20 ? 0.6 : 0.0;
     const fogDensity = 0.0; // Will be driven by visibility data
-    final stormIntensity = hasWeather ? (avgWindSpeed > 30 ? 0.5 : 0.0) : 0.0;
+    final stormIntensity = avgWindSpeed > 30 ? 0.5 : 0.0;
 
     final stack = Stack(
       children: [
         // Layer 1: Map
         const Positioned.fill(child: MapLibreMapWidget()),
 
-        // Layer 2: Ocean surface caustics
-        if (hasWeather || waveIntensity > 0)
+        // Layer 2: Ocean surface caustics — only when wave data exists
+        if (hasWaves)
           Positioned.fill(
             child: IgnorePointer(
               child: OceanSurfaceOverlay(
@@ -106,14 +106,14 @@ class WeatherLayerStack extends StatelessWidget {
             ),
           ),
 
-        // Layer 3: Wind flow particles
-        if (windPoints.isNotEmpty && weather.isWindVisible)
+        // Layer 3: Wind flow particles — geographic, viewport-aware
+        if (hasWind && geoBounds != null)
           Positioned.fill(
             child: IgnorePointer(
               child: WindParticleOverlay(
                 windPoints: windPoints,
                 isHolographic: isHolographic,
-                bounds: windBounds,
+                bounds: geoBounds,
               ),
             ),
           ),
