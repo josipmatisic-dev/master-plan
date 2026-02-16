@@ -15,6 +15,9 @@ import '../models/viewport.dart';
 import 'cache_provider.dart';
 import 'settings_provider.dart';
 
+/// Typedef for native map controller to avoid hard dependency.
+typedef NativeMapController = dynamic;
+
 /// Map error types.
 enum MapErrorType {
   /// Network request failed.
@@ -57,6 +60,7 @@ class MapProvider extends ChangeNotifier {
   bool _isInitialized = false;
   bool _isMapReady = false;
   WebViewController? _webViewController;
+  NativeMapController? _nativeMapController;
   Timer? _syncDebounce;
 
   /// Debounce duration for viewport sync (ISS-008).
@@ -99,6 +103,17 @@ class MapProvider extends ChangeNotifier {
   void attachWebView(WebViewController controller) {
     _webViewController = controller;
   }
+
+  /// Signal that the native MapLibre map is ready.
+  void handleMapReady(NativeMapController? controller) {
+    _nativeMapController = controller;
+    _isMapReady = true;
+    debugPrint('MapProvider: ✅ Native map is READY');
+    notifyListeners();
+  }
+
+  /// The native map controller (if using maplibre_gl).
+  NativeMapController? get nativeMapController => _nativeMapController;
 
   /// Send the MapTiler API key to JS and trigger map init.
   Future<void> initializeMap(String apiKey) async {

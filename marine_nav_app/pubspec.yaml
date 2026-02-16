@@ -29,6 +29,9 @@ dependencies:
   cupertino_icons: ^1.0.2
   webview_flutter: ^4.7.0
 
+  # Native Map
+  maplibre_gl: ^0.25.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -40,3 +43,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/map.html
+
+  shaders:
+    - shaders/ocean_surface.frag
+    - shaders/sea_fog.frag
+    - shaders/rain.frag
