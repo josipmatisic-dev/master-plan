@@ -26,6 +26,7 @@ import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/vessel_screen.dart';
 import 'screens/weather_screen.dart';
+import 'services/cache_service.dart';
 import 'services/trip_log_service.dart';
 
 void main() async {
@@ -43,7 +44,8 @@ void main() async {
   // Initialize providers
   final settingsProvider = SettingsProvider();
   final themeProvider = ThemeProvider();
-  final cacheProvider = CacheProvider();
+  final cacheService = CacheService();
+  final cacheProvider = CacheProvider(cacheService: cacheService);
   final mapProvider = MapProvider(
     settingsProvider: settingsProvider,
     cacheProvider: cacheProvider,
@@ -64,7 +66,7 @@ void main() async {
     settingsProvider: settingsProvider,
     cacheProvider: cacheProvider,
   );
-  final tripLogService = TripLogService();
+  final tripLogService = TripLogService(cacheService: cacheService);
   final boatProvider = BoatProvider(
     nmeaProvider: nmeaProvider,
     mapProvider: mapProvider,
