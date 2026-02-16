@@ -190,7 +190,7 @@ class WeatherProvider extends ChangeNotifier {
     final rWest = double.parse(west.toStringAsFixed(1));
     final rEast = double.parse(east.toStringAsFixed(1));
 
-    final cacheKey = 'weather_${rSouth}_${rNorth}_${rWest}_${rEast}';
+    final cacheKey = 'weather_${rSouth}_${rNorth}_${rWest}_$rEast';
 
     // 1. Try cache first (unless forced)
     if (!force) {

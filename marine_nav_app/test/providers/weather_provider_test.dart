@@ -390,8 +390,8 @@ void main() {
       // 1. Pre-populate cache with fresh data
       final cachedData = WeatherData(
         fetchedAt: DateTime.now(),
-        windPoints: [
-          const WindDataPoint(
+        windPoints: const [
+          WindDataPoint(
             position: LatLng(latitude: 60.0, longitude: 10.0),
             speedKnots: 15.0,
             directionDegrees: 180.0,
