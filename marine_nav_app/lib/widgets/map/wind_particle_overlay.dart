@@ -61,7 +61,8 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   ({double south, double north, double west, double east})? _lastBounds;
 
   /// Velocity scale: converts knots to degrees/frame at ~60fps.
-  static const _velocityScale = 0.00005;
+  /// Adjusted to match Windy.com visual speed (approx 100x real-time).
+  static const _velocityScale = 0.00001;
 
   @override
   void initState() {
@@ -114,9 +115,13 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   GeoParticle _spawnInBounds(
     ({double south, double north, double west, double east}) b,
   ) {
+    // Correctly access record fields
+    final latRange = b.north - b.south;
+    final lngRange = b.east - b.west;
+
     final p = GeoParticle(
-      lat: b.south + _random.nextDouble() * (b.north - b.south),
-      lng: b.west + _random.nextDouble() * (b.east - b.west),
+      lat: b.south + _random.nextDouble() * latRange,
+      lng: b.west + _random.nextDouble() * lngRange,
       maxAge: 60.0 + _random.nextInt(60), // 1-2 seconds at 60fps
     );
     // Stagger initial age to prevent all particles spawning at once
@@ -153,8 +158,12 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
       final wind = data.getInterpolatedWind(p.lat, p.lng);
 
       // Advect in geographic space
+      // Adjust dLng by cos(lat) to maintain constant physical speed
+      final cosLat = cos(p.lat * pi / 180.0);
       final dLat = wind.v * _velocityScale;
-      final dLng = wind.u * _velocityScale;
+      final dLng =
+          (wind.u * _velocityScale) / (cosLat.abs() < 0.01 ? 0.01 : cosLat);
+
       p.lat += dLat;
       p.lng += dLng;
 
@@ -163,8 +172,10 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
 
       // Screen-space velocity for trail rendering
       // These are approximate — exact projection happens in painter
-      final scaleX = 400.0 / lngRange; // rough screen width estimate
-      final scaleY = 400.0 / latRange;
+      final size =
+          context.mounted ? MediaQuery.sizeOf(context) : const Size(400, 800);
+      final scaleX = size.width / lngRange;
+      final scaleY = size.height / latRange;
       p.dx = dLng * scaleX;
       p.dy = -dLat * scaleY;
     }
