@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marine_nav_app/main.dart';
+import 'package:marine_nav_app/providers/ais_provider.dart';
 import 'package:marine_nav_app/providers/boat_provider.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
@@ -46,11 +47,15 @@ void main() {
     final timelineProvider = TimelineProvider(
       weatherProvider: weatherProvider,
     );
+    final aisProvider = AisProvider(
+      settingsProvider: settingsProvider,
+    );
 
     await settingsProvider.init();
     await themeProvider.init();
     await cacheProvider.init();
     await mapProvider.init();
+    await aisProvider.init();
 
     await tester.pumpWidget(
       MarineNavigationApp(
@@ -63,6 +68,7 @@ void main() {
         weatherProvider: weatherProvider,
         boatProvider: boatProvider,
         timelineProvider: timelineProvider,
+        aisProvider: aisProvider,
       ),
     );
 

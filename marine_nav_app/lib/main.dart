@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/ais_provider.dart';
 import 'providers/boat_provider.dart';
 import 'providers/cache_provider.dart';
 import 'providers/map_provider.dart';
@@ -62,6 +63,9 @@ void main() async {
   final timelineProvider = TimelineProvider(
     weatherProvider: weatherProvider,
   );
+  final aisProvider = AisProvider(
+    settingsProvider: settingsProvider,
+  );
 
   // Initialize all providers
   await Future.wait([
@@ -69,6 +73,7 @@ void main() async {
     themeProvider.init(),
     cacheProvider.init(),
     mapProvider.init(),
+    aisProvider.init(),
   ]);
 
   runApp(
@@ -82,6 +87,7 @@ void main() async {
       weatherProvider: weatherProvider,
       boatProvider: boatProvider,
       timelineProvider: timelineProvider,
+      aisProvider: aisProvider,
     ),
   );
 }
@@ -120,6 +126,9 @@ class MarineNavigationApp extends StatelessWidget {
   /// The timeline provider (Layer 2).
   final TimelineProvider timelineProvider;
 
+  /// The AIS provider (Layer 2).
+  final AisProvider aisProvider;
+
   /// Creates a MarineNavigationApp with pre-initialized providers.
   const MarineNavigationApp({
     super.key,
@@ -132,6 +141,7 @@ class MarineNavigationApp extends StatelessWidget {
     required this.weatherProvider,
     required this.boatProvider,
     required this.timelineProvider,
+    required this.aisProvider,
   });
 
   @override
@@ -170,6 +180,9 @@ class MarineNavigationApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<TimelineProvider>.value(
           value: timelineProvider,
+        ),
+        ChangeNotifierProvider<AisProvider>.value(
+          value: aisProvider,
         ),
       ],
       child: Consumer<ThemeProvider>(
