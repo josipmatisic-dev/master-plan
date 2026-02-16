@@ -12,6 +12,7 @@ import 'providers/boat_provider.dart';
 import 'providers/cache_provider.dart';
 import 'providers/map_provider.dart';
 import 'providers/nmea_provider.dart';
+import 'providers/quality_provider.dart';
 import 'providers/route_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
@@ -81,10 +82,12 @@ void main() async {
     routeProvider: routeProvider,
     aisProvider: aisProvider,
     tripLogService: tripLogService,
+    mobService: mobService,
   );
   final timelineProvider = TimelineProvider(
     weatherProvider: weatherProvider,
   );
+  final qualityProvider = QualityProvider();
 
   // Initialize all providers
   await Future.wait([
@@ -97,6 +100,7 @@ void main() async {
     tripLogService.init(),
     mobService.init(),
     vesselProvider.init(),
+    qualityProvider.init(),
   ]);
 
   runApp(
@@ -115,6 +119,7 @@ void main() async {
       tripLogService: tripLogService,
       mobService: mobService,
       vesselProvider: vesselProvider,
+      qualityProvider: qualityProvider,
     ),
   );
 }
@@ -168,6 +173,9 @@ class MarineNavigationApp extends StatelessWidget {
   /// The vessel provider (Layer 2).
   final VesselProvider vesselProvider;
 
+  /// The quality/performance provider (Layer 1).
+  final QualityProvider qualityProvider;
+
   /// Creates a MarineNavigationApp with pre-initialized providers.
   const MarineNavigationApp({
     super.key,
@@ -185,6 +193,7 @@ class MarineNavigationApp extends StatelessWidget {
     required this.tripLogService,
     required this.mobService,
     required this.vesselProvider,
+    required this.qualityProvider,
   });
 
   @override
@@ -238,6 +247,9 @@ class MarineNavigationApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<VesselProvider>.value(
           value: vesselProvider,
+        ),
+        ChangeNotifierProvider<QualityProvider>.value(
+          value: qualityProvider,
         ),
       ],
       child: Consumer<ThemeProvider>(

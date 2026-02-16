@@ -1,8 +1,4 @@
-/// Boat Provider - Layer 2
-///
-/// Consumes NMEAProvider data when connected, falls back to phone GPS
-/// via LocationService when NMEA is unavailable. Filters unrealistic
-/// positions (ISS-018) and maintains track history.
+/// Boat Provider - Layer 2: NMEA → phone GPS fallback, ISS-018 filtering.
 library;
 
 import 'dart:async';
@@ -17,6 +13,7 @@ import '../models/lat_lng.dart';
 import '../services/anchor_alarm_service.dart';
 import '../services/geo_utils.dart';
 import '../services/location_service.dart';
+import '../services/mob_service.dart';
 import '../services/trip_log_service.dart';
 import 'ais_provider.dart';
 import 'map_provider.dart';
@@ -44,6 +41,7 @@ class BoatProvider extends ChangeNotifier {
   final AisProvider? _aisProvider;
   final AnchorAlarmService _anchorAlarm;
   final TripLogService? _tripLogService;
+  final MobService? _mobService;
 
   BoatPosition? _currentPosition;
   PositionSource _source = PositionSource.none;
@@ -64,13 +62,15 @@ class BoatProvider extends ChangeNotifier {
     AisProvider? aisProvider,
     AnchorAlarmService? anchorAlarmService,
     TripLogService? tripLogService,
+    MobService? mobService,
   })  : _nmeaProvider = nmeaProvider,
         _mapProvider = mapProvider,
         _locationService = locationService ?? LocationService(),
         _routeProvider = routeProvider,
         _aisProvider = aisProvider,
         _anchorAlarm = anchorAlarmService ?? AnchorAlarmService(),
-        _tripLogService = tripLogService {
+        _tripLogService = tripLogService,
+        _mobService = mobService {
     _nmeaProvider.addListener(_onNmeaUpdate);
     _startPhoneGps();
   }
@@ -118,14 +118,11 @@ class BoatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Mark Man Overboard at current position. Returns position or null.
-  BoatPosition? markMob() {
-    if (_currentPosition == null) return null;
-    debugPrint(
-      'MOB TRIGGERED at ${_currentPosition!.position.latitude}, '
-      '${_currentPosition!.position.longitude}',
-    );
-    return _currentPosition;
+  /// Trigger MOB at current position. Returns marker or null if no fix.
+  MobMarker? triggerMob() {
+    final pos = _currentPosition;
+    if (pos == null || _mobService == null) return null;
+    return _mobService.markMob(pos);
   }
 
   // ============ NMEA Source (Primary) ============
