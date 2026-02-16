@@ -83,9 +83,12 @@ class AnchorAlarm {
   }
 
   AnchorAlarmState _computeState(double distanceMeters) {
-    if (distanceMeters >= radiusMeters) return AnchorAlarmState.triggered;
-    if (distanceMeters >= warningThresholdMeters)
+    if (distanceMeters >= radiusMeters) {
+      return AnchorAlarmState.triggered;
+    }
+    if (distanceMeters >= warningThresholdMeters) {
       return AnchorAlarmState.warning;
+    }
     return AnchorAlarmState.safe;
   }
 

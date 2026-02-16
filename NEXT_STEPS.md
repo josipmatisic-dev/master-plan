@@ -1,19 +1,19 @@
 # Next Steps - Marine Navigation App (SailStream)
 
-**Date:** 2026-02-15  
-**Current Phase:** Active Development (Weather Overlays + Merge Reconciliation Complete)  
-**Status:** 🟡 In Progress — Multiple Feature Branches Active
+**Date:** 2026-02-17  
+**Current Phase:** Active Development (AIS + Anchor Alarm Complete)  
+**Status:** 🟡 In Progress — Feature Branch feat/weather-overlays
 
 ---
 
 ## Executive Summary
 
-The app has significant implementation across multiple features, with **313 tests passing** and **0 lint warnings**. Branch `feat/weather-overlays` has been reconciled with `origin/main` (unified BoatPosition model). Three parallel Copilot CLI instances coordinate via `.copilot-coordination.md`.
+The app has significant implementation across multiple features, with **419 tests passing** and **0 lint warnings/errors**. Branch `feat/weather-overlays` is 30+ commits ahead of `main` with all CI checks passing.
 
 ### What's Done
 
-- ✅ Core architecture (9 providers, 11 services, 8 models)
-- ✅ NMEA data integration (parser, service, provider, instrument parsers)
+- ✅ Core architecture (10 providers, 13 services, 9 models)
+- ✅ NMEA data integration (parser, service, provider, instrument parsers, TCP + UDP)
 - ✅ SailStream UI (Ocean Glass + Holographic Cyberpunk themes)
 - ✅ Navigation Mode screen with data orbs, compass, XTE
 - ✅ Boat position tracking (NMEA + phone GPS fallback, ISS-018 filtering)
@@ -21,12 +21,16 @@ The app has significant implementation across multiple features, with **313 test
 - ✅ Route management (RouteProvider, GeoUtils, RouteMapBridge)
 - ✅ Settings, Dashboard, Vessel, Profile screens
 - ✅ Timeline playback (TimelineProvider, TimelineControls, Grid-based WeatherFrame)
+- ✅ AIS vessel tracking (aisstream.io WebSocket, CPA/TCPA collision warnings, 500-target manager)
+- ✅ Anchor alarm (geofence model, alarm service, BoatProvider integration, 21 tests)
+- ✅ CacheProvider backend (disk-backed CacheService with LRU/TTL)
+- ✅ MapProvider native migration (MapLibre controller, removed WebView bridge)
 
 ### What's In Progress
 
-- 🟡 Weather rendering (WebGL wind/wave pipeline ~60%)
-- 🟡 CacheProvider backend (shell only — ISS-019)
-- 🟡 MapWebView ↔ Provider full integration (Timeline wired)
+- 🟡 Weather rendering (native overlays — wind particles, wave, fog, rain, lightning)
+- 🟡 AIS → UI integration (vessel markers on map, collision alerts in nav mode)
+- 🟡 Anchor alarm UI (set/clear button, radius slider, drift indicator)
 
 ---
 
@@ -62,13 +66,26 @@ The app has significant implementation across multiple features, with **313 test
 - `TimelineControls` UI widget
 - Integration with `MapWebView`
 
+**AIS Vessel Tracking (FEAT-006)** ✅
+- AisTarget model with nav status, ship categories, dimensions
+- AisService WebSocket client for aisstream.io
+- AisCollisionCalculator (CPA/TCPA vector-based)
+- AisProvider (500ms batching, max 500 targets, auto-reconnect)
+- 22 unit tests
+
+**Anchor Alarm (FEAT-007)** ✅
+- AnchorAlarm model (geofence circle, states: safe/warning/triggered)
+- AnchorAlarmService (drift monitoring, radius adjustment, state transitions)
+- Wired into BoatProvider (auto-checks on each position fix)
+- 21 unit tests
+
 ---
 
 ## Infrastructure & Quality
 
 ### Testing
 
-**Current:** 313/313 tests passing, 0 lint warnings  
+**Current:** 419/419 tests passing, 0 lint warnings/errors  
 **Target:** 80%+ coverage for all new code
 
 **Remaining:**
@@ -88,8 +105,8 @@ The app has significant implementation across multiple features, with **313 test
 
 ### Upcoming Features
 
-- AIS integration (collision warnings, target display)
-- Anchor alarm with geofence
+- AIS UI overlay (vessel markers on map, info panels)
+- Anchor alarm UI (set/clear, radius adjustment, drift indicator)
 - Tides & currents overlay
 - Offline mode (cache-first for all data)
 - Trip logging and export
@@ -103,5 +120,5 @@ The app has significant implementation across multiple features, with **313 test
 
 ---
 
-**Last Updated:** 2026-02-15  
-**Next Review:** After weather rendering pipeline completion
+**Last Updated:** 2026-02-17  
+**Next Review:** After AIS UI overlay and anchor alarm UI

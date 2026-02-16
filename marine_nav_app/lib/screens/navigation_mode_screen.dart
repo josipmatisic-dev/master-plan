@@ -18,6 +18,7 @@ import '../widgets/effects/particle_background.dart';
 import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
 import '../widgets/map/weather_layer_stack.dart';
+import '../widgets/navigation/collision_alert_overlay.dart';
 import '../widgets/navigation/course_deviation_indicator.dart';
 import '../widgets/navigation/navigation_sidebar.dart';
 import '../widgets/navigation/nmea_connection_widget.dart';
@@ -54,6 +55,12 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
                 ),
               if (isHolographic) const Positioned.fill(child: ScanLineEffect()),
               _buildTopBar(context, isHolographic),
+              const Positioned(
+                top: 120,
+                left: 0,
+                right: 0,
+                child: CollisionAlertOverlay(),
+              ),
               _buildDataOrbsRow(context),
               _buildSidebar(context),
               _buildRouteInfoCard(context, isHolographic),

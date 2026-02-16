@@ -1,8 +1,8 @@
 # Provider Dependency Graph - Phase 3
 
-**Version:** 4.0  
+**Version:** 5.0  
 **Date:** 2026-02-17  
-**Status:** Implemented (AisProvider added)
+**Status:** Implemented (AnchorAlarmService added)
 
 ---
 
@@ -248,14 +248,15 @@ class WeatherProvider extends ChangeNotifier {
 #### BoatProvider (NEW - Phase 2)
 
 - File: `lib/providers/boat_provider.dart`
-- Lines: ~230 (under 300 limit ✅)
-- Dependencies: NMEAProvider (Layer 2 peer), MapProvider (Layer 2 peer), LocationService (optional, for phone GPS fallback), RouteProvider (optional, for XTE/nav sync)
+- Lines: ~263 (under 300 limit ✅)
+- Dependencies: NMEAProvider (Layer 2 peer), MapProvider (Layer 2 peer), LocationService (optional, for phone GPS fallback), RouteProvider (optional, for XTE/nav sync), AnchorAlarmService (service, for geofence monitoring)
 - Responsibilities:
   - Consume NMEAProvider position data via `addListener`
   - Maintain current vessel position state
   - Track history with LRU eviction (max 1000 points)
   - ISS-018 position jump filtering (reject speed >50 m/s + accuracy >50 m)
   - Follow-boat mode (auto-center map on vessel)
+  - Anchor alarm geofence monitoring (set/clear anchor, drift detection)
 
 **API:**
 
@@ -265,6 +266,7 @@ class BoatProvider extends ChangeNotifier {
   PositionSource get source;           // none, nmea, phoneGps
   bool get followBoat;
   Queue<TrackPoint> get trackHistory;  // LRU queue, max 1000 points
+  AnchorAlarmService get anchorAlarm;  // geofence monitoring
   
   void toggleFollowBoat();
   void dispose();
@@ -481,7 +483,8 @@ MultiProvider(
 | TimelineProvider | 12 | ✅ |
 | BoatPosition (model) | 14 | ✅ |
 | AIS (models + collision) | 22 | ✅ |
-| **Total** | **170+** | **430 including widget/integration** |
+| AnchorAlarm (model + service) | 21 | ✅ |
+| **Total** | **190+** | **419 including widget/integration** |
 
 Key test areas per provider:
 
@@ -511,4 +514,4 @@ When adding new providers in Layer 2:
 
 **Created:** 2026-02-01
 **Last Updated:** 2026-02-17
-**Status:** Phase 3 — AIS Vessel Tracking ✅
+**Status:** Phase 3 — AIS Vessel Tracking + Anchor Alarm ✅

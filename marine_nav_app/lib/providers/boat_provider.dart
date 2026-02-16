@@ -17,6 +17,7 @@ import '../models/lat_lng.dart';
 import '../services/anchor_alarm_service.dart';
 import '../services/geo_utils.dart';
 import '../services/location_service.dart';
+import 'ais_provider.dart';
 import 'map_provider.dart';
 import 'nmea_provider.dart';
 import 'route_provider.dart';
@@ -39,6 +40,7 @@ class BoatProvider extends ChangeNotifier {
   final MapProvider _mapProvider;
   final LocationService _locationService;
   final RouteProvider? _routeProvider;
+  final AisProvider? _aisProvider;
   final AnchorAlarmService _anchorAlarm;
 
   BoatPosition? _currentPosition;
@@ -57,11 +59,13 @@ class BoatProvider extends ChangeNotifier {
     required MapProvider mapProvider,
     LocationService? locationService,
     RouteProvider? routeProvider,
+    AisProvider? aisProvider,
     AnchorAlarmService? anchorAlarmService,
   })  : _nmeaProvider = nmeaProvider,
         _mapProvider = mapProvider,
         _locationService = locationService ?? LocationService(),
         _routeProvider = routeProvider,
+        _aisProvider = aisProvider,
         _anchorAlarm = anchorAlarmService ?? AnchorAlarmService() {
     _nmeaProvider.addListener(_onNmeaUpdate);
     _startPhoneGps();
@@ -193,6 +197,13 @@ class BoatProvider extends ChangeNotifier {
 
     // Update anchor alarm with new position.
     _anchorAlarm.updatePosition(newPos);
+
+    // Push position to AIS for collision detection
+    _aisProvider?.updateOwnVessel(
+      position: newPos.position,
+      sogKnots: newPos.speedKnots ?? 0.0,
+      cogDegrees: newPos.courseTrue ?? newPos.heading ?? 0.0,
+    );
 
     if (_followBoat) {
       _mapProvider.setCenter(newPos.position);

@@ -55,16 +55,17 @@ void main() async {
     settingsProvider: settingsProvider,
     cacheProvider: cacheProvider,
   );
+  final aisProvider = AisProvider(
+    settingsProvider: settingsProvider,
+  );
   final boatProvider = BoatProvider(
     nmeaProvider: nmeaProvider,
     mapProvider: mapProvider,
     routeProvider: routeProvider,
+    aisProvider: aisProvider,
   );
   final timelineProvider = TimelineProvider(
     weatherProvider: weatherProvider,
-  );
-  final aisProvider = AisProvider(
-    settingsProvider: settingsProvider,
   );
 
   // Initialize all providers
