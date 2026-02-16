@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import '../../providers/ais_provider.dart';
 import '../../providers/boat_provider.dart';
 import '../../providers/map_provider.dart';
+import '../../providers/quality_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../providers/weather_provider.dart';
 import 'ais_target_overlay.dart';
@@ -45,6 +46,7 @@ class WeatherLayerStack extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isHolographic = context.watch<ThemeProvider>().isHolographic;
+    final quality = context.watch<QualityProvider>();
     final weather = context.watch<WeatherProvider>();
     final mapProvider = context.watch<MapProvider>();
     final aisProvider = context.watch<AisProvider>();
@@ -137,13 +139,14 @@ class WeatherLayerStack extends StatelessWidget {
           ),
 
         // Layer 3: Wind flow particles — geographic, viewport-aware
-        if (hasWind && geoBounds != null)
+        if (hasWind && geoBounds != null && quality.showWind)
           Positioned.fill(
             child: IgnorePointer(
               child: WindParticleOverlay(
                 windPoints: windPoints,
                 isHolographic: isHolographic,
                 bounds: geoBounds,
+                maxParticles: quality.maxParticles,
               ),
             ),
           ),
@@ -177,7 +180,7 @@ class WeatherLayerStack extends StatelessWidget {
           ),
 
         // Layer 4: Fog/atmosphere
-        if (fogDensity > 0.01)
+        if (fogDensity > 0.01 && quality.showFog)
           Positioned.fill(
             child: IgnorePointer(
               child: FogOverlay(
@@ -188,7 +191,7 @@ class WeatherLayerStack extends StatelessWidget {
           ),
 
         // Layer 5: Rain/snow/hail
-        if (precipIntensity > 0.01)
+        if (precipIntensity > 0.01 && quality.showRain)
           Positioned.fill(
             child: IgnorePointer(
               child: RainOverlay(
@@ -201,7 +204,7 @@ class WeatherLayerStack extends StatelessWidget {
           ),
 
         // Layer 6: Lightning
-        if (stormIntensity > 0.01)
+        if (stormIntensity > 0.01 && quality.showLightning)
           Positioned.fill(
             child: IgnorePointer(
               child: LightningOverlay(

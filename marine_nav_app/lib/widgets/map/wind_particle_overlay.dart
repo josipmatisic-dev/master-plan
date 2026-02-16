@@ -83,6 +83,11 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
       _lastBounds = widget.bounds;
       _resetParticles();
     }
+
+    // Max particles changed → trim or expand
+    if (widget.maxParticles != oldWidget.maxParticles) {
+      _adjustParticleCount();
+    }
   }
 
   /// Pre-compute wind u,v components once (not per particle per frame).
@@ -111,6 +116,17 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   void _resetParticles() {
     _particles.clear();
     _initParticles();
+  }
+
+  void _adjustParticleCount() {
+    final b = widget.bounds;
+    if (b == null) return;
+    while (_particles.length > widget.maxParticles) {
+      _particles.removeLast();
+    }
+    while (_particles.length < widget.maxParticles) {
+      _particles.add(_spawnInBounds(b));
+    }
   }
 
   GeoParticle _spawnInBounds(

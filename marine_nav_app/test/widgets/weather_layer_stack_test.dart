@@ -9,6 +9,7 @@ import 'package:marine_nav_app/providers/boat_provider.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
 import 'package:marine_nav_app/providers/nmea_provider.dart';
+import 'package:marine_nav_app/providers/quality_provider.dart';
 import 'package:marine_nav_app/providers/route_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/providers/theme_provider.dart';
@@ -98,6 +99,9 @@ void main() {
           ChangeNotifierProvider.value(value: aisProvider),
           ChangeNotifierProvider.value(value: boatProvider),
           ChangeNotifierProvider.value(value: routeProvider),
+          ChangeNotifierProvider<QualityProvider>.value(
+            value: QualityProvider(),
+          ),
         ],
         child: const MaterialApp(
           home: Scaffold(

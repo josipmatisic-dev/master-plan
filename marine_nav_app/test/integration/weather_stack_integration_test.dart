@@ -6,6 +6,7 @@ import 'package:marine_nav_app/models/weather_data.dart';
 import 'package:marine_nav_app/providers/ais_provider.dart';
 import 'package:marine_nav_app/providers/boat_provider.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
+import 'package:marine_nav_app/providers/quality_provider.dart';
 import 'package:marine_nav_app/providers/route_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/providers/theme_provider.dart';
@@ -135,6 +136,9 @@ void main() {
           ChangeNotifierProvider<SettingsProvider>.value(
               value: mockSettingsProvider),
           ChangeNotifierProvider<ThemeProvider>.value(value: mockThemeProvider),
+          ChangeNotifierProvider<QualityProvider>.value(
+            value: QualityProvider(),
+          ),
         ],
         child: const MaterialApp(
           home: Scaffold(
@@ -183,6 +187,9 @@ void main() {
           ChangeNotifierProvider<SettingsProvider>.value(
               value: mockSettingsProvider),
           ChangeNotifierProvider<ThemeProvider>.value(value: mockThemeProvider),
+          ChangeNotifierProvider<QualityProvider>.value(
+            value: QualityProvider(),
+          ),
         ],
         child: const MaterialApp(
           home: Scaffold(

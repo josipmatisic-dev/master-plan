@@ -1,9 +1,12 @@
 /// Custom painter for wind particle visualization.
+/// Ported from Cameron Beccario's 'earth' project (MIT License).
+/// https://github.com/cambecc/earth
 library;
 
+import 'dart:math';
 import 'package:flutter/material.dart';
 
-/// Particle in geographic space with trail history.
+/// Particle in geographic space.
 class GeoParticle {
   /// Current latitude.
   double lat;
@@ -11,57 +14,63 @@ class GeoParticle {
   /// Current longitude.
   double lng;
 
-  /// Age in seconds since creation.
+  /// Age in seconds.
   double age;
 
-  /// Total lifetime in seconds before respawn.
+  /// Total lifetime in seconds.
   double lifetime;
 
-  /// Current speed in knots.
+  /// Current speed in knots (set during advection).
   double speed;
 
-  /// History of latitude positions for trail.
+  /// Trail history: latitude values.
   final List<double> trailLat;
 
-  /// History of longitude positions for trail.
+  /// Trail history: longitude values.
   final List<double> trailLng;
 
-  /// Creates a GeoParticle at given position.
+  /// Current X position on canvas (screen coordinates).
+  double x;
+
+  /// Current Y position on canvas (screen coordinates).
+  double y;
+
+  /// X velocity on canvas (screen coordinates).
+  double dx;
+
+  /// Y velocity on canvas (screen coordinates).
+  double dy;
+
+  /// Creates a GeoParticle.
   GeoParticle({
     required this.lat,
     required this.lng,
+    required this.lifetime,
     this.age = 0,
-    this.lifetime = 6.0,
-  })  : speed = 0,
-        trailLat = [],
-        trailLng = [];
-
-  /// Returns normalized age (0.0 to 1.0).
-  double get normalizedAge => (age / lifetime).clamp(0.0, 1.0);
-
-  /// Returns opacity alpha value based on age (fade in/out).
-  double get alpha {
-    if (normalizedAge < 0.15) return normalizedAge / 0.15;
-    if (normalizedAge > 0.8) return (1.0 - normalizedAge) / 0.2;
-    return 1.0;
-  }
+    this.speed = 0,
+  })  : x = 0,
+        y = 0,
+        dx = 0,
+        dy = 0,
+        trailLat = <double>[],
+        trailLng = <double>[];
 }
 
-/// Pre-computed wind vector at a grid point.
+/// Pre-computed wind vector for grid interpolation.
 class WindVector {
-  /// Latitude of grid point.
+  /// Latitude of this wind observation.
   final double lat;
 
-  /// Longitude of grid point.
+  /// Longitude of this wind observation.
   final double lng;
 
-  /// U component of wind vector (East-West).
+  /// U component (east-west) in knots.
   final double u;
 
-  /// V component of wind vector (North-South).
+  /// V component (north-south) in knots.
   final double v;
 
-  /// Magnitude of wind vector.
+  /// Wind speed magnitude in knots.
   final double speed;
 
   /// Creates a WindVector.
@@ -74,7 +83,7 @@ class WindVector {
   });
 }
 
-/// Painter that renders wind particles on a canvas.
+/// Painter that renders wind particles on a canvas using bilinear interpolation.
 class WindPainter extends CustomPainter {
   /// List of active particles to draw.
   final List<GeoParticle> particles;
@@ -85,13 +94,10 @@ class WindPainter extends CustomPainter {
   /// Whether to render in holographic theme mode.
   final bool isHolographic;
 
-  /// Reusable paint objects to avoid per-frame allocation.
-  final Paint _trailPaint = Paint()..strokeCap = StrokeCap.round;
-  final Paint _glowPaint = Paint()
-    ..strokeCap = StrokeCap.round
-    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5);
+  /// Reusable paint objects.
+  final Paint _particlePaint = Paint()..strokeCap = StrokeCap.round;
 
-  /// Frame counter to detect animation changes.
+  /// Frame counter for shouldRepaint.
   final int frameCount;
 
   /// Creates a WindPainter.
@@ -108,63 +114,65 @@ class WindPainter extends CustomPainter {
     final lngRange = bounds.east - bounds.west;
     if (latRange == 0 || lngRange == 0) return;
 
+    // Pre-calculate projection scale
+    final scaleX = size.width / lngRange;
+
     for (final p in particles) {
-      if (p.trailLat.length < 2) continue;
-      final alpha = p.alpha;
-      if (alpha < 0.02) continue;
-
-      final color = _colorForSpeed(p.speed, alpha);
-
-      for (int i = 0; i < p.trailLat.length - 1; i++) {
-        // Project lat/lng to canvas coordinates
-        final sx0 = (p.trailLng[i] - bounds.west) / lngRange * size.width;
-        final sy0 =
-            (1.0 - (p.trailLat[i] - bounds.south) / latRange) * size.height;
-        final sx1 = (p.trailLng[i + 1] - bounds.west) / lngRange * size.width;
-        final sy1 =
-            (1.0 - (p.trailLat[i + 1] - bounds.south) / latRange) * size.height;
-
-        final trailFade = 1.0 - (i / p.trailLat.length);
-        final w = isHolographic ? (1.5 * trailFade) : (2.0 * trailFade);
-        final segAlpha = alpha * trailFade;
-
-        final from = Offset(sx0, sy0);
-        final to = Offset(sx1, sy1);
-
-        // Draw glowing trails in holographic mode
-        if (isHolographic && i < 2) {
-          _glowPaint
-            ..color = color.withValues(alpha: segAlpha)
-            ..strokeWidth = w * 2.0;
-          canvas.drawLine(from, to, _glowPaint);
-        }
-
-        _trailPaint
-          ..color = color.withValues(alpha: segAlpha)
-          ..strokeWidth = w;
-        canvas.drawLine(from, to, _trailPaint);
+      // Fade in/out: 0.5s fade in, 0.5s fade out
+      double alpha = 1.0;
+      if (p.age < 0.5) {
+        alpha = p.age / 0.5;
+      } else if (p.age > p.lifetime - 0.5) {
+        alpha = (p.lifetime - p.age) / 0.5;
       }
+
+      if (alpha <= 0) continue;
+
+      // Calculate screen position
+      // Using linear interpolation for now (Web Mercator approx)
+      final sx = (p.lng - bounds.west) * scaleX;
+      // Latitude is inverted (top is 0)
+      final sy = (1.0 - (p.lat - bounds.south) / latRange) * size.height;
+
+      // Color based on approximate speed (magnitude of delta)
+      // Since dx/dy are screen deltas, they depend on zoom level.
+      // Ideally we'd use the particle's actual speed in m/s stored in the particle.
+      // For this port, we approximate intensity by vector length.
+      final speedFactor = sqrt(p.dx * p.dx + p.dy * p.dy);
+
+      final color = _colorForSpeed(speedFactor, alpha);
+
+      _particlePaint
+        ..color = color
+        ..strokeWidth = isHolographic ? 1.5 : 2.0;
+
+      // Draw particle as a short trail from previous position
+      // (sx - dx, sy - dy) -> (sx, sy)
+      // This creates the "streak" effect without storing full history
+      canvas.drawLine(
+        Offset(sx - p.dx * 3.0, sy - p.dy * 3.0),
+        Offset(sx, sy),
+        _particlePaint,
+      );
     }
   }
 
-  /// Returns color based on wind speed.
-  Color _colorForSpeed(double speedKnots, double alpha) {
+  /// Returns color based on wind speed intensity.
+  Color _colorForSpeed(double intensity, double alpha) {
+    // Tuning: expected screen speed 0.5 - 5.0 pixels/frame
     if (isHolographic) {
-      if (speedKnots < 5) return Color.fromRGBO(0, 255, 255, 0.4 * alpha);
-      if (speedKnots < 15) return Color.fromRGBO(0, 217, 255, 0.6 * alpha);
-      if (speedKnots < 25) return Color.fromRGBO(255, 0, 255, 0.7 * alpha);
+      if (intensity < 1.0) return Color.fromRGBO(0, 255, 255, 0.4 * alpha);
+      if (intensity < 3.0) return Color.fromRGBO(0, 217, 255, 0.6 * alpha);
       return Color.fromRGBO(255, 0, 255, 0.9 * alpha);
     } else {
-      if (speedKnots < 5) return Color.fromRGBO(255, 255, 255, 0.25 * alpha);
-      if (speedKnots < 15) return Color.fromRGBO(0, 201, 167, 0.45 * alpha);
-      if (speedKnots < 25) return Color.fromRGBO(255, 154, 61, 0.6 * alpha);
-      return Color.fromRGBO(255, 107, 107, 0.8 * alpha);
+      if (intensity < 1.0) return Color.fromRGBO(255, 255, 255, 0.3 * alpha);
+      if (intensity < 3.0) return Color.fromRGBO(0, 201, 167, 0.5 * alpha);
+      if (intensity < 5.0) return Color.fromRGBO(255, 154, 61, 0.7 * alpha);
+      return Color.fromRGBO(255, 107, 107, 0.9 * alpha);
     }
   }
 
   @override
   bool shouldRepaint(WindPainter oldDelegate) =>
-      frameCount != oldDelegate.frameCount ||
-      bounds != oldDelegate.bounds ||
-      isHolographic != oldDelegate.isHolographic;
+      frameCount != oldDelegate.frameCount;
 }
