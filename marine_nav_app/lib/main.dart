@@ -17,6 +17,7 @@ import 'providers/settings_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/tide_provider.dart';
 import 'providers/timeline_provider.dart';
+import 'providers/vessel_provider.dart';
 import 'providers/weather_provider.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/home_screen.dart';
@@ -27,6 +28,7 @@ import 'screens/settings_screen.dart';
 import 'screens/vessel_screen.dart';
 import 'screens/weather_screen.dart';
 import 'services/cache_service.dart';
+import 'services/mob_service.dart';
 import 'services/trip_log_service.dart';
 
 void main() async {
@@ -61,12 +63,18 @@ void main() async {
   );
   final aisProvider = AisProvider(
     settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
   );
   final tideProvider = TideProvider(
     settingsProvider: settingsProvider,
     cacheProvider: cacheProvider,
   );
   final tripLogService = TripLogService(cacheService: cacheService);
+  final mobService = MobService(cacheService: cacheService);
+  final vesselProvider = VesselProvider(
+    settingsProvider: settingsProvider,
+    cacheProvider: cacheProvider,
+  );
   final boatProvider = BoatProvider(
     nmeaProvider: nmeaProvider,
     mapProvider: mapProvider,
@@ -87,6 +95,8 @@ void main() async {
     aisProvider.init(),
     tideProvider.init(),
     tripLogService.init(),
+    mobService.init(),
+    vesselProvider.init(),
   ]);
 
   runApp(
@@ -103,6 +113,8 @@ void main() async {
       aisProvider: aisProvider,
       tideProvider: tideProvider,
       tripLogService: tripLogService,
+      mobService: mobService,
+      vesselProvider: vesselProvider,
     ),
   );
 }
@@ -150,6 +162,12 @@ class MarineNavigationApp extends StatelessWidget {
   /// The trip log service.
   final TripLogService tripLogService;
 
+  /// The MOB service.
+  final MobService mobService;
+
+  /// The vessel provider (Layer 2).
+  final VesselProvider vesselProvider;
+
   /// Creates a MarineNavigationApp with pre-initialized providers.
   const MarineNavigationApp({
     super.key,
@@ -165,6 +183,8 @@ class MarineNavigationApp extends StatelessWidget {
     required this.aisProvider,
     required this.tideProvider,
     required this.tripLogService,
+    required this.mobService,
+    required this.vesselProvider,
   });
 
   @override
@@ -212,6 +232,12 @@ class MarineNavigationApp extends StatelessWidget {
         ),
         ChangeNotifierProvider<TripLogService>.value(
           value: tripLogService,
+        ),
+        ChangeNotifierProvider<MobService>.value(
+          value: mobService,
+        ),
+        ChangeNotifierProvider<VesselProvider>.value(
+          value: vesselProvider,
         ),
       ],
       child: Consumer<ThemeProvider>(

@@ -10,8 +10,10 @@ import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/providers/theme_provider.dart';
 import 'package:marine_nav_app/providers/tide_provider.dart';
 import 'package:marine_nav_app/providers/timeline_provider.dart';
+import 'package:marine_nav_app/providers/vessel_provider.dart';
 import 'package:marine_nav_app/providers/weather_provider.dart';
 import 'package:marine_nav_app/services/location_service.dart';
+import 'package:marine_nav_app/services/mob_service.dart';
 import 'package:marine_nav_app/services/trip_log_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -51,12 +53,18 @@ void main() {
     );
     final aisProvider = AisProvider(
       settingsProvider: settingsProvider,
+      cacheProvider: cacheProvider,
     );
     final tideProvider = TideProvider(
       settingsProvider: settingsProvider,
       cacheProvider: cacheProvider,
     );
     final tripLogService = TripLogService();
+    final mobService = MobService();
+    final vesselProvider = VesselProvider(
+      settingsProvider: settingsProvider,
+      cacheProvider: cacheProvider,
+    );
 
     await settingsProvider.init();
     await themeProvider.init();
@@ -65,6 +73,8 @@ void main() {
     await aisProvider.init();
     await tideProvider.init();
     await tripLogService.init();
+    await mobService.init();
+    await vesselProvider.init();
 
     await tester.pumpWidget(
       MarineNavigationApp(
@@ -80,6 +90,8 @@ void main() {
         aisProvider: aisProvider,
         tideProvider: tideProvider,
         tripLogService: tripLogService,
+        mobService: mobService,
+        vesselProvider: vesselProvider,
       ),
     );
 

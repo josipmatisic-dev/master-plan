@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 
 import '../models/ais_target.dart';
 import '../models/lat_lng.dart';
+import '../providers/cache_provider.dart';
 import '../providers/settings_provider.dart';
 import '../services/ais_collision.dart';
 import '../services/ais_service.dart';
@@ -17,6 +18,7 @@ import '../services/ais_service.dart';
 /// AIS Provider - manages vessel targets and collision warnings.
 class AisProvider extends ChangeNotifier {
   final SettingsProvider _settings;
+  final CacheProvider? _cache;
   final AisService _service = AisService();
 
   StreamSubscription<AisTarget>? _targetSub;
@@ -51,9 +53,15 @@ class AisProvider extends ChangeNotifier {
   /// Stale target cleanup interval.
   static const Duration _cleanupInterval = Duration(minutes: 2);
 
+  /// Cache key for persisting AIS targets.
+  static const String _cacheKey = 'ais_targets';
+
   /// Creates an [AisProvider] with the given [SettingsProvider].
-  AisProvider({required SettingsProvider settingsProvider})
-      : _settings = settingsProvider;
+  AisProvider({
+    required SettingsProvider settingsProvider,
+    CacheProvider? cacheProvider,
+  })  : _settings = settingsProvider,
+        _cache = cacheProvider;
 
   // --- Public getters ---
 
@@ -77,6 +85,7 @@ class AisProvider extends ChangeNotifier {
 
   /// Initialize the provider.
   Future<void> init() async {
+    _loadFromCache();
     _stateSub = _service.stateStream.listen((state) {
       _connectionState = state;
       notifyListeners();
@@ -217,11 +226,52 @@ class AisProvider extends ChangeNotifier {
   Future<void> disconnect() async {
     _batchTimer?.cancel();
     _targetSub?.cancel();
+    _saveToCache();
     await _service.disconnect();
     _targets.clear();
     _warnings = [];
     _pendingUpdates.clear();
     notifyListeners();
+  }
+
+  /// Updates targets for testing purposes.
+  @visibleForTesting
+  void updateTargetsForTesting(List<AisTarget> targets) {
+    _targets.clear();
+    for (final target in targets) {
+      _targets[target.mmsi] = target;
+    }
+    notifyListeners();
+  }
+
+  void _loadFromCache() {
+    if (_cache == null) return;
+    final json = _cache.getJson(_cacheKey);
+    if (json == null) return;
+    try {
+      final list = json['targets'] as List;
+      for (final item in list) {
+        final target = AisTarget.fromJson(item as Map<String, dynamic>);
+        if (!target.isStale) {
+          _targets[target.mmsi] = target;
+        }
+      }
+      if (_targets.isNotEmpty) {
+        debugPrint('AisProvider: Restored ${_targets.length} cached targets');
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('AisProvider: Failed to load cache — $e');
+    }
+  }
+
+  void _saveToCache() {
+    if (_cache == null || _targets.isEmpty) return;
+    _cache.putJson(_cacheKey, {
+      'targets': _targets.values.map((t) => t.toJson()).toList(),
+      'savedAt': DateTime.now().toUtc().toIso8601String(),
+    });
+    debugPrint('AisProvider: Cached ${_targets.length} targets');
   }
 
   @override

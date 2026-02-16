@@ -118,6 +118,16 @@ class BoatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Mark Man Overboard at current position. Returns position or null.
+  BoatPosition? markMob() {
+    if (_currentPosition == null) return null;
+    debugPrint(
+      'MOB TRIGGERED at ${_currentPosition!.position.latitude}, '
+      '${_currentPosition!.position.longitude}',
+    );
+    return _currentPosition;
+  }
+
   // ============ NMEA Source (Primary) ============
 
   void _onNmeaUpdate() {
@@ -278,5 +288,12 @@ class BoatProvider extends ChangeNotifier {
     _gpsStatusSub?.cancel();
     _locationService.dispose();
     super.dispose();
+  }
+
+  /// Updates current position for testing purposes.
+  @visibleForTesting
+  void updatePositionForTesting(BoatPosition position) {
+    _currentPosition = position;
+    notifyListeners();
   }
 }

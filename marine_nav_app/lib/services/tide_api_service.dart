@@ -98,6 +98,33 @@ class TideApiService {
         .toList();
   }
 
+  /// Fetches current predictions for a currents station.
+  Future<List<CurrentPrediction>> fetchCurrentsPredictions(
+    String stationId,
+  ) async {
+    final now = DateTime.now().toUtc();
+    final endDate = now.add(const Duration(hours: 24));
+
+    final uri = Uri.parse(baseUrl).replace(queryParameters: {
+      'station': stationId,
+      'product': 'currents_predictions',
+      'begin_date': _formatDate(now),
+      'end_date': _formatDate(endDate),
+      'time_zone': 'gmt',
+      'units': 'english',
+      'format': 'json',
+      'application': _appName,
+    });
+
+    final body = await _fetchJson(uri);
+    final data = body['current_predictions']?['cp'] as List?;
+    if (data == null || data.isEmpty) return [];
+
+    return data
+        .map((d) => CurrentPrediction.fromNoaaJson(d as Map<String, dynamic>))
+        .toList();
+  }
+
   /// Fetches full tide data (predictions + observations) for a station.
   Future<TideData> fetchTideData({
     required String stationId,

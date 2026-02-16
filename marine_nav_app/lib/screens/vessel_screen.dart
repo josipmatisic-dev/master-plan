@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/vessel_provider.dart';
 import '../theme/holographic_colors.dart';
 import '../widgets/common/glow_text.dart';
 import '../widgets/effects/holographic_shimmer.dart';
@@ -8,29 +9,14 @@ import '../widgets/effects/particle_background.dart';
 import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
 
-// TODO: Replace mock data with VesselProvider when available.
-
 /// Screen displaying vessel details and specifications.
 class VesselScreen extends StatelessWidget {
   /// Creates a [VesselScreen].
   const VesselScreen({super.key});
 
-  // -- Mock vessel data ------------------------------------------------
-  // TODO: Pull from VesselProvider / repository.
-  static const _name = 'SV Adriatic Star';
-  static const _type = 'Sailing Yacht';
-  static const _dimensions = {
-    'LOA': '12.8 m',
-    'Beam': '4.1 m',
-    'Draft': '1.9 m',
-    'Displacement': '9,200 kg',
-  };
-  static const _engine = {
-    'Model': 'Yanmar 3YM30',
-    'Hours': '1,247 h',
-    'Fuel Capacity': '200 L',
-    'Oil Pressure': 'Normal',
-  };
+  // -- Default fallback when no profile is configured --------------------
+  static const _defaultName = 'Not Configured';
+  static const _defaultType = 'Tap to set up vessel profile';
   static const _equipment = <Map<String, dynamic>>[
     {'name': 'GPS', 'ok': true},
     {'name': 'AIS Transponder', 'ok': true},
@@ -52,6 +38,28 @@ class VesselScreen extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final isHolographic = context.watch<ThemeProvider>().isHolographic;
+    final vessel = context.watch<VesselProvider>();
+    final p = vessel.profile;
+
+    final vesselName = p.isConfigured ? p.name : _defaultName;
+    final vesselType = p.isConfigured ? p.type : _defaultType;
+    final dimensions = <String, String>{
+      'LOA': p.loaMeters != null ? '${p.loaMeters} m' : '—',
+      'Beam': p.beamMeters != null ? '${p.beamMeters} m' : '—',
+      'Draft': p.draftMeters != null ? '${p.draftMeters} m' : '—',
+      'Displacement': p.displacementKg != null
+          ? '${p.displacementKg!.toStringAsFixed(0)} kg'
+          : '—',
+    };
+    final engine = <String, String>{
+      'Model': p.engineModel ?? '—',
+      'Hours': p.engineHours != null
+          ? '${p.engineHours!.toStringAsFixed(0)} h'
+          : '—',
+      'Fuel Capacity': p.fuelCapacityLiters != null
+          ? '${p.fuelCapacityLiters!.toStringAsFixed(0)} L'
+          : '—',
+    };
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -90,13 +98,13 @@ class VesselScreen extends StatelessWidget {
               children: [
                 HolographicShimmer(
                   enabled: isHolographic,
-                  child: _buildHeader(cs, tt),
+                  child: _buildHeader(vesselName, vesselType, cs, tt),
                 ),
                 const SizedBox(height: 16),
                 HolographicShimmer(
                   enabled: isHolographic,
                   child: _buildKeyValueCard(
-                      'Dimensions', Icons.straighten, _dimensions, cs, tt),
+                      'Dimensions', Icons.straighten, dimensions, cs, tt),
                 ),
                 const SizedBox(height: 16),
                 HolographicShimmer(
@@ -107,7 +115,7 @@ class VesselScreen extends StatelessWidget {
                 HolographicShimmer(
                   enabled: isHolographic,
                   child: _buildKeyValueCard(
-                      'Engine', Icons.engineering, _engine, cs, tt),
+                      'Engine', Icons.engineering, engine, cs, tt),
                 ),
                 const SizedBox(height: 16),
                 HolographicShimmer(
@@ -125,7 +133,7 @@ class VesselScreen extends StatelessWidget {
 
   // -- Vessel name & type header ----------------------------------------
 
-  Widget _buildHeader(ColorScheme cs, TextTheme tt) {
+  Widget _buildHeader(String name, String type, ColorScheme cs, TextTheme tt) {
     return GlassCard(
       padding: GlassCardPadding.large,
       child: Row(
@@ -137,13 +145,13 @@ class VesselScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GlowText(
-                  _name,
+                  name,
                   glowStyle: GlowTextStyle.heading,
                   color: cs.primary,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  _type,
+                  type,
                   style: tt.bodyLarge?.copyWith(color: cs.onSurfaceVariant),
                 ),
               ],

@@ -244,6 +244,52 @@ class AisTarget {
       '${position.latitude.toStringAsFixed(4)}, '
       '${position.longitude.toStringAsFixed(4)}, '
       'SOG: ${sog?.toStringAsFixed(1) ?? "?"} kn)';
+
+  /// Serializes to JSON for cache persistence.
+  Map<String, dynamic> toJson() => {
+        'mmsi': mmsi,
+        'lat': position.latitude,
+        'lng': position.longitude,
+        'lastUpdate': lastUpdate.toUtc().toIso8601String(),
+        if (sog != null) 'sog': sog,
+        if (cog != null) 'cog': cog,
+        if (heading != null) 'heading': heading,
+        'navStatus': navStatus.code,
+        if (rateOfTurn != null) 'rateOfTurn': rateOfTurn,
+        if (name != null) 'name': name,
+        if (callSign != null) 'callSign': callSign,
+        if (imo != null) 'imo': imo,
+        'shipType': shipType,
+        if (dimensions != null) 'dimensions': dimensions,
+        if (destination != null) 'destination': destination,
+        if (draught != null) 'draught': draught,
+        if (eta != null) 'eta': eta!.toUtc().toIso8601String(),
+      };
+
+  /// Deserializes from JSON cache entry.
+  factory AisTarget.fromJson(Map<String, dynamic> json) {
+    return AisTarget(
+      mmsi: json['mmsi'] as int,
+      position: LatLng(
+        latitude: (json['lat'] as num).toDouble(),
+        longitude: (json['lng'] as num).toDouble(),
+      ),
+      lastUpdate: DateTime.parse(json['lastUpdate'] as String),
+      sog: (json['sog'] as num?)?.toDouble(),
+      cog: (json['cog'] as num?)?.toDouble(),
+      heading: (json['heading'] as num?)?.toInt(),
+      navStatus: AisNavStatus.fromCode(json['navStatus'] as int? ?? 15),
+      rateOfTurn: (json['rateOfTurn'] as num?)?.toDouble(),
+      name: json['name'] as String?,
+      callSign: json['callSign'] as String?,
+      imo: json['imo'] as int?,
+      shipType: json['shipType'] as int? ?? 0,
+      dimensions: (json['dimensions'] as List?)?.cast<int>(),
+      destination: json['destination'] as String?,
+      draught: (json['draught'] as num?)?.toDouble(),
+      eta: json['eta'] != null ? DateTime.parse(json['eta'] as String) : null,
+    );
+  }
 }
 
 /// Result of CPA/TCPA calculation between own vessel and a target.

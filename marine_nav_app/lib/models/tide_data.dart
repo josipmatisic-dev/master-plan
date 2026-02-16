@@ -72,6 +72,35 @@ class WaterLevel {
   }
 }
 
+/// A current prediction with speed and direction.
+@immutable
+class CurrentPrediction {
+  /// Timestamp of the prediction.
+  final DateTime time;
+
+  /// Current speed in knots.
+  final double speedKnots;
+
+  /// Current direction in degrees (direction water flows toward).
+  final double directionDegrees;
+
+  /// Creates a current prediction.
+  const CurrentPrediction({
+    required this.time,
+    required this.speedKnots,
+    required this.directionDegrees,
+  });
+
+  /// Parses from NOAA JSON currents prediction entry.
+  factory CurrentPrediction.fromNoaaJson(Map<String, dynamic> json) {
+    return CurrentPrediction(
+      time: DateTime.parse(json['Time'] as String),
+      speedKnots: double.parse(json['Velocity_Major'] as String).abs(),
+      directionDegrees: double.parse(json['meanFloodDir'] as String? ?? '0'),
+    );
+  }
+}
+
 /// A NOAA tide station with metadata.
 @immutable
 class TideStation {
