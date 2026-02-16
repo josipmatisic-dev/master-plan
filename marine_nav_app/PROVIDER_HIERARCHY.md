@@ -1,8 +1,8 @@
-# Provider Dependency Graph - Phase 2
+# Provider Dependency Graph - Phase 3
 
-**Version:** 3.2  
-**Date:** 2026-02-15  
-**Status:** Implemented (BoatProvider, WeatherProvider, TimelineProvider added)
+**Version:** 4.0  
+**Date:** 2026-02-17  
+**Status:** Implemented (AisProvider added)
 
 ---
 
@@ -25,6 +25,10 @@ Following **CON-004** from MASTER_DEVELOPMENT_BIBLE.md, all providers are organi
 │         │   │(←NMEA,Map,Rt)│                 │  ┌──────────────┐        │
 │         │   └──────────────┘                 │  │TimelineProv. │        │
 │         │                                    │  └──────────────┘        │
+│         │   ┌──────────────┐                 │                          │
+│         │   │ AisProvider  │                 │                          │
+│         │   │(←Settings)   │                 │                          │
+│         │   └──────────────┘                 │                          │
 │         └──────────┬───────┴─────────────────┴──────────────────┘        │
 └────────────────────┼────────────────────────────────────────────────────┘
                      │
@@ -299,6 +303,37 @@ class TimelineProvider extends ChangeNotifier {
 }
 ```
 
+#### AisProvider (NEW - Phase 3)
+
+- File: `lib/providers/ais_provider.dart`
+- Lines: ~225 (under 300 limit ✅)
+- Dependencies: SettingsProvider (Layer 0)
+- Services: AisService (WebSocket), AisCollisionCalculator
+- Responsibilities:
+  - Connect to aisstream.io WebSocket for real-time AIS data
+  - Maintain vessel target map (max 500 targets)
+  - 500ms batched updates to prevent UI thrashing
+  - CPA/TCPA collision warning computation
+  - Stale target cleanup (>5 min)
+  - Viewport-based bounding box filtering
+
+**API:**
+
+```dart
+class AisProvider extends ChangeNotifier {
+  Map<int, AisTarget> get targets;
+  List<AisTarget> get warnings;        // CPA-sorted collision warnings
+  AisConnectionState get connectionState;
+  int get targetCount;
+  bool get isConnected;
+  
+  Future<void> connect({swLat, swLng, neLat, neLng});
+  Future<void> updateViewport({swLat, swLng, neLat, neLng});
+  void updateOwnVessel({position, sogKnots, cogDegrees});
+  Future<void> disconnect();
+}
+```
+
 ## Provider Initialization Order
 
 In `main.dart`, providers are initialized in dependency order:
@@ -334,6 +369,9 @@ void main() async {
   final timelineProvider = TimelineProvider(
     weatherProvider: weatherProvider,
   );
+  final aisProvider = AisProvider(
+    settingsProvider: settingsProvider,
+  );
   
   // 4. Initialize all providers
   await Future.wait([
@@ -341,6 +379,7 @@ void main() async {
     themeProvider.init(),
     cacheProvider.init(),
     mapProvider.init(),
+    aisProvider.init(),
   ]);
   
   // 5. Setup app with all providers
@@ -385,6 +424,9 @@ MultiProvider(
     ChangeNotifierProvider<TimelineProvider>.value(
       value: timelineProvider,
     ),
+    ChangeNotifierProvider<AisProvider>.value(
+      value: aisProvider,
+    ),
   ],
   child: ...,
 )
@@ -401,7 +443,7 @@ MultiProvider(
 
 ✅ **CON-001**: All providers under 300 lines
 
-- SettingsProvider: ~130 lines
+- SettingsProvider: ~286 lines
 - ThemeProvider: ~115 lines
 - CacheProvider: ~120 lines
 - MapProvider: ~100 lines
@@ -410,6 +452,7 @@ MultiProvider(
 - BoatProvider: ~230 lines
 - WeatherProvider: ~230 lines
 - TimelineProvider: ~208 lines
+- AisProvider: ~225 lines
 
 ✅ **CON-002**: Single Source of Truth
 
@@ -437,7 +480,8 @@ MultiProvider(
 | WeatherProvider | 22 | ✅ |
 | TimelineProvider | 12 | ✅ |
 | BoatPosition (model) | 14 | ✅ |
-| **Total** | **148+** | **313 including widget/integration** |
+| AIS (models + collision) | 22 | ✅ |
+| **Total** | **170+** | **430 including widget/integration** |
 
 Key test areas per provider:
 
@@ -450,6 +494,7 @@ Key test areas per provider:
 7. **BoatProvider** — NMEA consumption, ISS-018 filtering, track history LRU, MOB, dispose
 8. **WeatherProvider** — Data fetching, caching, layer toggling, staleness, viewport debounce
 9. **TimelineProvider** — Scrubber position, playback controls, frame mapping, speed settings
+10. **AisProvider** — AIS target tracking, CPA/TCPA warnings, WebSocket connection, batching
 
 ## Future Extensions
 
@@ -465,5 +510,5 @@ When adding new providers in Layer 2:
 ---
 
 **Created:** 2026-02-01
-**Last Updated:** 2026-02-15
-**Status:** Phase 2 — Boat Position Tracking ✅
+**Last Updated:** 2026-02-17
+**Status:** Phase 3 — AIS Vessel Tracking ✅
