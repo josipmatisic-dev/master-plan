@@ -28,6 +28,30 @@ class Waypoint {
     required this.timestamp,
   });
 
+  /// Serializes to JSON map.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'lat': position.latitude,
+        'lng': position.longitude,
+        'name': name,
+        if (description != null) 'description': description,
+        'timestamp': timestamp.toUtc().toIso8601String(),
+      };
+
+  /// Deserializes from JSON map.
+  factory Waypoint.fromJson(Map<String, dynamic> json) {
+    return Waypoint(
+      id: json['id'] as String,
+      position: LatLng(
+        (json['lat'] as num).toDouble(),
+        (json['lng'] as num).toDouble(),
+      ),
+      name: json['name'] as String,
+      description: json['description'] as String?,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+    );
+  }
+
   /// Returns a copy of this waypoint with specified fields replaced.
   Waypoint copyWith({
     String? id,
@@ -85,6 +109,32 @@ class Route {
     required this.updatedAt,
     this.description,
   });
+
+  /// Serializes to JSON map.
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'waypoints': waypoints.map((w) => w.toJson()).toList(),
+        'isActive': isActive,
+        'createdAt': createdAt.toUtc().toIso8601String(),
+        'updatedAt': updatedAt.toUtc().toIso8601String(),
+        if (description != null) 'description': description,
+      };
+
+  /// Deserializes from JSON map.
+  factory Route.fromJson(Map<String, dynamic> json) {
+    return Route(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      waypoints: (json['waypoints'] as List)
+          .map((w) => Waypoint.fromJson(w as Map<String, dynamic>))
+          .toList(),
+      isActive: json['isActive'] as bool? ?? false,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      updatedAt: DateTime.parse(json['updatedAt'] as String),
+      description: json['description'] as String?,
+    );
+  }
 
   /// Returns the total distance of this route in nautical miles.
   ///

@@ -1,9 +1,11 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marine_nav_app/models/anchor_alarm.dart';
 import 'package:marine_nav_app/models/lat_lng.dart';
 
 void main() {
-  final anchorPos = const LatLng(latitude: 43.5, longitude: 16.4);
+  const anchorPos = LatLng(latitude: 43.5, longitude: 16.4);
   final setTime = DateTime(2026, 2, 16, 12, 0);
 
   group('AnchorAlarm', () {
@@ -138,6 +140,82 @@ void main() {
       expect(str, contains('50m'));
       expect(str, contains('25.0m'));
       expect(str, contains('safe'));
+    });
+  });
+
+  group('AnchorAlarm serialization', () {
+    test('toJson/fromJson round-trip with safe state', () {
+      final alarm = AnchorAlarm(
+        anchorPosition: const LatLng(latitude: 43.5083, longitude: 16.4400),
+        radiusMeters: 50.0,
+        setAt: DateTime.utc(2025, 6, 15, 22, 0),
+        currentDistanceMeters: 10.0,
+        state: AnchorAlarmState.safe,
+        maxDriftMeters: 15.0,
+      );
+      final restored = AnchorAlarm.fromJson(alarm.toJson());
+
+      expect(restored.anchorPosition.latitude, closeTo(43.5083, 0.0001));
+      expect(restored.anchorPosition.longitude, closeTo(16.4400, 0.0001));
+      expect(restored.radiusMeters, 50.0);
+      expect(restored.currentDistanceMeters, 10.0);
+      expect(restored.state, AnchorAlarmState.safe);
+      expect(restored.maxDriftMeters, 15.0);
+      expect(restored.setAt, DateTime.utc(2025, 6, 15, 22, 0));
+    });
+
+    test('toJson/fromJson with triggered state', () {
+      final alarm = AnchorAlarm(
+        anchorPosition: const LatLng(latitude: 43.5, longitude: 16.4),
+        radiusMeters: 50.0,
+        setAt: DateTime.utc(2025, 1, 1),
+        currentDistanceMeters: 55.0,
+        state: AnchorAlarmState.triggered,
+        maxDriftMeters: 55.0,
+      );
+      final restored = AnchorAlarm.fromJson(alarm.toJson());
+      expect(restored.state, AnchorAlarmState.triggered);
+      expect(restored.currentDistanceMeters, 55.0);
+    });
+
+    test('fromJson defaults missing fields', () {
+      final json = AnchorAlarm(
+        anchorPosition: const LatLng(latitude: 43.5, longitude: 16.4),
+        radiusMeters: 50.0,
+        setAt: DateTime.utc(2025, 1, 1),
+      ).toJson()
+        ..remove('currentDistanceMeters')
+        ..remove('maxDriftMeters');
+      final restored = AnchorAlarm.fromJson(json);
+      expect(restored.currentDistanceMeters, 0);
+      expect(restored.maxDriftMeters, 0);
+    });
+
+    test('fromJson defaults to safe for unknown state', () {
+      final json = AnchorAlarm(
+        anchorPosition: const LatLng(latitude: 43.5, longitude: 16.4),
+        radiusMeters: 50.0,
+        setAt: DateTime.utc(2025, 1, 1),
+      ).toJson()
+        ..['state'] = 'bogus';
+      final restored = AnchorAlarm.fromJson(json);
+      expect(restored.state, AnchorAlarmState.safe);
+    });
+
+    test('survives jsonEncode/jsonDecode', () {
+      final alarm = AnchorAlarm(
+        anchorPosition: const LatLng(latitude: 43.5, longitude: 16.4),
+        radiusMeters: 100.0,
+        setAt: DateTime.utc(2025, 8, 1),
+        currentDistanceMeters: 41.5,
+        state: AnchorAlarmState.warning,
+        maxDriftMeters: 42.0,
+      );
+      final encoded = jsonEncode(alarm.toJson());
+      final decoded = jsonDecode(encoded) as Map<String, dynamic>;
+      final restored = AnchorAlarm.fromJson(decoded);
+      expect(restored.state, AnchorAlarmState.warning);
+      expect(restored.currentDistanceMeters, 41.5);
     });
   });
 }
