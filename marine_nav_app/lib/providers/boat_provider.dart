@@ -17,6 +17,7 @@ import '../models/lat_lng.dart';
 import '../services/anchor_alarm_service.dart';
 import '../services/geo_utils.dart';
 import '../services/location_service.dart';
+import '../services/trip_log_service.dart';
 import 'ais_provider.dart';
 import 'map_provider.dart';
 import 'nmea_provider.dart';
@@ -42,6 +43,7 @@ class BoatProvider extends ChangeNotifier {
   final RouteProvider? _routeProvider;
   final AisProvider? _aisProvider;
   final AnchorAlarmService _anchorAlarm;
+  final TripLogService? _tripLogService;
 
   BoatPosition? _currentPosition;
   PositionSource _source = PositionSource.none;
@@ -61,12 +63,14 @@ class BoatProvider extends ChangeNotifier {
     RouteProvider? routeProvider,
     AisProvider? aisProvider,
     AnchorAlarmService? anchorAlarmService,
+    TripLogService? tripLogService,
   })  : _nmeaProvider = nmeaProvider,
         _mapProvider = mapProvider,
         _locationService = locationService ?? LocationService(),
         _routeProvider = routeProvider,
         _aisProvider = aisProvider,
-        _anchorAlarm = anchorAlarmService ?? AnchorAlarmService() {
+        _anchorAlarm = anchorAlarmService ?? AnchorAlarmService(),
+        _tripLogService = tripLogService {
     _nmeaProvider.addListener(_onNmeaUpdate);
     _startPhoneGps();
   }
@@ -204,6 +208,9 @@ class BoatProvider extends ChangeNotifier {
       sogKnots: newPos.speedKnots ?? 0.0,
       cogDegrees: newPos.courseTrue ?? newPos.heading ?? 0.0,
     );
+
+    // Record waypoint if trip is active
+    _tripLogService?.addWaypoint(newPos);
 
     if (_followBoat) {
       _mapProvider.setCenter(newPos.position);

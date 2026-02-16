@@ -43,8 +43,8 @@ class AnchorControlOverlay extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: _buildContent(
-                      context, service, isActive, isTriggered, alarm, boatProvider),
+                  child: _buildContent(context, service, isActive, isTriggered,
+                      alarm, boatProvider),
                 ),
               ),
             ),

@@ -102,8 +102,7 @@ class TripLog {
   bool get isRecording => endTime == null;
 
   /// Duration of the trip.
-  Duration get duration =>
-      (endTime ?? DateTime.now()).difference(startTime);
+  Duration get duration => (endTime ?? DateTime.now()).difference(startTime);
 
   /// Average speed in knots (0 if no waypoints).
   double get avgSpeedKnots {
@@ -115,9 +114,7 @@ class TripLog {
   /// Maximum speed in knots recorded during the trip.
   double get maxSpeedKnots {
     if (waypoints.isEmpty) return 0;
-    return waypoints
-        .map((w) => w.speedKnots)
-        .reduce((a, b) => a > b ? a : b);
+    return waypoints.map((w) => w.speedKnots).reduce((a, b) => a > b ? a : b);
   }
 
   /// Creates a copy with replaced fields.

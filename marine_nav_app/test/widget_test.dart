@@ -8,9 +8,11 @@ import 'package:marine_nav_app/providers/nmea_provider.dart';
 import 'package:marine_nav_app/providers/route_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
 import 'package:marine_nav_app/providers/theme_provider.dart';
+import 'package:marine_nav_app/providers/tide_provider.dart';
 import 'package:marine_nav_app/providers/timeline_provider.dart';
 import 'package:marine_nav_app/providers/weather_provider.dart';
 import 'package:marine_nav_app/services/location_service.dart';
+import 'package:marine_nav_app/services/trip_log_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Stub location service for tests.
@@ -50,12 +52,19 @@ void main() {
     final aisProvider = AisProvider(
       settingsProvider: settingsProvider,
     );
+    final tideProvider = TideProvider(
+      settingsProvider: settingsProvider,
+      cacheProvider: cacheProvider,
+    );
+    final tripLogService = TripLogService();
 
     await settingsProvider.init();
     await themeProvider.init();
     await cacheProvider.init();
     await mapProvider.init();
     await aisProvider.init();
+    await tideProvider.init();
+    await tripLogService.init();
 
     await tester.pumpWidget(
       MarineNavigationApp(
@@ -69,6 +78,8 @@ void main() {
         boatProvider: boatProvider,
         timelineProvider: timelineProvider,
         aisProvider: aisProvider,
+        tideProvider: tideProvider,
+        tripLogService: tripLogService,
       ),
     );
 

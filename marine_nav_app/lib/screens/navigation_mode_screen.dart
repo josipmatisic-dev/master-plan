@@ -296,8 +296,11 @@ class _NavigationModeScreenState extends State<NavigationModeScreen> {
                     () => _snack(context, 'Route creation coming soon')),
                 _btn('Mark', cs, () => _markPosition(context)),
                 _btn('Track', cs, () => _snack(context, 'Tracking toggled')),
-                _btn('Anchor', cs,
-                    () => setState(() => _showAnchorControls = !_showAnchorControls)),
+                _btn(
+                    'Anchor',
+                    cs,
+                    () => setState(
+                        () => _showAnchorControls = !_showAnchorControls)),
               ],
             ),
           ),
