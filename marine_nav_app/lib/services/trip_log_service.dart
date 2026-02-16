@@ -146,12 +146,20 @@ class TripLogService extends ChangeNotifier {
 
   // ============ Export ============
 
-  /// Export a trip as GPX XML string.
+  /// Export a trip as GPX XML string with summary metadata.
   String exportGpx(TripLog trip) {
     final buf = StringBuffer()
       ..writeln('<?xml version="1.0" encoding="UTF-8"?>')
       ..writeln('<gpx version="1.1" creator="SailStream"')
       ..writeln('  xmlns="http://www.topografix.com/GPX/1/1">')
+      ..writeln('  <metadata>')
+      ..writeln('    <name>${_xmlEscape(trip.name)}</name>')
+      ..writeln('    <desc>Distance: ${trip.distanceNm.toStringAsFixed(2)} nm, '
+          'Avg speed: ${trip.avgSpeedKnots.toStringAsFixed(1)} kts, '
+          'Max speed: ${trip.maxSpeedKnots.toStringAsFixed(1)} kts, '
+          'Waypoints: ${trip.waypoints.length}</desc>')
+      ..writeln('    <time>${trip.startTime.toUtc().toIso8601String()}</time>')
+      ..writeln('  </metadata>')
       ..writeln('  <trk>')
       ..writeln('    <name>${_xmlEscape(trip.name)}</name>')
       ..writeln('    <trkseg>');
@@ -173,13 +181,18 @@ class TripLogService extends ChangeNotifier {
     return buf.toString();
   }
 
-  /// Export a trip as KML XML string.
+  /// Export a trip as KML XML string with summary metadata.
   String exportKml(TripLog trip) {
     final buf = StringBuffer()
       ..writeln('<?xml version="1.0" encoding="UTF-8"?>')
       ..writeln('<kml xmlns="http://www.opengis.net/kml/2.2">')
       ..writeln('  <Document>')
       ..writeln('    <name>${_xmlEscape(trip.name)}</name>')
+      ..writeln('    <description>Distance: '
+          '${trip.distanceNm.toStringAsFixed(2)} nm, '
+          'Avg speed: ${trip.avgSpeedKnots.toStringAsFixed(1)} kts, '
+          'Max speed: ${trip.maxSpeedKnots.toStringAsFixed(1)} kts, '
+          'Waypoints: ${trip.waypoints.length}</description>')
       ..writeln('    <Placemark>')
       ..writeln('      <name>Track</name>')
       ..writeln('      <LineString>')
@@ -196,6 +209,20 @@ class TripLogService extends ChangeNotifier {
       ..writeln('  </Document>')
       ..writeln('</kml>');
 
+    return buf.toString();
+  }
+
+  /// Export a trip as CSV string with header row.
+  String exportCsv(TripLog trip) {
+    final buf = StringBuffer()
+      ..writeln('timestamp,latitude,longitude,speed_knots,cog_degrees');
+    for (final wp in trip.waypoints) {
+      final cog = wp.cogDegrees?.toStringAsFixed(1) ?? '';
+      buf.writeln(
+        '${_csvEscape(wp.timestamp)},${wp.lat},${wp.lng},'
+        '${wp.speedKnots},$cog',
+      );
+    }
     return buf.toString();
   }
 
@@ -242,6 +269,14 @@ class TripLogService extends ChangeNotifier {
       .replaceAll('&', '&amp;')
       .replaceAll('<', '&lt;')
       .replaceAll('>', '&gt;');
+
+  /// Escapes a CSV field — quotes if it contains comma, quote, or newline.
+  static String _csvEscape(String s) {
+    if (s.contains(',') || s.contains('"') || s.contains('\n')) {
+      return '"${s.replaceAll('"', '""')}"';
+    }
+    return s;
+  }
 
   @override
   void dispose() {

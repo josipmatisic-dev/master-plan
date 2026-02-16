@@ -431,4 +431,175 @@ void main() {
       expect(restored.cogDegrees, isNull);
     });
   });
+
+  group('CSV Export', () {
+    late TripLogService service;
+
+    setUp(() {
+      service = TripLogService();
+    });
+
+    test('CSV has header row', () {
+      final trip = _makeTrip('Test', []);
+      final csv = service.exportCsv(trip);
+      final lines = csv.trim().split('\n');
+      expect(
+          lines.first, 'timestamp,latitude,longitude,speed_knots,cog_degrees');
+    });
+
+    test('CSV includes all waypoints', () {
+      final trip = _makeTrip('Test', [
+        const TripWaypoint(
+            lat: 43.5, lng: 16.4, speedKnots: 6.5, timestamp: 'T1'),
+        const TripWaypoint(
+            lat: 43.6,
+            lng: 16.5,
+            speedKnots: 7.0,
+            timestamp: 'T2',
+            cogDegrees: 90.0),
+      ]);
+      final csv = service.exportCsv(trip);
+      final lines = csv.trim().split('\n');
+      expect(lines.length, 3); // header + 2 data
+      expect(lines[1], 'T1,43.5,16.4,6.5,');
+      expect(lines[2], 'T2,43.6,16.5,7.0,90.0');
+    });
+
+    test('CSV empty trip has only header', () {
+      final trip = _makeTrip('Empty', []);
+      final csv = service.exportCsv(trip);
+      final lines = csv.trim().split('\n');
+      expect(lines.length, 1);
+    });
+
+    test('CSV escapes commas in timestamps', () {
+      final trip = _makeTrip('Test', [
+        const TripWaypoint(
+            lat: 43.5,
+            lng: 16.4,
+            speedKnots: 6.5,
+            timestamp: '2025-01-15,10:30'),
+      ]);
+      final csv = service.exportCsv(trip);
+      expect(csv, contains('"2025-01-15,10:30"'));
+    });
+  });
+
+  group('GPX/KML metadata', () {
+    late TripLogService service;
+
+    setUp(() {
+      service = TripLogService();
+    });
+
+    test('GPX includes summary metadata', () {
+      final trip = _makeTrip(
+          'Sail Trip',
+          [
+            const TripWaypoint(
+                lat: 43.5, lng: 16.4, speedKnots: 6.0, timestamp: 'T1'),
+            const TripWaypoint(
+                lat: 43.6, lng: 16.5, speedKnots: 8.0, timestamp: 'T2'),
+          ],
+          distanceNm: 5.5);
+      final gpx = service.exportGpx(trip);
+      expect(gpx, contains('<metadata>'));
+      expect(gpx, contains('Distance: 5.50 nm'));
+      expect(gpx, contains('Avg speed: 7.0 kts'));
+      expect(gpx, contains('Max speed: 8.0 kts'));
+      expect(gpx, contains('Waypoints: 2'));
+    });
+
+    test('KML includes summary description', () {
+      final trip = _makeTrip(
+          'Sail Trip',
+          [
+            const TripWaypoint(
+                lat: 43.5, lng: 16.4, speedKnots: 6.0, timestamp: 'T1'),
+            const TripWaypoint(
+                lat: 43.6, lng: 16.5, speedKnots: 8.0, timestamp: 'T2'),
+          ],
+          distanceNm: 5.5);
+      final kml = service.exportKml(trip);
+      expect(kml, contains('<description>'));
+      expect(kml, contains('Distance: 5.50 nm'));
+      expect(kml, contains('Max speed: 8.0 kts'));
+    });
+
+    test('GPX metadata for empty trip shows zeros', () {
+      final trip = _makeTrip('Empty', []);
+      final gpx = service.exportGpx(trip);
+      expect(gpx, contains('Distance: 0.00 nm'));
+      expect(gpx, contains('Avg speed: 0.0 kts'));
+      expect(gpx, contains('Waypoints: 0'));
+    });
+  });
+
+  group('Export edge cases', () {
+    late TripLogService service;
+
+    setUp(() {
+      service = TripLogService();
+    });
+
+    test('large trip with 1000+ waypoints exports without error', () {
+      final waypoints = List.generate(
+        1200,
+        (i) => TripWaypoint(
+          lat: 43.0 + i * 0.001,
+          lng: 16.0 + i * 0.001,
+          speedKnots: 5.0 + (i % 10),
+          timestamp: '2025-01-15T${(i ~/ 60).toString().padLeft(2, '0')}:'
+              '${(i % 60).toString().padLeft(2, '0')}:00Z',
+        ),
+      );
+      final trip = _makeTrip('Long Trip', waypoints, distanceNm: 120.0);
+
+      final gpx = service.exportGpx(trip);
+      expect(gpx, contains('<trkpt'));
+      expect('<trkpt'.allMatches(gpx).length, 1200);
+
+      final kml = service.exportKml(trip);
+      expect(kml, contains('<coordinates>'));
+
+      final csv = service.exportCsv(trip);
+      final lines = csv.trim().split('\n');
+      expect(lines.length, 1201); // header + 1200
+    });
+
+    test('special characters in trip name are escaped', () {
+      final trip = _makeTrip('Sail <"Escape"> & Fun', []);
+      final gpx = service.exportGpx(trip);
+      expect(gpx, contains('&amp;'));
+      expect(gpx, contains('&lt;'));
+      expect(gpx, contains('&gt;'));
+
+      final kml = service.exportKml(trip);
+      expect(kml, contains('&amp;'));
+    });
+
+    test('unicode trip name exports correctly', () {
+      final trip = _makeTrip('Путешествие 🚢', [
+        const TripWaypoint(
+            lat: 43.5, lng: 16.4, speedKnots: 6.0, timestamp: 'T1'),
+      ]);
+      final gpx = service.exportGpx(trip);
+      expect(gpx, contains('Путешествие 🚢'));
+
+      final csv = service.exportCsv(trip);
+      expect(csv, contains('T1'));
+    });
+  });
+}
+
+TripLog _makeTrip(String name, List<TripWaypoint> waypoints,
+    {double distanceNm = 0}) {
+  return TripLog(
+    id: 'test-${name.hashCode}',
+    name: name,
+    startTime: DateTime.utc(2025, 1, 15, 10, 0),
+    endTime: DateTime.utc(2025, 1, 15, 14, 0),
+    waypoints: waypoints,
+    distanceNm: distanceNm,
+  );
 }
