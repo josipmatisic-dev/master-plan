@@ -144,6 +144,7 @@ class WeatherLayerStack extends StatelessWidget {
             child: IgnorePointer(
               child: WindParticleOverlay(
                 windPoints: windPoints,
+                weatherData: weather.data,
                 isHolographic: isHolographic,
                 bounds: geoBounds,
                 maxParticles: quality.maxParticles,

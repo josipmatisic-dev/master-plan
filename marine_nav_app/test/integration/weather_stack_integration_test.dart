@@ -73,12 +73,12 @@ void main() {
 
     // Sample wind data
     final windPoints = [
-      const WindDataPoint(
+      WindDataPoint(
         position: LatLng(latitude: 10, longitude: 10),
         speedKnots: 20,
         directionDegrees: 90,
       ),
-      const WindDataPoint(
+      WindDataPoint(
         position: LatLng(latitude: 0, longitude: 0),
         speedKnots: 15,
         directionDegrees: 180,
@@ -86,7 +86,7 @@ void main() {
     ];
     // Sample wave data
     final wavePoints = [
-      const WaveDataPoint(
+      WaveDataPoint(
         position: LatLng(latitude: 10, longitude: 10),
         heightMeters: 2.0,
         directionDegrees: 90,

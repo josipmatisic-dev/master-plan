@@ -7,7 +7,7 @@ void main() {
     const position = LatLng(latitude: 59.91, longitude: 10.75);
 
     test('constructs with required fields', () {
-      const point = WindDataPoint(
+      final point = WindDataPoint(
         position: position,
         speedKnots: 15.0,
         directionDegrees: 270.0,
@@ -19,28 +19,28 @@ void main() {
     });
 
     test('beaufortScale returns correct values', () {
-      const calm = WindDataPoint(
+      final calm = WindDataPoint(
         position: position,
         speedKnots: 0.5,
         directionDegrees: 0,
       );
       expect(calm.beaufortScale, 0);
 
-      const gentle = WindDataPoint(
+      final gentle = WindDataPoint(
         position: position,
         speedKnots: 8.0,
         directionDegrees: 0,
       );
       expect(gentle.beaufortScale, 3);
 
-      const nearGale = WindDataPoint(
+      final nearGale = WindDataPoint(
         position: position,
         speedKnots: 30.0,
         directionDegrees: 0,
       );
       expect(nearGale.beaufortScale, 7);
 
-      const hurricane = WindDataPoint(
+      final hurricane = WindDataPoint(
         position: position,
         speedKnots: 70.0,
         directionDegrees: 0,
@@ -50,14 +50,14 @@ void main() {
 
     test('beaufortScale boundary values', () {
       // Beaufort 4 starts at 11 knots
-      const b3 = WindDataPoint(
+      final b3 = WindDataPoint(
         position: position,
         speedKnots: 10.9,
         directionDegrees: 0,
       );
       expect(b3.beaufortScale, 3);
 
-      const b4 = WindDataPoint(
+      final b4 = WindDataPoint(
         position: position,
         speedKnots: 11.0,
         directionDegrees: 0,
@@ -66,12 +66,12 @@ void main() {
     });
 
     test('equality compares all fields', () {
-      const a = WindDataPoint(
+      final a = WindDataPoint(
         position: position,
         speedKnots: 15.0,
         directionDegrees: 270.0,
       );
-      const b = WindDataPoint(
+      final b = WindDataPoint(
         position: position,
         speedKnots: 15.0,
         directionDegrees: 270.0,
@@ -81,12 +81,12 @@ void main() {
     });
 
     test('inequality when fields differ', () {
-      const a = WindDataPoint(
+      final a = WindDataPoint(
         position: position,
         speedKnots: 15.0,
         directionDegrees: 270.0,
       );
-      const b = WindDataPoint(
+      final b = WindDataPoint(
         position: position,
         speedKnots: 20.0,
         directionDegrees: 270.0,
@@ -95,7 +95,7 @@ void main() {
     });
 
     test('toString returns human-readable format', () {
-      const point = WindDataPoint(
+      final point = WindDataPoint(
         position: position,
         speedKnots: 15.0,
         directionDegrees: 270.0,
@@ -110,7 +110,7 @@ void main() {
     const position = LatLng(latitude: 59.91, longitude: 10.75);
 
     test('constructs with required fields', () {
-      const point = WaveDataPoint(
+      final point = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
@@ -123,7 +123,7 @@ void main() {
     });
 
     test('constructs with optional period', () {
-      const point = WaveDataPoint(
+      final point = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
@@ -134,12 +134,12 @@ void main() {
     });
 
     test('equality compares position, height, and direction', () {
-      const a = WaveDataPoint(
+      final a = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
       );
-      const b = WaveDataPoint(
+      final b = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
@@ -151,12 +151,12 @@ void main() {
     });
 
     test('inequality when height differs', () {
-      const a = WaveDataPoint(
+      final a = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
       );
-      const b = WaveDataPoint(
+      final b = WaveDataPoint(
         position: position,
         heightMeters: 3.5,
         directionDegrees: 180.0,
@@ -165,7 +165,7 @@ void main() {
     });
 
     test('toString returns human-readable format', () {
-      const point = WaveDataPoint(
+      final point = WaveDataPoint(
         position: position,
         heightMeters: 2.5,
         directionDegrees: 180.0,
@@ -187,14 +187,14 @@ void main() {
 
     test('constructs with wind and wave points', () {
       final data = WeatherData(
-        windPoints: const [
+        windPoints: [
           WindDataPoint(
             position: position,
             speedKnots: 15.0,
             directionDegrees: 270.0,
           ),
         ],
-        wavePoints: const [
+        wavePoints: [
           WaveDataPoint(
             position: position,
             heightMeters: 2.5,
@@ -213,8 +213,8 @@ void main() {
 
     test('isStale returns true for old data', () {
       final staleData = WeatherData(
-        windPoints: const [],
-        wavePoints: const [],
+        windPoints: [],
+        wavePoints: [],
         fetchedAt: DateTime.now().subtract(const Duration(hours: 2)),
       );
       expect(staleData.isStale, true);
@@ -222,8 +222,8 @@ void main() {
 
     test('isStale returns false for fresh data', () {
       final freshData = WeatherData(
-        windPoints: const [],
-        wavePoints: const [],
+        windPoints: [],
+        wavePoints: [],
         fetchedAt: DateTime.now(),
       );
       expect(freshData.isStale, false);
@@ -231,8 +231,8 @@ void main() {
 
     test('age returns duration since fetch', () {
       final data = WeatherData(
-        windPoints: const [],
-        wavePoints: const [],
+        windPoints: [],
+        wavePoints: [],
         fetchedAt: DateTime.now().subtract(const Duration(minutes: 30)),
       );
       expect(data.age.inMinutes, greaterThanOrEqualTo(29));
@@ -241,8 +241,8 @@ void main() {
 
     test('gridResolution defaults to 0.25', () {
       final data = WeatherData(
-        windPoints: const [],
-        wavePoints: const [],
+        windPoints: [],
+        wavePoints: [],
         fetchedAt: DateTime.now(),
       );
       expect(data.gridResolution, 0.25);
@@ -250,14 +250,14 @@ void main() {
 
     test('toString returns summary', () {
       final data = WeatherData(
-        windPoints: const [
+        windPoints: [
           WindDataPoint(
             position: position,
             speedKnots: 15.0,
             directionDegrees: 270.0,
           ),
         ],
-        wavePoints: const [],
+        wavePoints: [],
         fetchedAt: DateTime.now(),
       );
       final str = data.toString();
@@ -273,14 +273,14 @@ void main() {
     test('constructs with wind and wave lists', () {
       final frame = WeatherFrame(
         time: testTime,
-        windPoints: const [
+        windPoints: [
           WindDataPoint(
             position: position,
             speedKnots: 15.0,
             directionDegrees: 270.0,
           ),
         ],
-        wavePoints: const [
+        wavePoints: [
           WaveDataPoint(
             position: position,
             heightMeters: 2.0,
@@ -295,7 +295,7 @@ void main() {
     test('constructs with only wind', () {
       final frame = WeatherFrame(
         time: testTime,
-        windPoints: const [
+        windPoints: [
           WindDataPoint(
             position: position,
             speedKnots: 10.0,
@@ -310,7 +310,7 @@ void main() {
     test('equality compares time, windPoints, wavePoints', () {
       final a = WeatherFrame(
         time: testTime,
-        windPoints: const [
+        windPoints: [
           WindDataPoint(
             position: position,
             speedKnots: 15.0,
@@ -320,7 +320,7 @@ void main() {
       );
       final b = WeatherFrame(
         time: testTime,
-        windPoints: const [
+        windPoints: [
           WindDataPoint(
             position: position,
             speedKnots: 15.0,
@@ -336,8 +336,8 @@ void main() {
   group('WeatherData frames', () {
     test('hasFrames and frameCount work', () {
       final data = WeatherData(
-        windPoints: const [],
-        wavePoints: const [],
+        windPoints: [],
+        wavePoints: [],
         frames: [
           WeatherFrame(time: DateTime(2026, 2, 9, 0, 0)),
           WeatherFrame(time: DateTime(2026, 2, 9, 1, 0)),

@@ -52,14 +52,14 @@ void main() {
     // Setup Mock Data
     // Wind & Wave data
     final weatherData = WeatherData(
-      windPoints: const [
+      windPoints: [
         WindDataPoint(
           position: LatLng(latitude: 45.0, longitude: 15.0),
           speedKnots: 25.0, // Should trigger wind & storm
           directionDegrees: 90.0,
         )
       ],
-      wavePoints: const [
+      wavePoints: [
         WaveDataPoint(
           position: LatLng(latitude: 45.0, longitude: 15.0),
           heightMeters: 2.0,

@@ -15,10 +15,14 @@ import 'painters/wind_painter.dart';
 
 /// Renders wind flow particles over the map using CustomPainter.
 ///
-/// Particles advect in geographic space using interpolated wind vectors,
-/// and are projected to screen coordinates each frame.
+/// Particles advect in geographic space using bilinear-interpolated
+/// wind vectors from [WeatherData], and are projected to screen
+/// coordinates each frame by [WindPainter].
 class WindParticleOverlay extends StatefulWidget {
-  /// Wind data points for interpolation.
+  /// Full weather data for bilinear interpolation.
+  final WeatherData? weatherData;
+
+  /// Wind data points (used for non-empty check).
   final List<WindDataPoint> windPoints;
 
   /// Whether to use holographic theme colors.
@@ -30,9 +34,10 @@ class WindParticleOverlay extends StatefulWidget {
   /// Maximum number of particles to render.
   final int maxParticles;
 
-  /// Creates a wind particle overlay with wind data for flow visualization.
+  /// Creates a wind particle overlay.
   const WindParticleOverlay({
     super.key,
+    this.weatherData,
     required this.windPoints,
     this.isHolographic = false,
     this.bounds,
@@ -48,35 +53,26 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   late Ticker _ticker;
   final _random = Random();
 
-  // Geographic particles: lat/lng + velocity + trail in lat/lng
   final List<GeoParticle> _particles = [];
-  static const _trailLength = 5;
 
-  // Pre-computed wind grid (u,v components) for fast interpolation
-  List<WindVector> _windGrid = [];
-
-  // Frame throttle: paint at ~30fps
   int _frameCount = 0;
 
   // Track bounds to detect viewport changes
   ({double south, double north, double west, double east})? _lastBounds;
 
+  /// Velocity scale: converts knots to degrees/frame at ~60fps.
+  static const _velocityScale = 0.00005;
+
   @override
   void initState() {
     super.initState();
     _ticker = createTicker(_onTick)..start();
-    _rebuildWindGrid();
     _initParticles();
   }
 
   @override
   void didUpdateWidget(WindParticleOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // Wind data changed → rebuild grid
-    if (!identical(widget.windPoints, oldWidget.windPoints)) {
-      _rebuildWindGrid();
-    }
 
     // Bounds changed → reset particles to new viewport
     if (widget.bounds != _lastBounds) {
@@ -88,20 +84,6 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
     if (widget.maxParticles != oldWidget.maxParticles) {
       _adjustParticleCount();
     }
-  }
-
-  /// Pre-compute wind u,v components once (not per particle per frame).
-  void _rebuildWindGrid() {
-    _windGrid = widget.windPoints.map((wp) {
-      final rad = wp.directionDegrees * pi / 180.0;
-      return WindVector(
-        lat: wp.position.latitude,
-        lng: wp.position.longitude,
-        u: -wp.speedKnots * sin(rad),
-        v: -wp.speedKnots * cos(rad),
-        speed: wp.speedKnots,
-      );
-    }).toList();
   }
 
   void _initParticles() {
@@ -132,115 +114,62 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
   GeoParticle _spawnInBounds(
     ({double south, double north, double west, double east}) b,
   ) {
-    return GeoParticle(
+    final p = GeoParticle(
       lat: b.south + _random.nextDouble() * (b.north - b.south),
       lng: b.west + _random.nextDouble() * (b.east - b.west),
-      age: _random.nextDouble() * 4.0, // stagger births
-      lifetime: 4.0 + _random.nextDouble() * 4.0,
+      maxAge: 60.0 + _random.nextInt(60), // 1-2 seconds at 60fps
     );
+    // Stagger initial age to prevent all particles spawning at once
+    p.age = _random.nextDouble() * p.maxAge * 0.5;
+    return p;
   }
 
   void _onTick(Duration elapsed) {
     _frameCount++;
-    // Throttle to ~30fps (skip odd frames)
-    if (_frameCount % 2 != 0) return;
 
     final b = widget.bounds;
-    if (b == null || _windGrid.isEmpty) return;
+    final data = widget.weatherData;
+    if (b == null || data == null || data.isEmpty) return;
 
-    const dt = 1.0 / 30.0;
-    // Degrees-per-knot-per-second at equator ≈ 1/(60*3600) ≈ 4.6e-6
-    // Scale factor for visible movement
-    const degreesPerKnotSec = 0.00015;
+    final latRange = b.north - b.south;
+    final lngRange = b.east - b.west;
+    if (latRange == 0 || lngRange == 0) return;
 
     for (int i = 0; i < _particles.length; i++) {
       final p = _particles[i];
-      p.age += dt;
+      p.age++;
 
-      // Interpolate wind at particle's geographic position
-      final wind = _interpolateWindAt(p.lat, p.lng);
+      // Respawn if dead or out of bounds
+      if (p.age >= p.maxAge ||
+          p.lat < b.south ||
+          p.lat > b.north ||
+          p.lng < b.west ||
+          p.lng > b.east) {
+        _particles[i] = _spawnInBounds(b);
+        continue;
+      }
+
+      // Bilinear-interpolated wind at particle position
+      final wind = data.getInterpolatedWind(p.lat, p.lng);
 
       // Advect in geographic space
-      p.lng += wind.u * degreesPerKnotSec;
-      p.lat += wind.v * degreesPerKnotSec;
-      p.speed = wind.speed;
+      final dLat = wind.v * _velocityScale;
+      final dLng = wind.u * _velocityScale;
+      p.lat += dLat;
+      p.lng += dLng;
 
-      // Store geographic trail
-      p.trailLat.insert(0, p.lat);
-      p.trailLng.insert(0, p.lng);
-      if (p.trailLat.length > _trailLength) {
-        p.trailLat.removeRange(_trailLength, p.trailLat.length);
-        p.trailLng.removeRange(_trailLength, p.trailLng.length);
-      }
+      // Store speed for color mapping
+      p.speed = sqrt(wind.u * wind.u + wind.v * wind.v);
 
-      // Respawn if dead or out of bounds (with margin)
-      final margin = (b.north - b.south) * 0.1;
-      if (p.age >= p.lifetime ||
-          p.lat < b.south - margin ||
-          p.lat > b.north + margin ||
-          p.lng < b.west - margin ||
-          p.lng > b.east + margin) {
-        _particles[i] = _spawnInBounds(b);
-      }
+      // Screen-space velocity for trail rendering
+      // These are approximate — exact projection happens in painter
+      final scaleX = 400.0 / lngRange; // rough screen width estimate
+      final scaleY = 400.0 / latRange;
+      p.dx = dLng * scaleX;
+      p.dy = -dLat * scaleY;
     }
 
     setState(() {});
-  }
-
-  /// IDW interpolation using the 8 nearest wind grid points.
-  ({double u, double v, double speed}) _interpolateWindAt(
-    double lat,
-    double lng,
-  ) {
-    if (_windGrid.isEmpty) return (u: 0, v: 0, speed: 0);
-
-    // Compute distance² for all points, find nearest 8
-    const maxNeighbors = 8;
-    // Use a simple insertion-sort approach for small K
-    final nearest = List<(double dist2, int idx)>.filled(
-      maxNeighbors,
-      (double.infinity, -1),
-    );
-    int filled = 0;
-
-    for (int i = 0; i < _windGrid.length; i++) {
-      final wv = _windGrid[i];
-      final dlat = lat - wv.lat;
-      final dlng = lng - wv.lng;
-      final dist2 = dlat * dlat + dlng * dlng;
-
-      if (dist2 < 0.000001) {
-        return (u: wv.u, v: wv.v, speed: wv.speed);
-      }
-
-      if (filled < maxNeighbors || dist2 < nearest[filled - 1].$1) {
-        // Insert in sorted position
-        final insertAt = filled < maxNeighbors ? filled : filled - 1;
-        nearest[insertAt] = (dist2, i);
-        if (filled < maxNeighbors) filled++;
-        // Bubble into sorted position
-        for (int j = insertAt;
-            j > 0 && nearest[j].$1 < nearest[j - 1].$1;
-            j--) {
-          final tmp = nearest[j];
-          nearest[j] = nearest[j - 1];
-          nearest[j - 1] = tmp;
-        }
-      }
-    }
-
-    double uSum = 0, vSum = 0, wSum = 0, sSum = 0;
-    for (int i = 0; i < filled; i++) {
-      final w = 1.0 / nearest[i].$1;
-      final wv = _windGrid[nearest[i].$2];
-      uSum += wv.u * w;
-      vSum += wv.v * w;
-      sSum += wv.speed * w;
-      wSum += w;
-    }
-
-    if (wSum == 0) return (u: 0, v: 0, speed: 0);
-    return (u: uSum / wSum, v: vSum / wSum, speed: sSum / wSum);
   }
 
   @override
