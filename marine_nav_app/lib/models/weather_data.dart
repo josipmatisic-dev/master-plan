@@ -11,10 +11,13 @@ import 'lat_lng.dart';
 class WindDataPoint {
   /// Geographic position of this measurement.
   final LatLng position;
+
   /// Wind speed at 10m above ground in knots.
   final double speedKnots;
+
   /// Wind direction in degrees (0-360, meteorological convention).
   final double directionDegrees;
+
   /// Wind gust speed in knots. Null if unavailable.
   final double? gustKnots;
 
@@ -77,10 +80,13 @@ class WindDataPoint {
 class WaveDataPoint {
   /// Geographic position.
   final LatLng position;
+
   /// Significant wave height in meters.
   final double heightMeters;
+
   /// Wave direction in degrees (coming FROM).
   final double directionDegrees;
+
   /// Wave period in seconds.
   final double? periodSeconds;
 
@@ -131,14 +137,19 @@ class WaveDataPoint {
 class WeatherData {
   /// Wind measurements at grid points.
   final List<WindDataPoint> windPoints;
+
   /// Wave measurements at grid points.
   final List<WaveDataPoint> wavePoints;
+
   /// Atmospheric conditions at grid points.
   final List<AtmosphericDataPoint> atmosphericPoints;
+
   /// Hourly forecast frames.
   final List<WeatherFrame> frames;
+
   /// Timestamp when data was fetched.
   final DateTime fetchedAt;
+
   /// Grid resolution in degrees.
   final double gridResolution;
 
@@ -229,10 +240,13 @@ class WeatherData {
 class WeatherFrame {
   /// Forecast timestamp.
   final DateTime time;
+
   /// Wind data points for this hour.
   final List<WindDataPoint> windPoints;
+
   /// Wave data points for this hour.
   final List<WaveDataPoint> wavePoints;
+
   /// Atmospheric data points for this hour.
   final List<AtmosphericDataPoint> atmosphericPoints;
 

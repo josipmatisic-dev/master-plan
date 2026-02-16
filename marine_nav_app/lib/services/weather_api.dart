@@ -74,22 +74,27 @@ class WeatherApiService {
   /// Creates a weather API service with an optional HTTP client.
   WeatherApiService({http.Client? client}) : _client = client ?? http.Client();
 
-  /// Grid size for multi-point fetch (gridSize × gridSize points).
-  static const int gridSize = 5;
+  /// Default grid size for multi-point fetch.
+  static const int defaultGridSize = 5;
+
+  /// Maximum grid size at high zoom.
+  static const int maxGridSize = 8;
+
+  /// Forecast horizon in days (2 days = 48 hourly frames).
+  static const int forecastDays = 2;
 
   /// Fetches weather data for a geographic bounding box.
   ///
-  /// Builds a [gridSize]×[gridSize] grid of coordinates across the viewport
-  /// and fetches real data for each point via Open-Meteo's multi-coordinate
-  /// support. Makes parallel calls to the Marine API (waves) and Forecast
-  /// API (wind), then merges the results.
+  /// [zoomLevel] controls adaptive grid density (higher = denser).
   Future<WeatherData> fetchWeatherData({
     required double south,
     required double north,
     required double west,
     required double east,
+    double? zoomLevel,
   }) async {
-    final grid = _buildGrid(south, north, west, east);
+    final effectiveGridSize = _adaptiveGridSize(zoomLevel);
+    final grid = _buildGrid(south, north, west, east, effectiveGridSize);
     final lats = grid.map((p) => p.$1.toStringAsFixed(4)).join(',');
     final lngs = grid.map((p) => p.$2.toStringAsFixed(4)).join(',');
 
@@ -125,18 +130,27 @@ class WeatherApiService {
     );
   }
 
-  /// Builds a gridSize×gridSize list of (lat, lng) pairs across the viewport.
+  /// Returns adaptive grid size based on map zoom level.
+  static int _adaptiveGridSize(double? zoom) {
+    if (zoom == null) return defaultGridSize;
+    if (zoom >= 10) return maxGridSize;
+    if (zoom >= 7) return 6;
+    return defaultGridSize;
+  }
+
+  /// Builds an n×n list of (lat, lng) pairs across the viewport.
   static List<(double, double)> _buildGrid(
     double south,
     double north,
     double west,
     double east,
+    int size,
   ) {
     final points = <(double, double)>[];
-    final latStep = (north - south) / (gridSize - 1);
-    final lngStep = (east - west) / (gridSize - 1);
-    for (var row = 0; row < gridSize; row++) {
-      for (var col = 0; col < gridSize; col++) {
+    final latStep = (north - south) / (size - 1);
+    final lngStep = (east - west) / (size - 1);
+    for (var row = 0; row < size; row++) {
+      for (var col = 0; col < size; col++) {
         points.add((south + row * latStep, west + col * lngStep));
       }
     }
@@ -151,21 +165,26 @@ class WeatherApiService {
         'longitude': lngs,
         'current': 'wave_height,wave_direction,wave_period',
         'hourly': 'wave_height,wave_direction,wave_period',
-        'forecast_days': '7',
+        'forecast_days': '$forecastDays',
       },
     );
   }
 
-  /// Builds the Forecast API URI with multi-coordinate lat/lng (wind data).
+  /// Builds the Forecast API URI — wind + atmospheric data.
   Uri _buildForecastUri(String lats, String lngs) {
     return Uri.parse(forecastUrl).replace(
       queryParameters: {
         'latitude': lats,
         'longitude': lngs,
-        'current': 'wind_speed_10m,wind_direction_10m',
-        'hourly': 'wind_speed_10m,wind_direction_10m',
+        'current': 'wind_speed_10m,wind_direction_10m,wind_gusts_10m,'
+            'precipitation,cloud_cover,visibility,'
+            'pressure_msl,temperature_2m,apparent_temperature,'
+            'relative_humidity_2m',
+        'hourly': 'wind_speed_10m,wind_direction_10m,wind_gusts_10m,'
+            'precipitation,cloud_cover,visibility,'
+            'pressure_msl,temperature_2m',
         'wind_speed_unit': 'kn',
-        'forecast_days': '7',
+        'forecast_days': '$forecastDays',
       },
     );
   }

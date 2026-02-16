@@ -126,30 +126,33 @@ class WeatherProvider extends ChangeNotifier {
 
   // ============ Data Fetching ============
 
-  /// Fetches weather data for a viewport bounding box (debounced).
-  ///
-  /// Call this when the map viewport changes. Debounces to avoid
-  /// excessive API calls during rapid panning/zooming.
+  /// Fetches weather data for a viewport (debounced).
   void fetchForViewport({
     required double south,
     required double north,
     required double west,
     required double east,
+    double? zoomLevel,
   }) {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(_debounceDuration, () {
-      _fetchData(south: south, north: north, west: west, east: east);
+      _fetchData(
+        south: south,
+        north: north,
+        west: west,
+        east: east,
+        zoomLevel: zoomLevel,
+      );
     });
   }
 
   /// Fetches weather data immediately (bypasses debounce).
-  ///
-  /// Use for explicit refresh actions.
   Future<void> refresh({
     required double south,
     required double north,
     required double west,
     required double east,
+    double? zoomLevel,
     bool force = true,
   }) async {
     _debounceTimer?.cancel();
@@ -158,16 +161,18 @@ class WeatherProvider extends ChangeNotifier {
       north: north,
       west: west,
       east: east,
+      zoomLevel: zoomLevel,
       force: force,
     );
   }
 
-  /// Internal fetch with cache-first strategy and retry.
+  /// Internal fetch with cache-first strategy.
   Future<void> _fetchData({
     required double south,
     required double north,
     required double west,
     required double east,
+    double? zoomLevel,
     bool force = false,
   }) async {
     // Round coordinates to generate consistent cache keys
@@ -221,6 +226,7 @@ class WeatherProvider extends ChangeNotifier {
         north: north,
         west: west,
         east: east,
+        zoomLevel: zoomLevel,
       );
 
       _data = result;

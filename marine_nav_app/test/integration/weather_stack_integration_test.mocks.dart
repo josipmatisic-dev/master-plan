@@ -730,6 +730,7 @@ class MockWeatherProvider extends _i1.Mock implements _i19.WeatherProvider {
     required double? north,
     required double? west,
     required double? east,
+    double? zoomLevel,
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -740,6 +741,7 @@ class MockWeatherProvider extends _i1.Mock implements _i19.WeatherProvider {
             #north: north,
             #west: west,
             #east: east,
+            #zoomLevel: zoomLevel,
           },
         ),
         returnValueForMissingStub: null,
@@ -751,6 +753,7 @@ class MockWeatherProvider extends _i1.Mock implements _i19.WeatherProvider {
     required double? north,
     required double? west,
     required double? east,
+    double? zoomLevel,
     bool? force = true,
   }) =>
       (super.noSuchMethod(
@@ -762,6 +765,7 @@ class MockWeatherProvider extends _i1.Mock implements _i19.WeatherProvider {
             #north: north,
             #west: west,
             #east: east,
+            #zoomLevel: zoomLevel,
             #force: force,
           },
         ),

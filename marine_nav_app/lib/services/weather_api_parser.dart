@@ -7,6 +7,7 @@ library;
 
 import 'dart:convert';
 
+import '../models/atmospheric_data.dart';
 import '../models/lat_lng.dart';
 import '../models/weather_data.dart';
 import 'weather_api.dart';
@@ -26,6 +27,7 @@ WeatherData parseGridResponse({
 
     final windPoints = <WindDataPoint>[];
     final wavePoints = <WaveDataPoint>[];
+    final atmosphericPoints = <AtmosphericDataPoint>[];
 
     // Multi-point response: array of result objects
     final forecastList = forecastJson is List ? forecastJson : [forecastJson];
@@ -34,18 +36,38 @@ WeatherData parseGridResponse({
     for (var i = 0; i < grid.length; i++) {
       final pos = LatLng(latitude: grid[i].$1, longitude: grid[i].$2);
 
-      // Parse wind for this grid point
+      // Parse wind + atmospheric for this grid point
       if (i < forecastList.length) {
         final fc = forecastList[i] as Map<String, dynamic>;
         final current = fc['current'] as Map<String, dynamic>?;
         if (current != null) {
           final speed = (current['wind_speed_10m'] as num?)?.toDouble();
           final dir = (current['wind_direction_10m'] as num?)?.toDouble();
+          final gusts = (current['wind_gusts_10m'] as num?)?.toDouble();
           if (speed != null && dir != null) {
             windPoints.add(WindDataPoint(
               position: pos,
               speedKnots: speed,
               directionDegrees: dir,
+              gustKnots: gusts,
+            ));
+          }
+          // Parse atmospheric data
+          final precip = (current['precipitation'] as num?)?.toDouble();
+          final cloud = (current['cloud_cover'] as num?)?.toDouble();
+          if (precip != null && cloud != null) {
+            atmosphericPoints.add(AtmosphericDataPoint(
+              position: pos,
+              precipitationMmH: precip,
+              cloudCoverPercent: cloud,
+              visibilityMeters: (current['visibility'] as num?)?.toDouble(),
+              pressureHpa: (current['pressure_msl'] as num?)?.toDouble(),
+              temperatureCelsius:
+                  (current['temperature_2m'] as num?)?.toDouble(),
+              apparentTempCelsius:
+                  (current['apparent_temperature'] as num?)?.toDouble(),
+              humidityPercent:
+                  (current['relative_humidity_2m'] as num?)?.toDouble(),
             ));
           }
         }
@@ -81,6 +103,7 @@ WeatherData parseGridResponse({
     return WeatherData(
       windPoints: windPoints,
       wavePoints: wavePoints,
+      atmosphericPoints: atmosphericPoints,
       frames: frames,
       fetchedAt: DateTime.now(),
     );
@@ -149,6 +172,7 @@ List<WeatherFrame> _parseHourlyFrames({
       if (hourly != null) {
         final windSpeeds = hourly['wind_speed_10m'] as List<dynamic>?;
         final windDirs = hourly['wind_direction_10m'] as List<dynamic>?;
+        final windGusts = hourly['wind_gusts_10m'] as List<dynamic>?;
 
         if (windSpeeds != null &&
             windDirs != null &&
@@ -156,11 +180,15 @@ List<WeatherFrame> _parseHourlyFrames({
             timeIdx < windDirs.length) {
           final speed = (windSpeeds[timeIdx] as num?)?.toDouble();
           final dir = (windDirs[timeIdx] as num?)?.toDouble();
+          final gust = windGusts != null && timeIdx < windGusts.length
+              ? (windGusts[timeIdx] as num?)?.toDouble()
+              : null;
           if (speed != null && dir != null) {
             windPoints.add(WindDataPoint(
               position: pos,
               speedKnots: speed,
               directionDegrees: dir,
+              gustKnots: gust,
             ));
           }
         }
