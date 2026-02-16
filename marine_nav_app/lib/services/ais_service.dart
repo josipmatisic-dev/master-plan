@@ -13,18 +13,44 @@ import '../models/ais_target.dart';
 import '../models/lat_lng.dart';
 
 /// Connection state for the AIS WebSocket.
-enum AisConnectionState { disconnected, connecting, connected, error }
+enum AisConnectionState {
+  /// Not connected.
+  disconnected,
+
+  /// Establishing connection.
+  connecting,
+
+  /// Connected and receiving data.
+  connected,
+
+  /// Connection error.
+  error
+}
 
 /// Parsed message from aisstream.io.
 class AisMessage {
+  /// The type of AIS message (e.g., 'PositionReport').
   final String messageType;
+
+  /// The MMSI of the vessel.
   final int mmsi;
+
+  /// The name of the vessel, if available.
   final String? shipName;
+
+  /// Latitude of the vessel.
   final double latitude;
+
+  /// Longitude of the vessel.
   final double longitude;
+
+  /// Timestamp of the message.
   final DateTime timestamp;
+
+  /// Raw payload of the message.
   final Map<String, dynamic> payload;
 
+  /// Creates a new [AisMessage].
   const AisMessage({
     required this.messageType,
     required this.mmsi,
@@ -54,9 +80,16 @@ class AisService {
   int _reconnectAttempts = 0;
   static const _maxReconnectAttempts = 5;
 
+  /// Stream of received AIS targets.
   Stream<AisTarget> get targetStream => _targetController.stream;
+
+  /// Stream of connection state changes.
   Stream<AisConnectionState> get stateStream => _stateController.stream;
+
+  /// Stream of error messages.
   Stream<String> get errorStream => _errorController.stream;
+
+  /// Current connection state.
   AisConnectionState get state => _state;
 
   /// Connect to aisstream.io with the given API key and bounding boxes.

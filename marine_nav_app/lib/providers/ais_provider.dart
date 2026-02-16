@@ -51,16 +51,28 @@ class AisProvider extends ChangeNotifier {
   /// Stale target cleanup interval.
   static const Duration _cleanupInterval = Duration(minutes: 2);
 
+  /// Creates an [AisProvider] with the given [SettingsProvider].
   AisProvider({required SettingsProvider settingsProvider})
       : _settings = settingsProvider;
 
   // --- Public getters ---
 
+  /// Map of MMSI to [AisTarget] for all tracked vessels.
   Map<int, AisTarget> get targets => Map.unmodifiable(_targets);
+
+  /// List of targets posing collision risks, sorted by CPA.
   List<AisTarget> get warnings => List.unmodifiable(_warnings);
+
+  /// Current connection state of the AIS stream.
   AisConnectionState get connectionState => _connectionState;
+
+  /// Most recent error message, if any.
   String? get lastError => _lastError;
+
+  /// Number of currently tracked targets.
   int get targetCount => _targets.length;
+
+  /// Whether the AIS stream is currently connected.
   bool get isConnected => _connectionState == AisConnectionState.connected;
 
   /// Initialize the provider.

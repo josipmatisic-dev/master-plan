@@ -7,21 +7,46 @@ import 'lat_lng.dart';
 
 /// AIS navigation status codes (ITU-R M.1371).
 enum AisNavStatus {
+  /// Under way using engine.
   underWayEngine(0, 'Under way using engine'),
+
+  /// Vessel is at anchor.
   atAnchor(1, 'At anchor'),
+
+  /// Vessel not under command.
   notUnderCommand(2, 'Not under command'),
+
+  /// Vessel has restricted maneuverability.
   restrictedManeuverability(3, 'Restricted manoeuvrability'),
+
+  /// Vessel constrained by draught.
   constrainedByDraught(4, 'Constrained by draught'),
+
+  /// Vessel is moored.
   moored(5, 'Moored'),
+
+  /// Vessel is aground.
   aground(6, 'Aground'),
+
+  /// Engaged in fishing.
   fishing(7, 'Engaged in fishing'),
+
+  /// Under way sailing.
   underWaySailing(8, 'Under way sailing'),
+
+  /// Navigation status unknown.
   unknown(15, 'Not defined');
 
+  /// Creates an [AisNavStatus] with code and description.
   const AisNavStatus(this.code, this.description);
+
+  /// The AIS navigation status code.
   final int code;
+
+  /// Human-readable description of the status.
   final String description;
 
+  /// Returns the [AisNavStatus] corresponding to the given code.
   static AisNavStatus fromCode(int code) {
     return AisNavStatus.values.firstWhere(
       (s) => s.code == code,
@@ -32,15 +57,34 @@ enum AisNavStatus {
 
 /// Ship type categories derived from AIS type codes.
 enum ShipCategory {
+  /// Cargo vessel.
   cargo,
+
+  /// Tanker vessel.
   tanker,
+
+  /// Passenger vessel.
   passenger,
+
+  /// Fishing vessel.
   fishing,
+
+  /// Sailing vessel.
   sailing,
+
+  /// Pleasure craft.
   pleasure,
+
+  /// Tug or special craft.
   tug,
+
+  /// Military vessel.
   military,
+
+  /// Search and Rescue vessel.
   searchAndRescue,
+
+  /// Other or unknown type.
   other;
 
   /// Derive category from AIS ship type code (0-99).
@@ -132,6 +176,7 @@ class AisTarget {
   /// Time to CPA in minutes. Null if not computed.
   final double? tcpa;
 
+  /// Creates a new [AisTarget].
   const AisTarget({
     required this.mmsi,
     required this.position,
@@ -195,7 +240,7 @@ class AisTarget {
   int get hashCode => mmsi.hashCode;
 
   @override
-  String toString() => 'AisTarget($mmsi, ${displayName}, '
+  String toString() => 'AisTarget($mmsi, $displayName, '
       '${position.latitude.toStringAsFixed(4)}, '
       '${position.longitude.toStringAsFixed(4)}, '
       'SOG: ${sog?.toStringAsFixed(1) ?? "?"} kn)';
@@ -210,6 +255,7 @@ class CpaResult {
   /// Time to closest point in minutes. Negative means diverging.
   final double tcpaMinutes;
 
+  /// Creates a [CpaResult] with the given [cpaNm] and [tcpaMinutes].
   const CpaResult({required this.cpaNm, required this.tcpaMinutes});
 
   /// Whether this represents a collision risk.

@@ -67,23 +67,58 @@ class SettingsProvider extends ChangeNotifier {
 
   // ============ Getters ============
 
+  /// Current speed unit preference.
   SpeedUnit get speedUnit => _speedUnit;
+
+  /// Current distance unit preference.
   DistanceUnit get distanceUnit => _distanceUnit;
+
+  /// Current depth unit preference.
   DepthUnit get depthUnit => _depthUnit;
+
+  /// Whether to show the compass overlay.
   bool get showCompass => _showCompass;
+
+  /// Whether to show data orbs overlay.
   bool get showDataOrbs => _showDataOrbs;
+
+  /// Whether to show the speed arc overlay.
   bool get showSpeedArc => _showSpeedArc;
+
+  /// Whether to animate waves in the background.
   bool get showWaveAnimation => _showWaveAnimation;
+
+  /// Current language code (e.g., 'en').
   String get language => _language;
+
+  /// Map refresh rate in milliseconds.
   int get mapRefreshRate => _mapRefreshRate;
+
+  /// Hostname for NMEA connection.
   String get nmeaHost => _nmeaHost;
+
+  /// Port number for NMEA connection.
   int get nmeaPort => _nmeaPort;
+
+  /// Type of NMEA connection (TCP/UDP).
   ConnectionType get nmeaConnectionType => _nmeaConnectionType;
+
+  /// Whether to automatically connect to NMEA on startup.
   bool get autoConnectNMEA => _autoConnectNMEA;
+
+  /// API key for MapTiler service.
   String get mapTilerApiKey => _mapTilerApiKey;
+
+  /// Whether a MapTiler API key is configured.
   bool get hasMapTilerApiKey => _mapTilerApiKey.isNotEmpty;
+
+  /// API key for aisstream.io service.
   String get aisStreamApiKey => _aisStreamApiKey;
+
+  /// Whether an AIS stream API key is configured.
   bool get hasAisStreamApiKey => _aisStreamApiKey.isNotEmpty;
+
+  /// Whether settings have been loaded from storage.
   bool get isInitialized => _prefs != null;
 
   /// Initialize and load settings from storage
