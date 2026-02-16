@@ -167,34 +167,56 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
     setState(() {});
   }
 
-  /// IDW interpolation with only 4 nearest neighbors (not ALL points).
+  /// IDW interpolation using the 8 nearest wind grid points.
   ({double u, double v, double speed}) _interpolateWindAt(
     double lat,
     double lng,
   ) {
     if (_windGrid.isEmpty) return (u: 0, v: 0, speed: 0);
 
-    // Find 4 nearest wind vectors by distance
-    // For grids up to ~100 points, sorting a small list is fast enough
-    double uSum = 0, vSum = 0, wSum = 0, sSum = 0;
-    int count = 0;
+    // Compute distance² for all points, find nearest 8
+    const maxNeighbors = 8;
+    // Use a simple insertion-sort approach for small K
+    final nearest = List<(double dist2, int idx)>.filled(
+      maxNeighbors,
+      (double.infinity, -1),
+    );
+    int filled = 0;
 
-    for (final wv in _windGrid) {
+    for (int i = 0; i < _windGrid.length; i++) {
+      final wv = _windGrid[i];
       final dlat = lat - wv.lat;
       final dlng = lng - wv.lng;
       final dist2 = dlat * dlat + dlng * dlng;
+
       if (dist2 < 0.000001) {
-        // Exact match
         return (u: wv.u, v: wv.v, speed: wv.speed);
       }
-      final w = 1.0 / dist2;
+
+      if (filled < maxNeighbors || dist2 < nearest[filled - 1].$1) {
+        // Insert in sorted position
+        final insertAt = filled < maxNeighbors ? filled : filled - 1;
+        nearest[insertAt] = (dist2, i);
+        if (filled < maxNeighbors) filled++;
+        // Bubble into sorted position
+        for (int j = insertAt;
+            j > 0 && nearest[j].$1 < nearest[j - 1].$1;
+            j--) {
+          final tmp = nearest[j];
+          nearest[j] = nearest[j - 1];
+          nearest[j - 1] = tmp;
+        }
+      }
+    }
+
+    double uSum = 0, vSum = 0, wSum = 0, sSum = 0;
+    for (int i = 0; i < filled; i++) {
+      final w = 1.0 / nearest[i].$1;
+      final wv = _windGrid[nearest[i].$2];
       uSum += wv.u * w;
       vSum += wv.v * w;
       sSum += wv.speed * w;
       wSum += w;
-      count++;
-      // Early exit after enough samples for small grids
-      if (count >= 8) break;
     }
 
     if (wSum == 0) return (u: 0, v: 0, speed: 0);
@@ -283,6 +305,12 @@ class _WindPainter extends CustomPainter {
     final lngRange = bounds.east - bounds.west;
     if (latRange == 0 || lngRange == 0) return;
 
+    // Reuse paint objects to avoid allocation per segment
+    final trailPaint = Paint()..strokeCap = StrokeCap.round;
+    final glowPaint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5);
+
     for (final p in particles) {
       if (p.trailLat.length < 2) continue;
       final alpha = p.alpha;
@@ -290,7 +318,6 @@ class _WindPainter extends CustomPainter {
 
       final color = _colorForSpeed(p.speed, alpha);
 
-      // Project current position to screen
       for (int i = 0; i < p.trailLat.length - 1; i++) {
         final sx0 = (p.trailLng[i] - bounds.west) / lngRange * size.width;
         final sy0 =
@@ -301,17 +328,22 @@ class _WindPainter extends CustomPainter {
 
         final trailFade = 1.0 - i / p.trailLat.length;
         final w = isHolographic ? 1.0 + trailFade : 1.2 + trailFade * 1.3;
+        final segAlpha = alpha * trailFade * 0.8;
 
-        final paint = Paint()
-          ..color = color.withValues(alpha: alpha * trailFade * 0.8)
-          ..strokeWidth = w
-          ..strokeCap = StrokeCap.round;
+        final from = Offset(sx0, sy0);
+        final to = Offset(sx1, sy1);
 
         if (isHolographic && i == 0) {
-          paint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5);
+          glowPaint
+            ..color = color.withValues(alpha: segAlpha)
+            ..strokeWidth = w;
+          canvas.drawLine(from, to, glowPaint);
+        } else {
+          trailPaint
+            ..color = color.withValues(alpha: segAlpha)
+            ..strokeWidth = w;
+          canvas.drawLine(from, to, trailPaint);
         }
-
-        canvas.drawLine(Offset(sx0, sy0), Offset(sx1, sy1), paint);
       }
     }
   }

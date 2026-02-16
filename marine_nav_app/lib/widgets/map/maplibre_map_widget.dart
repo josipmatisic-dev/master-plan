@@ -55,13 +55,10 @@ class _MapLibreMapWidgetState extends State<MapLibreMapWidget> {
   String _styleUrl(BuildContext context) {
     final settings = context.read<SettingsProvider>();
     final apiKey = settings.mapTilerApiKey;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (apiKey.isEmpty) {
       return 'https://demotiles.maplibre.org/style.json';
     }
-    // MapTiler Ocean style for nautical, Dark for holographic
-    final style = isDark ? 'ocean' : 'ocean';
-    return 'https://api.maptiler.com/maps/$style/style.json?key=$apiKey';
+    return 'https://api.maptiler.com/maps/ocean/style.json?key=$apiKey';
   }
 
   void _onMapCreated(ml.MapLibreMapController controller) {

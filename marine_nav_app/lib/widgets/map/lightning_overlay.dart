@@ -33,7 +33,7 @@ class _LightningOverlayState extends State<LightningOverlay>
 
   List<_BoltSegment> _currentBolt = [];
   double _flashOpacity = 0;
-  double _nextStrikeIn = 5.0;
+  bool _strikeScheduled = false;
 
   @override
   void initState() {
@@ -64,14 +64,17 @@ class _LightningOverlayState extends State<LightningOverlay>
   }
 
   void _scheduleNextStrike() {
-    if (widget.stormIntensity < 0.01) return;
+    if (widget.stormIntensity < 0.01 || _strikeScheduled) return;
+    _strikeScheduled = true;
+
     // Strike interval decreases with intensity
     final maxInterval = 15.0 - widget.stormIntensity * 12.0;
     final minInterval = 1.0 + (1.0 - widget.stormIntensity) * 3.0;
-    _nextStrikeIn =
+    final nextStrikeIn =
         minInterval + _random.nextDouble() * (maxInterval - minInterval);
 
-    Future.delayed(Duration(milliseconds: (_nextStrikeIn * 1000).toInt()), () {
+    Future.delayed(Duration(milliseconds: (nextStrikeIn * 1000).toInt()), () {
+      _strikeScheduled = false;
       if (!mounted || widget.stormIntensity < 0.01) return;
       _strike();
       _scheduleNextStrike();

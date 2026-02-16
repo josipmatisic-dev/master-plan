@@ -117,28 +117,10 @@ class _MapWebViewState extends State<MapWebView> {
   /// Handle timeline frame changes: regenerate wind texture for active frame.
   Future<void> _onTimelineChanged() async {
     final timeline = _timelineProvider;
-    final weather = _weatherProvider;
-    if (timeline == null || weather == null) return;
+    if (timeline == null || _weatherProvider == null) return;
 
-    // Only regenerate texture if timeline has frames
     if (timeline.hasFrames) {
-      final vp = _mapProvider!.viewport;
-      if (vp.size.isEmpty) return;
-      final b = vp.bounds;
-
-      // Regenerate wind texture from the active frame's wind data
-      await weather.generateWindTexture(
-        windPoints: timeline.activeWindPoints,
-        south: b.south,
-        north: b.north,
-        west: b.west,
-        east: b.east,
-      );
-
-      // Push updated data (wind texture + wave data) to JavaScript
-      await _pushWeatherToJs(
-        useTimelineData: true,
-      );
+      await _pushWeatherToJs(useTimelineData: true);
     }
   }
 
@@ -191,22 +173,10 @@ class _MapWebViewState extends State<MapWebView> {
       'window.mapBridge.setWaveLayerVisible(${weather.isWaveVisible});',
     );
 
-    // Send wind data using pre-generated texture from provider
+    // Wind data is now rendered via native overlays (WindParticleOverlay),
+    // but legacy WebView path kept for fallback compatibility.
     if (weather.isWindVisible) {
-      final textureData = weather.windTexture;
-      if (textureData != null) {
-        try {
-          await _controller!.runJavaScript(
-            'window.mapBridge.setWindTexture('
-            '"${textureData.base64Png}", '
-            '${textureData.uMin}, ${textureData.uMax}, '
-            '${textureData.vMin}, ${textureData.vMax}'
-            ');',
-          );
-        } catch (e) {
-          debugPrint('setWindTexture failed: $e');
-        }
-      }
+      // Legacy texture pipeline removed — wind rendered natively
     }
 
     // Send wave data as points (map.html uses custom canvas renderer)

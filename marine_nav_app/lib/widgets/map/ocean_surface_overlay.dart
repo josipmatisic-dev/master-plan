@@ -116,12 +116,11 @@ class _OceanSurfacePainter extends CustomPainter {
       shader.setFloat(4, 0.788); // G: 0xC9/FF
       shader.setFloat(5, 0.655); // B: 0xA7/FF — seafoamGreen
     }
-    // uIntensity
-    final baseIntensity = isHolographic ? 0.25 : 0.15;
+    // uIntensity — scale with wave height
     final intensityScale = isHolographic
         ? _lerpDouble(0.10, 0.45, waveIntensity)
         : _lerpDouble(0.05, 0.30, waveIntensity);
-    shader.setFloat(6, baseIntensity * intensityScale / baseIntensity);
+    shader.setFloat(6, intensityScale);
     // uScale
     shader.setFloat(7, isHolographic ? 12.0 : 8.0);
     // uSpeed

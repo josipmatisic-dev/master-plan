@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 /// Precipitation type for the shader.
-/// Precipitation type for the shader.
 enum PrecipType {
   /// Rain drops.
   rain,
