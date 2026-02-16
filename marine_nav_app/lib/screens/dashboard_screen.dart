@@ -16,6 +16,7 @@ import '../widgets/effects/holographic_shimmer.dart';
 import '../widgets/effects/particle_background.dart';
 import '../widgets/effects/scan_line_effect.dart';
 import '../widgets/glass/glass_card.dart';
+import '../widgets/glass/weather_reactive_glass_card.dart';
 
 /// Main dashboard screen showing live marine navigation data.
 class DashboardScreen extends StatelessWidget {
@@ -67,7 +68,8 @@ class DashboardScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 HolographicShimmer(
                   enabled: isHolographic,
-                  child: _buildWindCard(context, cs, data, weather),
+                  child: _buildWindCard(context, cs, data, weather,
+                      isHolographic),
                 ),
                 const SizedBox(height: 16),
                 HolographicShimmer(
@@ -240,7 +242,7 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildWindCard(BuildContext context, ColorScheme cs, dynamic data,
-      WeatherProvider weather) {
+      WeatherProvider weather, bool isHolographic) {
     final windSpd = data?.windSpeedKnots as double?;
     final windDir = data?.windDirectionDegrees as double?;
     final tt = Theme.of(context).textTheme;
@@ -252,8 +254,28 @@ class DashboardScreen extends StatelessWidget {
       _ => ('No data', cs.onSurfaceVariant),
     };
 
-    return GlassCard(
-      padding: GlassCardPadding.medium,
+    // Get average wind/wave from weather API for reactive effects
+    final apiWind = weather.hasData && weather.data.windPoints.isNotEmpty
+        ? weather.data.windPoints
+                .map((p) => p.speedKnots)
+                .reduce((a, b) => a + b) /
+            weather.data.windPoints.length
+        : windSpd ?? 0.0;
+    final apiWaveH = weather.hasData && weather.data.wavePoints.isNotEmpty
+        ? weather.data.wavePoints
+                .map((p) => p.heightMeters)
+                .reduce((a, b) => a + b) /
+            weather.data.wavePoints.length
+        : 0.0;
+    final apiWindDir = weather.hasData && weather.data.windPoints.isNotEmpty
+        ? weather.data.windPoints.first.directionDegrees
+        : windDir ?? 0.0;
+
+    return WeatherReactiveGlassCard(
+      windSpeedKnots: apiWind,
+      waveHeightMeters: apiWaveH,
+      windDirectionDegrees: apiWindDir,
+      isHolographic: isHolographic,
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Text('Wind & Weather',
             style: tt.titleMedium?.copyWith(color: cs.primary)),
