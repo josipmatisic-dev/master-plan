@@ -4,10 +4,14 @@ import 'package:provider/provider.dart';
 import '../providers/boat_provider.dart';
 import '../providers/nmea_provider.dart';
 import '../providers/theme_provider.dart';
+import '../providers/tide_provider.dart';
 import '../providers/weather_provider.dart';
+import '../services/trip_log_service.dart';
 import '../theme/holographic_colors.dart';
 import '../widgets/common/glow_text.dart';
 import '../widgets/data_displays/data_orb.dart';
+import '../widgets/data_displays/tide_card.dart';
+import '../widgets/data_displays/trip_control_card.dart';
 import '../widgets/effects/holographic_shimmer.dart';
 import '../widgets/effects/particle_background.dart';
 import '../widgets/effects/scan_line_effect.dart';
@@ -25,6 +29,8 @@ class DashboardScreen extends StatelessWidget {
     final nmea = context.watch<NMEAProvider>();
     final weather = context.watch<WeatherProvider>();
     final boat = context.watch<BoatProvider>();
+    final tide = context.watch<TideProvider>();
+    final tripLog = context.watch<TripLogService>();
     final data = nmea.currentData;
     final pos = boat.currentPosition;
 
@@ -62,6 +68,47 @@ class DashboardScreen extends StatelessWidget {
                 HolographicShimmer(
                   enabled: isHolographic,
                   child: _buildWindCard(context, cs, data, weather),
+                ),
+                const SizedBox(height: 16),
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: GlassCard(
+                    padding: GlassCardPadding.medium,
+                    child: TideCard(
+                      tideData: tide.tideData,
+                      nextHigh: tide.nextHighTide,
+                      nextLow: tide.nextLowTide,
+                      isLoading: tide.isLoading,
+                      error: tide.error,
+                      isHolographic: isHolographic,
+                      onRefresh: pos != null
+                          ? () => tide.fetchForPosition(
+                                latitude: pos.position.latitude,
+                                longitude: pos.position.longitude,
+                              )
+                          : null,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                HolographicShimmer(
+                  enabled: isHolographic,
+                  child: GlassCard(
+                    padding: GlassCardPadding.medium,
+                    child: TripControlCard(
+                      isRecording: tripLog.isRecording,
+                      activeTrip: tripLog.activeTrip,
+                      savedTrips: tripLog.savedTrips,
+                      isHolographic: isHolographic,
+                      onToggleRecording: () {
+                        if (tripLog.isRecording) {
+                          tripLog.stopTrip();
+                        } else {
+                          tripLog.startTrip();
+                        }
+                      },
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
                 _buildQuickActions(context, cs),
