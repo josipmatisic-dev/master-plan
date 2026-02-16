@@ -111,7 +111,7 @@ void main() {
         mmsi: 211234567,
         position: const LatLng(latitude: 43.5, longitude: 16.4),
         lastUpdate: DateTime.now(),
-        dimensions: [50, 150, 10, 20],
+        dimensions: const [50, 150, 10, 20],
       );
       expect(target.lengthMeters, 200.0);
       expect(target.beamMeters, 30.0);
