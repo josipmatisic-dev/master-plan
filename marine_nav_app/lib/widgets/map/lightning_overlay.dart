@@ -14,6 +14,7 @@ class LightningOverlay extends StatefulWidget {
   /// Whether to use holographic theme colors.
   final bool isHolographic;
 
+  /// Creates a lightning overlay with the given storm intensity.
   const LightningOverlay({
     super.key,
     this.stormIntensity = 0.0,

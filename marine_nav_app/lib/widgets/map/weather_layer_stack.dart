@@ -32,6 +32,7 @@ class WeatherLayerStack extends StatelessWidget {
   /// Map height — null for Positioned.fill usage.
   final double? height;
 
+  /// Creates a weather layer stack.
   const WeatherLayerStack({super.key, this.height});
 
   @override
@@ -86,7 +87,7 @@ class WeatherLayerStack extends StatelessWidget {
     // TODO: These values would come from actual weather conditions
     // For now, derive from wind speed as a rough proxy
     final precipIntensity = hasWeather ? (avgWindSpeed > 20 ? 0.6 : 0.0) : 0.0;
-    final fogDensity = 0.0; // Will be driven by visibility data
+    const fogDensity = 0.0; // Will be driven by visibility data
     final stormIntensity = hasWeather ? (avgWindSpeed > 30 ? 0.5 : 0.0) : 0.0;
 
     final stack = Stack(

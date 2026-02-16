@@ -14,6 +14,7 @@ class FogOverlay extends StatefulWidget {
   /// Whether to use holographic theme colors.
   final bool isHolographic;
 
+  /// Creates a fog overlay with the given density.
   const FogOverlay({
     super.key,
     this.fogDensity = 0.0,

@@ -14,6 +14,7 @@ class OceanSurfaceOverlay extends StatefulWidget {
   /// Whether to use holographic theme colors.
   final bool isHolographic;
 
+  /// Creates an ocean surface caustics overlay.
   const OceanSurfaceOverlay({
     super.key,
     this.waveIntensity = 0.1,

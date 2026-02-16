@@ -22,6 +22,7 @@ class MapLibreMapWidget extends StatefulWidget {
   /// Height constraint. Null means fill parent.
   final double? height;
 
+  /// Creates a native MapLibre GL map widget.
   const MapLibreMapWidget({super.key, this.height});
 
   @override

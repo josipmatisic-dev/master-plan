@@ -25,6 +25,7 @@ class WindParticle {
   /// Wind speed magnitude at this particle (m/s).
   double speed;
 
+  /// Creates a wind particle at [x], [y] with optional velocity and lifetime.
   WindParticle({
     required this.x,
     required this.y,

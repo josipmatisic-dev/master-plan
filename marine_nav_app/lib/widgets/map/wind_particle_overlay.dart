@@ -22,6 +22,7 @@ class WindParticleOverlay extends StatefulWidget {
   /// Wind data bounds for coordinate mapping.
   final ({double south, double north, double west, double east})? bounds;
 
+  /// Creates a wind particle overlay with wind data for flow visualization.
   const WindParticleOverlay({
     super.key,
     required this.windPoints,

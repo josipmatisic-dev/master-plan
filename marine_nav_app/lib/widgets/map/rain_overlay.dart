@@ -7,7 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 /// Precipitation type for the shader.
-enum PrecipType { rain, snow, hail }
+/// Precipitation type for the shader.
+enum PrecipType {
+  /// Rain drops.
+  rain,
+
+  /// Snowflakes.
+  snow,
+
+  /// Hailstones.
+  hail,
+}
 
 /// Renders animated precipitation via the rain.frag shader.
 class RainOverlay extends StatefulWidget {
@@ -26,6 +36,7 @@ class RainOverlay extends StatefulWidget {
   /// Whether to use holographic theme colors.
   final bool isHolographic;
 
+  /// Creates a rain overlay with the given precipitation parameters.
   const RainOverlay({
     super.key,
     this.intensity = 0.0,
