@@ -245,6 +245,7 @@ class _WindParticleOverlayState extends State<WindParticleOverlay>
           particles: _particles,
           bounds: widget.bounds!,
           isHolographic: widget.isHolographic,
+          frameCount: _frameCount,
         ),
         size: Size.infinite,
       ),

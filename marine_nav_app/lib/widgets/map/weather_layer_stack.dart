@@ -113,10 +113,11 @@ class WeatherLayerStack extends StatelessWidget {
                 ? 0.15
                 : 0.0;
 
+    // Storm ramps gradually from 20→34 kts (0.0→0.8)
     final stormIntensity = avgWindSpeed >= 34
         ? 0.8
-        : avgWindSpeed >= 25
-            ? 0.4
+        : avgWindSpeed >= 20
+            ? (avgWindSpeed - 20) / 14 * 0.8
             : 0.0;
 
     final stack = Stack(

@@ -90,6 +90,8 @@ class _OceanSurfacePainter extends CustomPainter {
   final double waveIntensity;
   final bool isHolographic;
 
+  final Paint _shaderPaint = Paint();
+
   _OceanSurfacePainter({
     required this.program,
     required this.time,
@@ -128,8 +130,8 @@ class _OceanSurfacePainter extends CustomPainter {
     // uSecondLayer
     shader.setFloat(9, isHolographic ? 1.0 : 0.0);
 
-    final paint = Paint()..shader = shader;
-    canvas.drawRect(Offset.zero & size, paint);
+    _shaderPaint.shader = shader;
+    canvas.drawRect(Offset.zero & size, _shaderPaint);
   }
 
   double _lerpDouble(double a, double b, double t) => a + (b - a) * t;

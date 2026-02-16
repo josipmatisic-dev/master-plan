@@ -278,5 +278,6 @@ class _BoltPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_BoltPainter oldDelegate) =>
-      progress != oldDelegate.progress;
+      progress != oldDelegate.progress ||
+      isHolographic != oldDelegate.isHolographic;
 }

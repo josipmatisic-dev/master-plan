@@ -78,6 +78,7 @@ class _AisTargetPainter extends CustomPainter {
   final Paint _warningRingPaint = Paint()
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.5;
+  final Paint _glowFillPaint = Paint()..style = PaintingStyle.fill;
 
   _AisTargetPainter({
     required this.targets,
@@ -228,10 +229,8 @@ class _AisTargetPainter extends CustomPainter {
 
     // Inner glow
     if (isHolographic) {
-      final glowPaint = Paint()
-        ..color = colors.glow.withValues(alpha: 0.15)
-        ..style = PaintingStyle.fill;
-      canvas.drawCircle(center, ringRadius, glowPaint);
+      _glowFillPaint.color = colors.glow.withValues(alpha: 0.15);
+      canvas.drawCircle(center, ringRadius, _glowFillPaint);
     }
   }
 

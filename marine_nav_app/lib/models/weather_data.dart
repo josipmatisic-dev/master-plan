@@ -1,11 +1,9 @@
 /// Weather data models for marine weather overlays.
-///
-/// Contains grid-based wind, wave, current, and SST data
-/// fetched from the Open-Meteo Marine API.
 library;
 
 import 'package:flutter/foundation.dart';
 
+import 'atmospheric_data.dart';
 import 'lat_lng.dart';
 
 /// A single wind measurement at a grid point.
@@ -13,60 +11,51 @@ import 'lat_lng.dart';
 class WindDataPoint {
   /// Geographic position of this measurement.
   final LatLng position;
-
   /// Wind speed at 10m above ground in knots.
   final double speedKnots;
-
   /// Wind direction in degrees (0-360, meteorological convention).
-  ///
-  /// Direction the wind is coming FROM: 0 = North, 90 = East.
   final double directionDegrees;
+  /// Wind gust speed in knots. Null if unavailable.
+  final double? gustKnots;
 
   /// Creates a wind data point.
   const WindDataPoint({
     required this.position,
     required this.speedKnots,
     required this.directionDegrees,
+    this.gustKnots,
   });
 
-  /// Creates a WindDataPoint from JSON map.
+  /// Creates from JSON.
   factory WindDataPoint.fromJson(Map<String, dynamic> json) {
     return WindDataPoint(
       position: LatLng.fromJson(json['pos']),
       speedKnots: (json['spd'] as num).toDouble(),
       directionDegrees: (json['dir'] as num).toDouble(),
+      gustKnots: (json['gust'] as num?)?.toDouble(),
     );
   }
 
-  /// Converts to JSON map.
+  /// Converts to JSON.
   Map<String, dynamic> toJson() => {
         'pos': position.toJson(),
         'spd': speedKnots,
         'dir': directionDegrees,
+        if (gustKnots != null) 'gust': gustKnots,
       };
 
-  /// Beaufort scale number (0-12) based on wind speed in knots.
+  /// Beaufort scale number (0-12) based on wind speed.
   int get beaufortScale {
-    if (speedKnots < 1) return 0;
-    if (speedKnots < 4) return 1;
-    if (speedKnots < 7) return 2;
-    if (speedKnots < 11) return 3;
-    if (speedKnots < 17) return 4;
-    if (speedKnots < 22) return 5;
-    if (speedKnots < 28) return 6;
-    if (speedKnots < 34) return 7;
-    if (speedKnots < 41) return 8;
-    if (speedKnots < 48) return 9;
-    if (speedKnots < 56) return 10;
-    if (speedKnots < 64) return 11;
+    const thresholds = [1, 4, 7, 11, 17, 22, 28, 34, 41, 48, 56, 64];
+    for (var i = 0; i < thresholds.length; i++) {
+      if (speedKnots < thresholds[i]) return i;
+    }
     return 12;
   }
 
   @override
-  String toString() => 'WindDataPoint(${position.latitude.toStringAsFixed(2)}, '
-      '${position.longitude.toStringAsFixed(2)}, '
-      '${speedKnots.toStringAsFixed(1)} kts, '
-      '${directionDegrees.toStringAsFixed(0)}°)';
+  String toString() => 'Wind(${position.latitude.toStringAsFixed(2)}, '
+      '${speedKnots.toStringAsFixed(1)} kts)';
 
   @override
   bool operator ==(Object other) {
@@ -74,28 +63,25 @@ class WindDataPoint {
     return other is WindDataPoint &&
         other.position == position &&
         other.speedKnots == speedKnots &&
-        other.directionDegrees == directionDegrees;
+        other.directionDegrees == directionDegrees &&
+        other.gustKnots == gustKnots;
   }
 
   @override
-  int get hashCode => Object.hash(position, speedKnots, directionDegrees);
+  int get hashCode =>
+      Object.hash(position, speedKnots, directionDegrees, gustKnots);
 }
 
 /// A single wave measurement at a grid point.
 @immutable
 class WaveDataPoint {
-  /// Geographic position of this measurement.
+  /// Geographic position.
   final LatLng position;
-
   /// Significant wave height in meters.
   final double heightMeters;
-
-  /// Wave direction in degrees (0-360).
-  ///
-  /// Direction the waves are coming FROM.
+  /// Wave direction in degrees (coming FROM).
   final double directionDegrees;
-
-  /// Wave period in seconds (null if unavailable).
+  /// Wave period in seconds.
   final double? periodSeconds;
 
   /// Creates a wave data point.
@@ -106,7 +92,7 @@ class WaveDataPoint {
     this.periodSeconds,
   });
 
-  /// Creates a WaveDataPoint from JSON map.
+  /// Creates from JSON.
   factory WaveDataPoint.fromJson(Map<String, dynamic> json) {
     return WaveDataPoint(
       position: LatLng.fromJson(json['pos']),
@@ -116,7 +102,7 @@ class WaveDataPoint {
     );
   }
 
-  /// Converts to JSON map.
+  /// Converts to JSON.
   Map<String, dynamic> toJson() => {
         'pos': position.toJson(),
         'hgt': heightMeters,
@@ -125,10 +111,7 @@ class WaveDataPoint {
       };
 
   @override
-  String toString() => 'WaveDataPoint(${position.latitude.toStringAsFixed(2)}, '
-      '${position.longitude.toStringAsFixed(2)}, '
-      '${heightMeters.toStringAsFixed(1)} m, '
-      '${directionDegrees.toStringAsFixed(0)}°)';
+  String toString() => 'Wave(${heightMeters.toStringAsFixed(1)}m)';
 
   @override
   bool operator ==(Object other) {
@@ -144,24 +127,19 @@ class WaveDataPoint {
 }
 
 /// Aggregated weather data for a viewport region.
-///
-/// Contains grid-based measurements fetched from the Open-Meteo API.
-/// Used by [WeatherProvider] and consumed by overlay widgets.
 @immutable
 class WeatherData {
   /// Wind measurements at grid points.
   final List<WindDataPoint> windPoints;
-
   /// Wave measurements at grid points.
   final List<WaveDataPoint> wavePoints;
-
-  /// Hourly forecast frames (time-indexed snapshots).
+  /// Atmospheric conditions at grid points.
+  final List<AtmosphericDataPoint> atmosphericPoints;
+  /// Hourly forecast frames.
   final List<WeatherFrame> frames;
-
   /// Timestamp when data was fetched.
   final DateTime fetchedAt;
-
-  /// Grid resolution in degrees (e.g., 0.25 for ~25km).
+  /// Grid resolution in degrees.
   final double gridResolution;
 
   /// Creates a weather data snapshot.
@@ -169,11 +147,12 @@ class WeatherData {
     required this.windPoints,
     required this.wavePoints,
     required this.fetchedAt,
+    this.atmosphericPoints = const [],
     this.frames = const [],
     this.gridResolution = 0.25,
   });
 
-  /// Creates WeatherData from JSON map.
+  /// Creates from JSON.
   factory WeatherData.fromJson(Map<String, dynamic> json) {
     return WeatherData(
       windPoints: (json['wind'] as List?)
@@ -182,6 +161,10 @@ class WeatherData {
           const [],
       wavePoints: (json['wave'] as List?)
               ?.map((e) => WaveDataPoint.fromJson(e))
+              .toList() ??
+          const [],
+      atmosphericPoints: (json['atmo'] as List?)
+              ?.map((e) => AtmosphericDataPoint.fromJson(e))
               .toList() ??
           const [],
       frames: (json['frames'] as List?)
@@ -193,71 +176,75 @@ class WeatherData {
     );
   }
 
-  /// Converts to JSON map.
+  /// Converts to JSON.
   Map<String, dynamic> toJson() => {
         'wind': windPoints.map((e) => e.toJson()).toList(),
         'wave': wavePoints.map((e) => e.toJson()).toList(),
+        if (atmosphericPoints.isNotEmpty)
+          'atmo': atmosphericPoints.map((e) => e.toJson()).toList(),
         'frames': frames.map((e) => e.toJson()).toList(),
         'ts': fetchedAt.millisecondsSinceEpoch,
         'res': gridResolution,
       };
 
-  /// Empty weather data.
+  /// Empty weather data singleton.
   static final empty = WeatherData(
     windPoints: const [],
     wavePoints: const [],
     fetchedAt: DateTime.fromMillisecondsSinceEpoch(0),
   );
 
-  /// Whether this data is empty (no measurements).
+  /// Whether this data is empty.
   bool get isEmpty =>
       windPoints.isEmpty && wavePoints.isEmpty && frames.isEmpty;
 
-  /// Whether this data has wind measurements.
+  /// Whether wind data is present.
   bool get hasWind => windPoints.isNotEmpty;
 
-  /// Whether this data has wave measurements.
+  /// Whether wave data is present.
   bool get hasWaves => wavePoints.isNotEmpty;
 
-  /// Whether this data has hourly forecast frames.
+  /// Whether atmospheric data is present.
+  bool get hasAtmospheric => atmosphericPoints.isNotEmpty;
+
+  /// Whether forecast frames are present.
   bool get hasFrames => frames.isNotEmpty;
 
-  /// Number of hourly forecast frames.
+  /// Number of forecast frames.
   int get frameCount => frames.length;
 
-  /// Age of this data since it was fetched.
+  /// Age since data was fetched.
   Duration get age => DateTime.now().difference(fetchedAt);
 
-  /// Whether this data is stale (older than 1 hour).
+  /// Whether data is stale (>1 hour old).
   bool get isStale => age > const Duration(hours: 1);
 
   @override
-  String toString() => 'WeatherData(wind: ${windPoints.length} pts, '
-      'wave: ${wavePoints.length} pts, '
-      'frames: ${frames.length}, '
-      'age: ${age.inMinutes} min)';
+  String toString() => 'WeatherData(w:${windPoints.length} '
+      'wv:${wavePoints.length} fr:${frames.length})';
 }
 
-/// A single hourly forecast frame (time-indexed weather snapshot).
+/// A single hourly forecast frame.
 @immutable
 class WeatherFrame {
-  /// Forecast timestamp for this frame.
+  /// Forecast timestamp.
   final DateTime time;
-
-  /// Wind data points for this hour (one per grid point).
+  /// Wind data points for this hour.
   final List<WindDataPoint> windPoints;
-
-  /// Wave data points for this hour (one per grid point).
+  /// Wave data points for this hour.
   final List<WaveDataPoint> wavePoints;
+  /// Atmospheric data points for this hour.
+  final List<AtmosphericDataPoint> atmosphericPoints;
 
   /// Creates a forecast frame.
   const WeatherFrame({
     required this.time,
     this.windPoints = const [],
     this.wavePoints = const [],
+    this.atmosphericPoints = const [],
   });
 
-  /// Creates WeatherFrame from JSON map.
+  /// Creates from JSON.
   factory WeatherFrame.fromJson(Map<String, dynamic> json) {
     return WeatherFrame(
       time: DateTime.fromMillisecondsSinceEpoch(json['ts'] as int),
@@ -269,28 +256,35 @@ class WeatherFrame {
               ?.map((e) => WaveDataPoint.fromJson(e))
               .toList() ??
           const [],
+      atmosphericPoints: (json['atmo'] as List?)
+              ?.map((e) => AtmosphericDataPoint.fromJson(e))
+              .toList() ??
+          const [],
     );
   }
 
-  /// Converts to JSON map.
+  /// Converts to JSON.
   Map<String, dynamic> toJson() => {
         'ts': time.millisecondsSinceEpoch,
         if (windPoints.isNotEmpty)
           'wind': windPoints.map((e) => e.toJson()).toList(),
         if (wavePoints.isNotEmpty)
           'wave': wavePoints.map((e) => e.toJson()).toList(),
+        if (atmosphericPoints.isNotEmpty)
+          'atmo': atmosphericPoints.map((e) => e.toJson()).toList(),
       };
 
   /// Whether this frame has wind data.
   bool get hasWind => windPoints.isNotEmpty;
 
-  /// Whether this frame has Wave data.
+  /// Whether this frame has wave data.
   bool get hasWave => wavePoints.isNotEmpty;
 
+  /// Whether this frame has atmospheric data.
+  bool get hasAtmospheric => atmosphericPoints.isNotEmpty;
+
   @override
-  String toString() => 'WeatherFrame($time, '
-      'wind: ${windPoints.isNotEmpty ? "${windPoints.length} pts" : "n/a"}, '
-      'wave: ${wavePoints.isNotEmpty ? "${wavePoints.length} pts" : "n/a"})';
+  String toString() => 'Frame($time, w:${windPoints.length})';
 
   @override
   bool operator ==(Object other) {
@@ -298,7 +292,8 @@ class WeatherFrame {
     return other is WeatherFrame &&
         other.time == time &&
         other.windPoints == windPoints &&
-        other.wavePoints == wavePoints;
+        other.wavePoints == wavePoints &&
+        other.atmosphericPoints == atmosphericPoints;
   }
 
   @override

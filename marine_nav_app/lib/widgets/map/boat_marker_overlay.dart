@@ -94,6 +94,9 @@ class _BoatMarkerPainter extends CustomPainter {
     ..style = PaintingStyle.stroke
     ..strokeWidth = 1.5
     ..strokeCap = StrokeCap.round;
+  final Paint _keelPaint = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.5;
 
   _BoatMarkerPainter({
     required this.position,
@@ -269,18 +272,12 @@ class _BoatMarkerPainter extends CustomPainter {
     canvas.drawPath(path, _boatFill);
 
     // Stroke outline
-    _boatStroke.color =
-        isHolographic ? const Color(0xFFFFFFFF) : const Color(0xFFFFFFFF);
+    _boatStroke.color = const Color(0xFFFFFFFF);
     canvas.drawPath(path, _boatStroke);
 
     // Keel line (center stripe)
-    final keelPaint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5
-      ..color =
-          (isHolographic ? const Color(0xFF0A1F3F) : const Color(0xFF0A1F3F))
-              .withValues(alpha: 0.4);
-    canvas.drawLine(Offset(0, -s * 0.8), Offset(0, s * 0.6), keelPaint);
+    _keelPaint.color = const Color(0xFF0A1F3F).withValues(alpha: 0.4);
+    canvas.drawLine(Offset(0, -s * 0.8), Offset(0, s * 0.6), _keelPaint);
 
     canvas.restore();
   }

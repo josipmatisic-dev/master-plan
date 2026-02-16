@@ -88,6 +88,8 @@ class _FogPainter extends CustomPainter {
   final double fogDensity;
   final bool isHolographic;
 
+  final Paint _shaderPaint = Paint();
+
   _FogPainter({
     required this.program,
     required this.time,
@@ -123,8 +125,8 @@ class _FogPainter extends CustomPainter {
     // uNoiseSpeed
     shader.setFloat(8, isHolographic ? 0.12 : 0.08);
 
-    final paint = Paint()..shader = shader;
-    canvas.drawRect(Offset.zero & size, paint);
+    _shaderPaint.shader = shader;
+    canvas.drawRect(Offset.zero & size, _shaderPaint);
   }
 
   @override

@@ -85,19 +85,21 @@ class WindPainter extends CustomPainter {
   /// Whether to render in holographic theme mode.
   final bool isHolographic;
 
-  // Reusable paint objects passed from outside or lazily initialized
-  // Since this painter is recreated every frame, we rely on Dart's efficient allocation
-  // unless we pass them in. For now, creating them here is cleaner than passing them around.
+  /// Reusable paint objects to avoid per-frame allocation.
   final Paint _trailPaint = Paint()..strokeCap = StrokeCap.round;
   final Paint _glowPaint = Paint()
     ..strokeCap = StrokeCap.round
     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5);
+
+  /// Frame counter to detect animation changes.
+  final int frameCount;
 
   /// Creates a WindPainter.
   WindPainter({
     required this.particles,
     required this.bounds,
     required this.isHolographic,
+    required this.frameCount,
   });
 
   @override
@@ -122,25 +124,25 @@ class WindPainter extends CustomPainter {
         final sy1 =
             (1.0 - (p.trailLat[i + 1] - bounds.south) / latRange) * size.height;
 
-        final trailFade = 1.0 - i / p.trailLat.length;
-        final w = isHolographic ? 1.0 + trailFade : 1.2 + trailFade * 1.3;
-        final segAlpha = alpha * trailFade * 0.8;
+        final trailFade = 1.0 - (i / p.trailLat.length);
+        final w = isHolographic ? (1.5 * trailFade) : (2.0 * trailFade);
+        final segAlpha = alpha * trailFade;
 
         final from = Offset(sx0, sy0);
         final to = Offset(sx1, sy1);
 
         // Draw glowing trails in holographic mode
-        if (isHolographic && i == 0) {
+        if (isHolographic && i < 2) {
           _glowPaint
             ..color = color.withValues(alpha: segAlpha)
-            ..strokeWidth = w;
+            ..strokeWidth = w * 2.0;
           canvas.drawLine(from, to, _glowPaint);
-        } else {
-          _trailPaint
-            ..color = color.withValues(alpha: segAlpha)
-            ..strokeWidth = w;
-          canvas.drawLine(from, to, _trailPaint);
         }
+
+        _trailPaint
+          ..color = color.withValues(alpha: segAlpha)
+          ..strokeWidth = w;
+        canvas.drawLine(from, to, _trailPaint);
       }
     }
   }
@@ -161,5 +163,8 @@ class WindPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(WindPainter oldDelegate) => true;
+  bool shouldRepaint(WindPainter oldDelegate) =>
+      frameCount != oldDelegate.frameCount ||
+      bounds != oldDelegate.bounds ||
+      isHolographic != oldDelegate.isHolographic;
 }

@@ -116,6 +116,8 @@ class _RainPainter extends CustomPainter {
   final PrecipType precipType;
   final bool isHolographic;
 
+  final Paint _shaderPaint = Paint();
+
   _RainPainter({
     required this.program,
     required this.time,
@@ -161,8 +163,8 @@ class _RainPainter extends CustomPainter {
     };
     shader.setFloat(9, precipValue);
 
-    final paint = Paint()..shader = shader;
-    canvas.drawRect(Offset.zero & size, paint);
+    _shaderPaint.shader = shader;
+    canvas.drawRect(Offset.zero & size, _shaderPaint);
   }
 
   @override
@@ -170,5 +172,7 @@ class _RainPainter extends CustomPainter {
       time != oldDelegate.time ||
       intensity != oldDelegate.intensity ||
       windAngle != oldDelegate.windAngle ||
+      windSpeed != oldDelegate.windSpeed ||
+      precipType != oldDelegate.precipType ||
       isHolographic != oldDelegate.isHolographic;
 }

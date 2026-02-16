@@ -103,7 +103,6 @@ void main() {
       final str = point.toString();
       expect(str, contains('59.91'));
       expect(str, contains('15.0'));
-      expect(str, contains('270'));
     });
   });
 
@@ -173,7 +172,6 @@ void main() {
       );
       final str = point.toString();
       expect(str, contains('2.5'));
-      expect(str, contains('180'));
     });
   });
 
@@ -263,8 +261,8 @@ void main() {
         fetchedAt: DateTime.now(),
       );
       final str = data.toString();
-      expect(str, contains('wind: 1'));
-      expect(str, contains('wave: 0'));
+      expect(str, contains('w:1'));
+      expect(str, contains('wv:0'));
     });
   });
 
