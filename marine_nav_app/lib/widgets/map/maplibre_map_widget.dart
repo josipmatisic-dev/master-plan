@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/lat_lng.dart' as app;
 import '../../models/viewport.dart';
+import '../../providers/boat_provider.dart';
 import '../../providers/map_provider.dart';
 import '../../providers/route_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -34,6 +35,7 @@ class _MapLibreMapWidgetState extends State<MapLibreMapWidget> {
   MapProvider? _mapProvider;
   WeatherProvider? _weatherProvider;
   RouteProvider? _routeProvider;
+  BoatProvider? _boatProvider;
 
   ml.Line? _routeLine;
   final List<ml.Symbol> _waypointSymbols = [];
@@ -49,6 +51,7 @@ class _MapLibreMapWidgetState extends State<MapLibreMapWidget> {
     _weatherProvider!.addListener(_onWeatherChanged);
     _routeProvider = context.read<RouteProvider>();
     _routeProvider!.addListener(_onRouteChanged);
+    _boatProvider = context.read<BoatProvider>();
   }
 
   /// MapTiler style URL based on theme.
@@ -68,12 +71,45 @@ class _MapLibreMapWidgetState extends State<MapLibreMapWidget> {
 
   void _onStyleLoaded() {
     setState(() => _mapReady = true);
-    // Notify MapProvider that map is ready
     _mapProvider?.handleMapReady(_controller);
-    // Render existing route if any
     _onRouteChanged();
-    // Trigger initial weather fetch
-    _onViewportChanged();
+
+    // Fly to boat GPS position at nautical zoom (or default ocean view)
+    _flyToBoatOrDefault();
+  }
+
+  /// Center map on boat GPS if available, otherwise keep default.
+  void _flyToBoatOrDefault() {
+    if (_controller == null) return;
+    final pos = _boatProvider?.currentPosition;
+    const nauticalZoom = 10.0;
+    if (pos != null) {
+      _controller!.animateCamera(
+        ml.CameraUpdate.newCameraPosition(
+          ml.CameraPosition(
+            target: ml.LatLng(pos.latitude, pos.longitude),
+            zoom: nauticalZoom,
+          ),
+        ),
+      );
+    } else {
+      // Listen for first GPS fix
+      _boatProvider?.addListener(_onFirstGpsFix);
+    }
+  }
+
+  void _onFirstGpsFix() {
+    final pos = _boatProvider?.currentPosition;
+    if (pos == null || _controller == null) return;
+    _boatProvider?.removeListener(_onFirstGpsFix);
+    _controller!.animateCamera(
+      ml.CameraUpdate.newCameraPosition(
+        ml.CameraPosition(
+          target: ml.LatLng(pos.latitude, pos.longitude),
+          zoom: 10.0,
+        ),
+      ),
+    );
   }
 
   void _onCameraIdle() {
@@ -169,6 +205,7 @@ class _MapLibreMapWidgetState extends State<MapLibreMapWidget> {
     _mapProvider?.removeListener(_onViewportChanged);
     _weatherProvider?.removeListener(_onWeatherChanged);
     _routeProvider?.removeListener(_onRouteChanged);
+    _boatProvider?.removeListener(_onFirstGpsFix);
     super.dispose();
   }
 

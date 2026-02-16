@@ -101,20 +101,28 @@ class WeatherApiService {
     final marineUri = _buildMarineUri(lats, lngs);
     final forecastUri = _buildForecastUri(lats, lngs);
 
-    // Parallel fetch with shared retry logic.
-    final responses = await Future.wait([
-      _retryWithBackoff(() => _client.get(marineUri).timeout(requestTimeout)),
-      _retryWithBackoff(() => _client.get(forecastUri).timeout(requestTimeout)),
+    // Parallel fetch — Marine is optional, Forecast (wind) is critical.
+    http.Response? marineResponse;
+    late final http.Response forecastResponse;
+
+    final results = await Future.wait([
+      _retryWithBackoff(() => _client.get(marineUri).timeout(requestTimeout))
+          .then<http.Response?>((r) => r)
+          .onError<Exception>((_, __) => null),
+      _retryWithBackoff(
+          () => _client.get(forecastUri).timeout(requestTimeout)),
     ]);
 
-    final marineResponse = responses[0];
-    final forecastResponse = responses[1];
+    marineResponse = results[0];
+    forecastResponse = results[1]!;
 
-    if (marineResponse.statusCode != 200) {
-      throw WeatherApiException(
-        type: WeatherApiErrorType.server,
-        message: 'Marine API returned ${marineResponse.statusCode}',
+    // Marine failure is non-fatal — wind data from Forecast is primary
+    if (marineResponse != null && marineResponse.statusCode != 200) {
+      debugPrint(
+        'WeatherApi: Marine API returned ${marineResponse.statusCode} '
+        '(non-fatal, using wind-only data)',
       );
+      marineResponse = null;
     }
     if (forecastResponse.statusCode != 200) {
       throw WeatherApiException(
@@ -124,7 +132,7 @@ class WeatherApiService {
     }
 
     return parseGridResponse(
-      marineBody: marineResponse.body,
+      marineBody: marineResponse?.body,
       forecastBody: forecastResponse.body,
       grid: grid,
     );
