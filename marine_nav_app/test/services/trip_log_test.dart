@@ -282,5 +282,153 @@ void main() {
       final gpx = service.exportGpx(tripWithSpecial);
       expect(gpx, contains('Trip &lt;A&gt; &amp; B'));
     });
+
+    test('KML escapes XML characters', () {
+      final tripWithSpecial = TripLog(
+        id: '3',
+        name: 'Route <C> & D',
+        startTime: DateTime.utc(2025),
+        waypoints: const [],
+      );
+      final kml = service.exportKml(tripWithSpecial);
+      expect(kml, contains('Route &lt;C&gt; &amp; D'));
+    });
+
+    test('GPX includes time elements for each waypoint', () {
+      final gpx = service.exportGpx(trip);
+      expect(gpx, contains('<time>2025-06-01T08:00:00Z</time>'));
+      expect(gpx, contains('<time>2025-06-01T09:00:00Z</time>'));
+    });
+
+    test('GPX empty trip produces valid structure', () {
+      final emptyTrip = TripLog(
+        id: '4',
+        name: 'Empty',
+        startTime: DateTime.utc(2025),
+        waypoints: const [],
+      );
+      final gpx = service.exportGpx(emptyTrip);
+      expect(gpx, contains('<trkseg>'));
+      expect(gpx, contains('</trkseg>'));
+      expect(gpx, isNot(contains('<trkpt')));
+    });
+
+    test('KML empty trip produces valid structure', () {
+      final emptyTrip = TripLog(
+        id: '5',
+        name: 'Empty',
+        startTime: DateTime.utc(2025),
+        waypoints: const [],
+      );
+      final kml = service.exportKml(emptyTrip);
+      expect(kml, contains('<coordinates>'));
+      expect(kml, contains('</coordinates>'));
+    });
+
+    test('KML coordinates are lng,lat,0 format', () {
+      final kml = service.exportKml(trip);
+      // KML uses lng,lat,altitude — verify order
+      final lines = kml.split('\n');
+      final coordLines =
+          lines.where((l) => l.trim().contains(RegExp(r'^\d'))).toList();
+      expect(coordLines.first.trim(), '16.4,43.5,0');
+    });
+
+    test('GPX has correct namespace', () {
+      final gpx = service.exportGpx(trip);
+      expect(gpx, contains('xmlns="http://www.topografix.com/GPX/1/1"'));
+      expect(gpx, contains('version="1.1"'));
+      expect(gpx, contains('creator="SailStream"'));
+    });
+
+    test('KML has correct namespace', () {
+      final kml = service.exportKml(trip);
+      expect(kml, contains('xmlns="http://www.opengis.net/kml/2.2"'));
+    });
+  });
+
+  group('TripLog model', () {
+    test('duration computes correctly for completed trip', () {
+      final trip = TripLog(
+        id: '1',
+        name: 'Test',
+        startTime: DateTime.utc(2025, 1, 1, 8),
+        endTime: DateTime.utc(2025, 1, 1, 10, 30),
+        waypoints: const [],
+      );
+      expect(trip.duration, const Duration(hours: 2, minutes: 30));
+    });
+
+    test('avgSpeedKnots returns 0 for empty trip', () {
+      final trip = TripLog(
+        id: '1',
+        name: 'Test',
+        startTime: DateTime.utc(2025),
+        waypoints: const [],
+      );
+      expect(trip.avgSpeedKnots, 0);
+    });
+
+    test('maxSpeedKnots returns 0 for empty trip', () {
+      final trip = TripLog(
+        id: '1',
+        name: 'Test',
+        startTime: DateTime.utc(2025),
+        waypoints: const [],
+      );
+      expect(trip.maxSpeedKnots, 0);
+    });
+
+    test('copyWith preserves unmodified fields', () {
+      final trip = TripLog(
+        id: '1',
+        name: 'Original',
+        startTime: DateTime.utc(2025, 1, 1),
+        waypoints: const [],
+        distanceNm: 10,
+      );
+      final copy = trip.copyWith(name: 'Renamed');
+      expect(copy.id, '1');
+      expect(copy.name, 'Renamed');
+      expect(copy.distanceNm, 10);
+      expect(copy.startTime, trip.startTime);
+    });
+
+    test('distanceNm defaults to 0', () {
+      final trip = TripLog(
+        id: '1',
+        name: 'Test',
+        startTime: DateTime.utc(2025),
+        waypoints: const [],
+      );
+      expect(trip.distanceNm, 0);
+    });
+
+    test('TripWaypoint JSON round-trip with COG', () {
+      const wp = TripWaypoint(
+        lat: 43.5,
+        lng: 16.4,
+        speedKnots: 6.5,
+        timestamp: '2025-01-15T10:30:00Z',
+        cogDegrees: 270.0,
+      );
+      final json = wp.toJson();
+      expect(json['cogDegrees'], 270.0);
+      final restored = TripWaypoint.fromJson(json);
+      expect(restored.cogDegrees, 270.0);
+    });
+
+    test('TripWaypoint JSON round-trip without COG', () {
+      const wp = TripWaypoint(
+        lat: 43.5,
+        lng: 16.4,
+        speedKnots: 6.5,
+        timestamp: '2025-01-15T10:30:00Z',
+      );
+      final json = wp.toJson();
+      expect(json.containsKey('cogDegrees'), isFalse);
+      final restored = TripWaypoint.fromJson(json);
+      expect(restored.cogDegrees, isNull);
+    });
   });
 }
