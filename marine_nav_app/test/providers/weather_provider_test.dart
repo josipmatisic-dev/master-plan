@@ -477,5 +477,50 @@ void main() {
       final data = WeatherData.fromJson(jsonDecode(cachedJson!));
       expect(data.windPoints.isNotEmpty, true);
     });
+
+    test('preserves forecast frames in cache', () async {
+      // 1. Pre-populate cache with data including frames
+      final cachedData = WeatherData(
+        fetchedAt: DateTime.now(),
+        windPoints: const [],
+        wavePoints: const [],
+        frames: [
+          WeatherFrame(
+            time: DateTime.now(),
+            windPoints: const [
+              WindDataPoint(
+                position: LatLng(latitude: 60.0, longitude: 10.0),
+                speedKnots: 15.0,
+                directionDegrees: 180.0,
+              ),
+            ],
+          ),
+        ],
+      );
+
+      await cacheProvider.put(
+        'weather_58.0_62.0_8.0_12.0',
+        jsonEncode(cachedData.toJson()),
+      );
+
+      // 2. Create provider
+      createProvider(
+          client: MockClient((_) async => http.Response('Error', 500)));
+
+      // 3. Request data
+      await weatherProvider.refresh(
+        south: 58.0,
+        north: 62.0,
+        west: 8.0,
+        east: 12.0,
+        force: false,
+      );
+
+      // 4. Verify frames came from cache
+      expect(weatherProvider.hasData, true);
+      expect(weatherProvider.data.frames.length, 1);
+      expect(
+          weatherProvider.data.frames.first.windPoints.first.speedKnots, 15.0);
+    });
   });
 }

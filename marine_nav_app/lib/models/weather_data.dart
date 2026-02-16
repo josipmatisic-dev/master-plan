@@ -176,12 +176,14 @@ class WeatherData {
   /// Creates WeatherData from JSON map.
   factory WeatherData.fromJson(Map<String, dynamic> json) {
     return WeatherData(
-      windPoints:
-          (json['wind'] as List?)?.map((e) => WindDataPoint.fromJson(e)).toList() ??
-              const [],
-      wavePoints:
-          (json['wave'] as List?)?.map((e) => WaveDataPoint.fromJson(e)).toList() ??
-              const [],
+      windPoints: (json['wind'] as List?)
+              ?.map((e) => WindDataPoint.fromJson(e))
+              .toList() ??
+          const [],
+      wavePoints: (json['wave'] as List?)
+              ?.map((e) => WaveDataPoint.fromJson(e))
+              .toList() ??
+          const [],
       frames: (json['frames'] as List?)
               ?.map((e) => WeatherFrame.fromJson(e))
               .toList() ??
@@ -208,7 +210,8 @@ class WeatherData {
   );
 
   /// Whether this data is empty (no measurements).
-  bool get isEmpty => windPoints.isEmpty && wavePoints.isEmpty && frames.isEmpty;
+  bool get isEmpty =>
+      windPoints.isEmpty && wavePoints.isEmpty && frames.isEmpty;
 
   /// Whether this data has wind measurements.
   bool get hasWind => windPoints.isNotEmpty;

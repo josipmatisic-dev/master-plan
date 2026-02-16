@@ -140,5 +140,19 @@ void main() {
       await cache.put('position', json);
       expect(cache.get('position'), json);
     });
+
+    test('putJson and getJson handle structured data', () async {
+      final data = {'lat': 43.5, 'lng': 16.4, 'active': true};
+      await cache.putJson('settings', data);
+
+      final retrieved = cache.getJson('settings');
+      expect(retrieved, equals(data));
+      expect(retrieved!['lat'], 43.5);
+    });
+
+    test('getJson returns null for invalid JSON', () async {
+      await cache.put('bad_json', '{incomplete');
+      expect(cache.getJson('bad_json'), isNull);
+    });
   });
 }

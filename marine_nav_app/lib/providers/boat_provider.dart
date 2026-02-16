@@ -94,14 +94,12 @@ class BoatProvider extends ChangeNotifier {
   set showTrack(bool value) {
     if (_showTrack == value) return;
     _showTrack = value;
-    _syncTrackToMap();
     notifyListeners();
   }
 
   /// Clear all track history.
   void clearTrack() {
     _trackHistory.clear();
-    _syncTrackToMap();
     notifyListeners();
   }
 
@@ -182,7 +180,6 @@ class BoatProvider extends ChangeNotifier {
     _currentPosition = newPos;
     _source = src;
     _addTrackPoint(newPos);
-    _syncBoatToMap();
 
     final latLng2Pos = _toLatLng2(newPos.position);
     _routeProvider?.updatePosition(latLng2Pos);
@@ -235,28 +232,6 @@ class BoatProvider extends ChangeNotifier {
     while (_trackHistory.length > maxTrackHistoryPoints) {
       _trackHistory.removeFirst();
     }
-  }
-
-  // ============ Map Sync ============
-
-  void _syncBoatToMap() {
-    final pos = _currentPosition;
-    if (pos == null) return;
-    _mapProvider.updateBoatMarker(
-      pos.latitude,
-      pos.longitude,
-      pos.bestHeading ?? 0,
-    );
-  }
-
-  void _syncTrackToMap() {
-    if (!_showTrack || _trackHistory.isEmpty) {
-      _mapProvider.clearTrackLine();
-      return;
-    }
-    _mapProvider.updateTrackLine(
-      _trackHistory.map((p) => [p.lng, p.lat]).toList(),
-    );
   }
 
   // ============ Utilities ============

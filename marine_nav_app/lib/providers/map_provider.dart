@@ -4,11 +4,9 @@
 library;
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import '../models/lat_lng.dart';
 import '../models/viewport.dart';
@@ -59,12 +57,7 @@ class MapProvider extends ChangeNotifier {
   Viewport _viewport;
   bool _isInitialized = false;
   bool _isMapReady = false;
-  WebViewController? _webViewController;
   NativeMapController? _nativeMapController;
-  Timer? _syncDebounce;
-
-  /// Debounce duration for viewport sync (ISS-008).
-  static const syncDebounceMs = 200;
 
   /// Creates a MapProvider with dependencies.
   MapProvider({
@@ -96,14 +89,6 @@ class MapProvider extends ChangeNotifier {
     _isInitialized = true;
   }
 
-  // ============ WebView Bridge ============
-
-  /// Attach a WebViewController for JS communication.
-  // ignore: use_setters_to_change_properties
-  void attachWebView(WebViewController controller) {
-    _webViewController = controller;
-  }
-
   /// Signal that the native MapLibre map is ready.
   void handleMapReady(NativeMapController? controller) {
     _nativeMapController = controller;
@@ -115,82 +100,22 @@ class MapProvider extends ChangeNotifier {
   /// The native map controller (if using maplibre_gl).
   NativeMapController? get nativeMapController => _nativeMapController;
 
-  /// Send the MapTiler API key to JS and trigger map init.
-  Future<void> initializeMap(String apiKey) async {
-    await _runJs('window.mapBridge.setApiKey("$apiKey")');
+  // ============ Boat / Track Map Sync (stub for native migration) ============
+
+  /// Update boat marker on the map. Called by BoatProvider.
+  void updateBoatMarker(double lat, double lng, double heading) {
+    // TODO(slavko): Implement via native MapLibre controller
+    debugPrint('MapProvider: boat marker → $lat, $lng, $heading°');
   }
 
-  /// Handle a JSON message from the JS MapBridge channel.
-  void handleWebViewEvent(String message) {
-    try {
-      final data = jsonDecode(message) as Map<String, dynamic>;
-      final type = data['type'] as String?;
-
-      switch (type) {
-        case 'mapReady':
-          _isMapReady = true;
-          debugPrint('MapProvider: ✅ Map is READY');
-          notifyListeners();
-
-        case 'viewportChanged':
-          debugPrint(
-              'MapProvider: viewport changed → zoom=${data['zoom']}, center=${data['latitude']},${data['longitude']}');
-          _handleViewportFromJs(data);
-
-        case 'error':
-          reportError(MapError(
-            type: MapErrorType.render,
-            message: data['message'] as String? ?? 'Unknown map error',
-          ));
-      }
-    } catch (e) {
-      debugPrint('MapProvider: Failed to parse JS event - $e');
-    }
+  /// Update track line on the map.
+  void updateTrackLine(List<List<double>> points) {
+    // TODO(slavko): Implement via native MapLibre controller
   }
 
-  void _handleViewportFromJs(Map<String, dynamic> data) {
-    final center = data['center'] as List<dynamic>?;
-    final zoom = (data['zoom'] as num?)?.toDouble();
-    final rotation = (data['rotation'] as num?)?.toDouble();
-
-    if (center == null || center.length < 2) return;
-
-    final lat = (center[0] as num).toDouble();
-    final lng = (center[1] as num).toDouble();
-
-    _viewport = _viewport.copyWith(
-      center: LatLng(latitude: lat, longitude: lng),
-      zoom: zoom?.clamp(1.0, 20.0),
-      rotation: rotation,
-    );
-    notifyListeners();
-  }
-
-  /// Push current viewport to the JS map with debounce (ISS-008).
-  void syncToWebView() {
-    _syncDebounce?.cancel();
-    _syncDebounce = Timer(
-      const Duration(milliseconds: syncDebounceMs),
-      _pushViewportToJs,
-    );
-  }
-
-  Future<void> _pushViewportToJs() async {
-    if (!_isMapReady || _webViewController == null) return;
-    final v = _viewport;
-    await _runJs(
-      'window.mapBridge.setViewport('
-      '${v.center.latitude}, ${v.center.longitude}, '
-      '${v.zoom}, ${v.rotation})',
-    );
-  }
-
-  Future<void> _runJs(String js) async {
-    try {
-      await _webViewController?.runJavaScript(js);
-    } catch (e) {
-      debugPrint('MapProvider: JS call failed - $e');
-    }
+  /// Clear track line from the map.
+  void clearTrackLine() {
+    // TODO(slavko): Implement via native MapLibre controller
   }
 
   // ============ Viewport Mutators ============
@@ -202,7 +127,7 @@ class MapProvider extends ChangeNotifier {
     }
     _viewport = next;
     notifyListeners();
-    syncToWebView();
+    _syncToNativeMap();
   }
 
   /// Update viewport center.
@@ -212,7 +137,7 @@ class MapProvider extends ChangeNotifier {
     }
     _viewport = _viewport.copyWith(center: center);
     notifyListeners();
-    syncToWebView();
+    _syncToNativeMap();
   }
 
   /// Update viewport zoom (clamped 1-20).
@@ -223,7 +148,7 @@ class MapProvider extends ChangeNotifier {
     }
     _viewport = _viewport.copyWith(zoom: clampedZoom);
     notifyListeners();
-    syncToWebView();
+    _syncToNativeMap();
   }
 
   /// Update viewport rotation.
@@ -233,7 +158,7 @@ class MapProvider extends ChangeNotifier {
     }
     _viewport = _viewport.copyWith(rotation: rotation);
     notifyListeners();
-    syncToWebView();
+    _syncToNativeMap();
   }
 
   /// Update viewport size.
@@ -250,35 +175,11 @@ class MapProvider extends ChangeNotifier {
 
   /// Fly to a location with smooth animation.
   Future<void> flyTo(LatLng target, {double? zoom}) async {
-    await _runJs(
-      'window.mapBridge.flyTo('
-      '${target.latitude}, ${target.longitude}, '
-      '${zoom ?? _viewport.zoom})',
-    );
-  }
-
-  // ============ Boat Marker & Track ============
-
-  /// Update the boat marker position and heading on the JS map.
-  Future<void> updateBoatMarker(
-    double lat,
-    double lng,
-    double headingDeg,
-  ) async {
-    await _runJs(
-      'window.mapBridge.updateBoatMarker($lat, $lng, $headingDeg)',
-    );
-  }
-
-  /// Update the track line on the JS map.
-  Future<void> updateTrackLine(List<List<num>> coords) async {
-    final json = coords.map((c) => '[${c[0]},${c[1]}]').join(',');
-    await _runJs('window.mapBridge.updateTrackLine([$json])');
-  }
-
-  /// Remove the track line from the JS map.
-  Future<void> clearTrackLine() async {
-    await _runJs('window.mapBridge.clearTrackLine()');
+    // Native implementation would go here
+    // _nativeMapController?.animateCamera(...)
+    // For now we just update state which triggers sync
+    setCenter(target);
+    if (zoom != null) setZoom(zoom);
   }
 
   /// Emit a map error.
@@ -293,9 +194,14 @@ class MapProvider extends ChangeNotifier {
         next.rotation == current.rotation;
   }
 
+  void _syncToNativeMap() {
+    // In a real implementation, we would call _nativeMapController?.moveCamera()
+    // But since MapLibreMapWidget might rebuild or listen, we leave this hook.
+    // Currently MapLibreMapWidget listens to this provider.
+  }
+
   @override
   void dispose() {
-    _syncDebounce?.cancel();
     _errorController.close();
     super.dispose();
   }

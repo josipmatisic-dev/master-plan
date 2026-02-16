@@ -22,7 +22,7 @@ import '../widgets/home/navigation_shortcuts.dart';
 import '../widgets/home/settings_card.dart';
 import '../widgets/home/theme_controls.dart';
 import '../widgets/home/welcome_card.dart';
-import '../widgets/map/map_webview.dart';
+import '../widgets/map/weather_layer_stack.dart';
 
 /// Home Screen - Main navigation interface
 class HomeScreen extends StatelessWidget {
@@ -158,7 +158,7 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
         OceanDimensions.spacingS.verticalSpace,
-        const MapWebView(),
+        const WeatherLayerStack(height: 200),
       ],
     );
   }

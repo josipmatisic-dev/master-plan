@@ -20,12 +20,13 @@ The app has significant implementation across multiple features, with **313 test
 - ✅ Weather data layer (WeatherProvider, API client, parser, timeline)
 - ✅ Route management (RouteProvider, GeoUtils, RouteMapBridge)
 - ✅ Settings, Dashboard, Vessel, Profile screens
+- ✅ Timeline playback (TimelineProvider, TimelineControls, Grid-based WeatherFrame)
 
 ### What's In Progress
 
-- 🟡 Weather rendering (WebGL wind/wave pipeline ~30%)
+- 🟡 Weather rendering (WebGL wind/wave pipeline ~60%)
 - 🟡 CacheProvider backend (shell only — ISS-019)
-- 🟡 MapWebView ↔ Provider full integration
+- 🟡 MapWebView ↔ Provider full integration (Timeline wired)
 
 ---
 
@@ -33,7 +34,7 @@ The app has significant implementation across multiple features, with **313 test
 
 ### 1. Complete Weather Rendering Pipeline (FEAT-004)
 
-**Status:** Data layer ✅, Rendering ~30%  
+**Status:** Data layer ✅, Rendering ~30%
 **Remaining Work:**
 
 - [ ] Complete WebGL wind particle shader integration in `map.html`
@@ -44,30 +45,22 @@ The app has significant implementation across multiple features, with **313 test
 
 **Key Files:** `wind_texture_generator.dart`, `map.html`, `weather_screen.dart`, `wind_overlay.dart`, `wave_overlay.dart`
 
-### 2. Implement CacheProvider Backend (ISS-019)
+### 2. Completed Milestones
 
-**Status:** Shell with 7 TODOs  
-**Remaining Work:**
+**CacheProvider Backend (ISS-019)** ✅
+- Implemented disk-backed CacheService with LRU/TTL
+- Wired to WeatherProvider for offline support
+- Fully unit tested
 
-- [ ] Implement disk-backed CacheService with LRU eviction
-- [ ] Add TTL support (1-hour for weather, configurable)
-- [ ] Wire CacheProvider to CacheService
-- [ ] Add weather data caching
-- [ ] Add tile caching for offline map support
+**Weather Data Caching (ISS-020)** ✅
+- Cache-first strategy for weather API
+- Grid-based frame serialization
+- 1-hour TTL enforcement
 
-**Key Files:** `cache_provider.dart`
-
-### 3. MapWebView Full Integration (FEAT-001)
-
-**Status:** WebView renders, JS bridge partially wired  
-**Remaining Work:**
-
-- [ ] Complete viewport sync (MapProvider ↔ WebView bidirectional)
-- [ ] Boat marker rendering via JS bridge (data flows, rendering partial)
-- [ ] Track overlay rendering via JS bridge
-- [ ] Route visualization on map (RouteMapBridge exists but needs WebView wiring)
-
-**Key Files:** `map_webview.dart`, `map_provider.dart`, `route_map_bridge.dart`, `map.html`
+**Timeline Playback Features (FEAT-005)** ✅
+- `TimelineProvider` for frame management
+- `TimelineControls` UI widget
+- Integration with `MapWebView`
 
 ---
 

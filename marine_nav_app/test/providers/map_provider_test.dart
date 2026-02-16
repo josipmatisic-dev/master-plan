@@ -5,6 +5,7 @@ import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:marine_nav_app/models/lat_lng.dart';
+import 'package:marine_nav_app/models/viewport.dart';
 import 'package:marine_nav_app/providers/cache_provider.dart';
 import 'package:marine_nav_app/providers/map_provider.dart';
 import 'package:marine_nav_app/providers/settings_provider.dart';
@@ -59,7 +60,7 @@ void main() {
     });
   });
 
-  group('MapProvider JS Bridge', () {
+  group('MapProvider Native', () {
     late SettingsProvider settingsProvider;
     late CacheProvider cacheProvider;
     late MapProvider mapProvider;
@@ -77,78 +78,21 @@ void main() {
       await mapProvider.init();
     });
 
-    test('handles mapReady event', () {
+    test('handleMapReady sets isMapReady', () {
       expect(mapProvider.isMapReady, isFalse);
-      mapProvider.handleWebViewEvent('{"type":"mapReady"}');
+      mapProvider.handleMapReady(null);
       expect(mapProvider.isMapReady, isTrue);
     });
 
-    test('handles viewportChanged event', () {
-      mapProvider.handleWebViewEvent(
-        '{"type":"viewportChanged","center":[43.5,16.4],"zoom":12.5,"rotation":0.5}',
-      );
-      expect(mapProvider.viewport.center.latitude, 43.5);
-      expect(mapProvider.viewport.center.longitude, 16.4);
-      expect(mapProvider.viewport.zoom, 12.5);
-      expect(mapProvider.viewport.rotation, 0.5);
-    });
-
-    test('handles viewportChanged with clamped zoom', () {
-      mapProvider.handleWebViewEvent(
-        '{"type":"viewportChanged","center":[0,0],"zoom":25.0,"rotation":0}',
-      );
-      expect(mapProvider.viewport.zoom, 20.0);
-    });
-
-    test('handles error event via error stream', () async {
-      final errors = <MapError>[];
-      mapProvider.errors.listen(errors.add);
-
-      mapProvider.handleWebViewEvent(
-        '{"type":"error","message":"Tile load failed"}',
-      );
-
-      await Future<void>.delayed(Duration.zero);
-      expect(errors, hasLength(1));
-      expect(errors.first.message, 'Tile load failed');
-      expect(errors.first.type, MapErrorType.render);
-    });
-
-    test('ignores malformed JSON gracefully', () {
-      // Should not throw
-      mapProvider.handleWebViewEvent('not json');
-      mapProvider.handleWebViewEvent('{"type":"unknown"}');
-      expect(mapProvider.isMapReady, isFalse);
-    });
-
-    test('ignores viewportChanged with missing center', () {
-      final before = mapProvider.viewport.center;
-      mapProvider.handleWebViewEvent(
-        '{"type":"viewportChanged","zoom":10}',
-      );
-      expect(mapProvider.viewport.center, before);
-    });
-
-    test('notifies listeners on viewport change from JS', () {
-      int notifyCount = 0;
-      mapProvider.addListener(() => notifyCount++);
-
-      mapProvider.handleWebViewEvent(
-        '{"type":"viewportChanged","center":[1,2],"zoom":5,"rotation":0}',
-      );
-      expect(notifyCount, 1);
-    });
-
-    test('setCenter triggers syncToWebView without throwing', () {
-      // No WebView attached — should not throw
-      mapProvider.setCenter(const LatLng(latitude: 10, longitude: 20));
+    test('updateViewport updates state', () {
+      mapProvider.updateViewport(const Viewport(
+        center: LatLng(latitude: 10, longitude: 10),
+        zoom: 10,
+        size: Size(100, 100),
+        rotation: 45,
+      ));
       expect(mapProvider.viewport.center.latitude, 10);
-    });
-
-    test('dispose cancels debounce timer', () {
-      mapProvider.setCenter(const LatLng(latitude: 5, longitude: 5));
-      // Should not throw on dispose even with pending timer
-      mapProvider.dispose();
+      expect(mapProvider.viewport.zoom, 10);
     });
   });
 

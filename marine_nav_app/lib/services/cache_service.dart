@@ -93,6 +93,12 @@ class CacheService {
     _evictIfNeeded();
   }
 
+  /// Store a JSON-encodable object with optional TTL.
+  Future<void> putJson(String key, Map<String, dynamic> json,
+      {Duration? ttl}) async {
+    await put(key, jsonEncode(json), ttl: ttl);
+  }
+
   /// Retrieve a cached value, or null if missing/expired.
   String? get(String key) {
     _assertInitialized();
@@ -119,6 +125,18 @@ class CacheService {
 
     _hits++;
     return value;
+  }
+
+  /// Retrieve a cached JSON object, or null if missing/expired.
+  Map<String, dynamic>? getJson(String key) {
+    final value = get(key);
+    if (value == null) return null;
+    try {
+      return jsonDecode(value) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('CacheService: Failed to decode JSON for $key - $e');
+      return null;
+    }
   }
 
   /// Delete a specific cache entry.

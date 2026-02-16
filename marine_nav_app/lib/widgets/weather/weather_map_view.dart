@@ -6,7 +6,7 @@ library;
 
 import 'package:flutter/material.dart';
 
-import '../map/map_webview.dart';
+import '../map/weather_layer_stack.dart';
 import 'timeline_scrubber.dart';
 
 /// Combined map + timeline scrubber for weather-aware screens.
@@ -35,7 +35,7 @@ class WeatherMapView extends StatelessWidget {
     final Widget content = Stack(
       children: [
         const Positioned.fill(
-          child: MapWebView(height: null),
+          child: WeatherLayerStack(height: null),
         ),
         if (showScrubber)
           const Positioned(

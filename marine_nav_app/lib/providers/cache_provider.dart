@@ -101,6 +101,18 @@ class CacheProvider extends ChangeNotifier {
     }
   }
 
+  /// Store a JSON object with optional TTL.
+  Future<void> putJson(String key, Map<String, dynamic> json,
+      {Duration? ttl}) async {
+    if (!_isInitialized) return;
+    try {
+      await _cacheService.putJson(key, json, ttl: ttl);
+      refreshStats();
+    } catch (e) {
+      debugPrint('CacheProvider: Failed to putJson $key - $e');
+    }
+  }
+
   /// Retrieve a cached string value, or null if missing/expired.
   String? getString(String key) {
     if (!_isInitialized) return null;
@@ -108,6 +120,17 @@ class CacheProvider extends ChangeNotifier {
       return _cacheService.get(key);
     } catch (e) {
       debugPrint('CacheProvider: Failed to get $key - $e');
+      return null;
+    }
+  }
+
+  /// Retrieve a cached JSON object, or null if missing/expired.
+  Map<String, dynamic>? getJson(String key) {
+    if (!_isInitialized) return null;
+    try {
+      return _cacheService.getJson(key);
+    } catch (e) {
+      debugPrint('CacheProvider: Failed to getJson $key - $e');
       return null;
     }
   }
@@ -140,6 +163,9 @@ class CacheProvider extends ChangeNotifier {
     }
   }
 
+  /// Alias for [clearCache].
+  Future<void> clear() => clearCache();
+
   /// Invalidate specific cache entry.
   Future<void> invalidate(String key) async {
     if (!_isInitialized) return;
@@ -150,6 +176,9 @@ class CacheProvider extends ChangeNotifier {
       debugPrint('CacheProvider: Failed to invalidate $key - $e');
     }
   }
+
+  /// Alias for [invalidate].
+  Future<void> remove(String key) => invalidate(key);
 
   /// Get cache entry (for debugging/inspection).
   Future<T?> get<T>(String key) async {
